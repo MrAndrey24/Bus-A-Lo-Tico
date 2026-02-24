@@ -1,5 +1,19 @@
+import java.util.Properties
+
 rootProject.name = "BusALoTico"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+
+
+val localProperties = Properties()
+val localPropertiesFile = File(rootDir, "local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { it -> localProperties.load(it) }
+}
+
+val MAPBOX_DOWLOADS_TOKEN = localProperties.getProperty("MAPBOX_DOWNLOADS_TOKEN") ?: ""
+
+
 
 pluginManagement {
     repositories {
@@ -28,6 +42,16 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven {
+            url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
+            credentials {
+                username = "mapbox"
+                password = MAPBOX_DOWLOADS_TOKEN
+            }
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+        }
     }
 }
 

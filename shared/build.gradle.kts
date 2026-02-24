@@ -79,6 +79,11 @@ kotlin {
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
+
+                // Moko
+                implementation(libs.moko.permissions)
+                implementation(libs.moko.permissions.compose)
+                implementation(libs.moko.permissions.geo)
             }
         }
 
