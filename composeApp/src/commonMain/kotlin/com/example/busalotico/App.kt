@@ -1,48 +1,82 @@
 package com.example.busalotico
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
-
-import busalotico.composeapp.generated.resources.Res
-import busalotico.composeapp.generated.resources.compose_multiplatform
+import com.example.busalotico.data.PermissionRequest
+import com.example.busalotico.ui.components.mapview.MapViewComponent
+import com.example.busalotico.ui.components.mapview.getLocationTracker
+import com.example.busalotico.ui.screen.PermissionsRequesterScreen
+import com.example.shared.presentation.LocationViewModel
+import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
+import dev.icerock.moko.permissions.Permission
+import dev.icerock.moko.permissions.location.LOCATION
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@Preview
 fun App() {
+    val viewModel = koinViewModel<LocationViewModel>()
+    AppContent(viewModel = viewModel)
+}
+
+@Composable
+fun AppContent(viewModel: LocationViewModel) {
+    val coordinate by viewModel.coordinate.collectAsState()
+
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+        Scaffold { innerPadding ->
+            PermissionsRequesterScreen(
+                permissions = listOf(
+                    PermissionRequest(
+                        permission = Permission.LOCATION,
+                        title = "Ubicación",
+                        description = "Para mostrar tu ubicación y los paraderos cercanos",
+                        icon = Icons.Default.LocationOn
+                    )
+                ),
+                onAllPermissionsGranted = {
+                    println("All permissions granted!")
                 }
+            ) { controller ->
+
+                val locationTracker = remember {
+                    getLocationTracker(controller)
+                }
+
+                BindLocationTrackerEffect(locationTracker = locationTracker)
+
+                // Simplemente le decimos al ViewModel que inicie el rastreo
+                // Esto se ejecuta una vez que entramos a este bloque (permisos concedidos)
+                LaunchedEffect(Unit) {
+                    println("Starting location tracking from ViewModel...")
+                    viewModel.startTracking(locationTracker)
+                }
+
+                // Si el usuario sale de esta pantalla, se detiene el rastreo
+                DisposableEffect(Unit) {
+                    onDispose {
+                        println("Stopping location tracking...")
+                        viewModel.stopTracking()
+                    }
+                }
+
+                // Manejo de Estado UI: Mostrar Mapa vs Cargando
+                MapViewComponent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    coordinate = coordinate
+                )
             }
         }
     }
