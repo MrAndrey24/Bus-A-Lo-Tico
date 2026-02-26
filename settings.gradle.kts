@@ -8,10 +8,9 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 val localProperties = Properties()
 val localPropertiesFile = File(rootDir, "local.properties")
 if (localPropertiesFile.exists()) {
-    localPropertiesFile.inputStream().use { it -> localProperties.load(it) }
+    localPropertiesFile.inputStream().use { it ->  localProperties.load(it) }
 }
-
-val MAPBOX_DOWLOADS_TOKEN = localProperties.getProperty("MAPBOX_DOWNLOADS_TOKEN") ?: ""
+val MAPBOX_DOWNLOADS_TOKEN = localProperties.getProperty("MAPBOX_DOWNLOADS_TOKEN") ?: ""
 
 
 
@@ -39,6 +38,7 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("androidx")
                 includeGroupAndSubgroups("com.android")
                 includeGroupAndSubgroups("com.google")
+                includeGroupAndSubgroups("org.chromium.net")
             }
         }
         mavenCentral()
@@ -46,7 +46,7 @@ dependencyResolutionManagement {
             url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
             credentials {
                 username = "mapbox"
-                password = MAPBOX_DOWLOADS_TOKEN
+                password = MAPBOX_DOWNLOADS_TOKEN
             }
             authentication {
                 create<BasicAuthentication>("basic")
