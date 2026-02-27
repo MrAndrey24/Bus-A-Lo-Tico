@@ -6,6 +6,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -14,8 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.example.busalotico.data.PermissionRequest
-import com.example.busalotico.ui.components.mapview.MapViewComponent
 import com.example.busalotico.ui.components.mapview.getLocationTracker
+import com.example.busalotico.ui.screen.HomeScreen
 import com.example.busalotico.ui.screen.PermissionsRequesterScreen
 import com.example.shared.presentation.LocationViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
@@ -32,50 +34,45 @@ fun App() {
 @Composable
 fun AppContent(viewModel: LocationViewModel) {
     val coordinate by viewModel.coordinate.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     MaterialTheme {
-        Scaffold { innerPadding ->
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { innerPadding ->
+
             PermissionsRequesterScreen(
                 permissions = listOf(
                     PermissionRequest(
                         permission = Permission.LOCATION,
-                        title = "Ubicación",
-                        description = "Para mostrar tu ubicación y los paraderos cercanos",
+                        title = "Location",
+                        description = "To show your location and nearby stops",
                         icon = Icons.Default.LocationOn
                     )
                 ),
-                onAllPermissionsGranted = {
-                    println("All permissions granted!")
-                }
-            ) { controller ->
+                snackbarHostState = snackbarHostState
+            ) { controller, isGranted ->
 
-                val locationTracker = remember {
-                    getLocationTracker(controller)
-                }
+                // We activate GPS only if permission has been granted.
+                if (isGranted) {
+                    val locationTracker = remember { getLocationTracker(controller) }
+                    BindLocationTrackerEffect(locationTracker = locationTracker)
 
-                BindLocationTrackerEffect(locationTracker = locationTracker)
+                    LaunchedEffect(Unit) {
+                        viewModel.startTracking(locationTracker)
+                    }
 
-                // Simplemente le decimos al ViewModel que inicie el rastreo
-                // Esto se ejecuta una vez que entramos a este bloque (permisos concedidos)
-                LaunchedEffect(Unit) {
-                    println("Starting location tracking from ViewModel...")
-                    viewModel.startTracking(locationTracker)
-                }
-
-                // Si el usuario sale de esta pantalla, se detiene el rastreo
-                DisposableEffect(Unit) {
-                    onDispose {
-                        println("Stopping location tracking...")
-                        viewModel.stopTracking()
+                    DisposableEffect(Unit) {
+                        onDispose { viewModel.stopTracking() }
                     }
                 }
 
-                // Manejo de Estado UI: Mostrar Mapa vs Cargando
-                MapViewComponent(
+                // default (without GPS active)
+                HomeScreen(
+                    coordinate = coordinate,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                    coordinate = coordinate
+                        .padding(innerPadding)
                 )
             }
         }
