@@ -21,6 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import busalotico.composeapp.generated.resources.Res
+import busalotico.composeapp.generated.resources.search_clear
+import busalotico.composeapp.generated.resources.search_placeholder
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchBar(
@@ -60,7 +64,7 @@ fun SearchBar(
                 decorationBox = { innerTextField ->
                     if (query.isEmpty()) {
                         Text(
-                            text = "Where are you going?",
+                            text = stringResource(Res.string.search_placeholder),
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -73,7 +77,7 @@ fun SearchBar(
             if (query.isNotEmpty()) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Clear",
+                    contentDescription = stringResource(Res.string.search_clear),
                     tint = Color.Gray,
                     modifier = Modifier
                         .size(18.dp)
