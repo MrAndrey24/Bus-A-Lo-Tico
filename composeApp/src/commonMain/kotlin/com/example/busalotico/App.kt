@@ -1,11 +1,12 @@
 package com.example.busalotico
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -14,9 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.example.busalotico.data.PermissionRequest
-import com.example.busalotico.ui.components.mapview.MapViewComponent
 import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.screen.PermissionsRequesterScreen
+import com.example.busalotico.ui.navigation.BusAppNavigation
 import com.example.shared.presentation.LocationViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.permissions.Permission
@@ -32,52 +33,40 @@ fun App() {
 @Composable
 fun AppContent(viewModel: LocationViewModel) {
     val coordinate by viewModel.coordinate.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     MaterialTheme {
-        Scaffold { innerPadding ->
-            PermissionsRequesterScreen(
-                permissions = listOf(
-                    PermissionRequest(
-                        permission = Permission.LOCATION,
-                        title = "Ubicación",
-                        description = "Para mostrar tu ubicación y los paraderos cercanos",
-                        icon = Icons.Default.LocationOn
-                    )
-                ),
-                onAllPermissionsGranted = {
-                    println("All permissions granted!")
-                }
-            ) { controller ->
+        PermissionsRequesterScreen(
+            permissions = listOf(
+                PermissionRequest(
+                    permission = Permission.LOCATION, // Usamos el objeto de Moko directamente
+                    title = "Location",
+                    description = "To show your location and nearby stops",
+                    icon = Icons.Default.LocationOn
+                )
+            ),
+            snackbarHostState = snackbarHostState
+        ) { controller, isGranted ->
 
-                val locationTracker = remember {
-                    getLocationTracker(controller)
-                }
-
+            // Lógica de GPS original
+            if (isGranted) {
+                val locationTracker = remember { getLocationTracker(controller) }
                 BindLocationTrackerEffect(locationTracker = locationTracker)
 
-                // Simplemente le decimos al ViewModel que inicie el rastreo
-                // Esto se ejecuta una vez que entramos a este bloque (permisos concedidos)
                 LaunchedEffect(Unit) {
-                    println("Starting location tracking from ViewModel...")
                     viewModel.startTracking(locationTracker)
                 }
 
-                // Si el usuario sale de esta pantalla, se detiene el rastreo
                 DisposableEffect(Unit) {
-                    onDispose {
-                        println("Stopping location tracking...")
-                        viewModel.stopTracking()
-                    }
+                    onDispose { viewModel.stopTracking() }
                 }
-
-                // Manejo de Estado UI: Mostrar Mapa vs Cargando
-                MapViewComponent(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    coordinate = coordinate
-                )
             }
+
+            // LLAMADO FINAL  AL NAVEGADOR
+            // Le pasamos la coordenada (que puede ser nula) y él se encarga del resto
+            BusAppNavigation(
+                coordinate = coordinate
+            )
         }
     }
 }
