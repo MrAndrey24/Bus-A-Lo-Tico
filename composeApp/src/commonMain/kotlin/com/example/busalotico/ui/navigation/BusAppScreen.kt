@@ -1,4 +1,4 @@
-package com.example.shared.presentation.navigation
+package com.example.busalotico.ui.navigation
 
 enum class BusAppScreen {
     Home,

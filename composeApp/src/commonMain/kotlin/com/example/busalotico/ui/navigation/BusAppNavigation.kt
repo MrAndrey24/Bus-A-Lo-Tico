@@ -1,15 +1,24 @@
-package com.example.shared.presentation.navigation
+package com.example.busalotico.ui.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.busalotico.ui.screen.HomeScreen
+import com.example.shared.domain.entities.Coordinate
 
 @Composable
 fun BusAppNavigation(
-    // El slot para inyectar el mapa desde composeApp
-    mapContent: @Composable () -> Unit
+    coordinate: Coordinate? // Recibimos la ubicación que viene del ViewModel
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -45,13 +54,25 @@ fun BusAppNavigation(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(route = BusAppScreen.Home.name) {
-                mapContent() // Aquí caerá tu mapa de Mapbox
+                // LÓGICA DE SEGURIDAD: Solo entramos si hay coordenadas
+                val currentCoord = coordinate
+                if (currentCoord != null) {
+                    HomeScreen(
+                        coordinate = currentCoord, // Aquí ya no es nulo, error resuelto
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    // Si es nulo, ponemos un mensaje simple para no quebrar la app
+                    Text("Buscando señal GPS...")
+                }
             }
+
             composable(route = BusAppScreen.Routes.name) {
-                Text("Pantalla de Rutas Real")
+                Text("Pantalla de Rutas")
             }
+
             composable(route = BusAppScreen.Detail.name) {
-                Text("Detalle de Bus Real")
+                Text("Pantalla de Detalle")
             }
         }
     }
