@@ -1,6 +1,5 @@
 package com.example.busalotico
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.MaterialTheme
@@ -11,16 +10,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import busalotico.composeapp.generated.resources.Res
 import busalotico.composeapp.generated.resources.permission_location_description
 import busalotico.composeapp.generated.resources.permission_location_title
 import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
-import com.example.busalotico.ui.screen.HomeScreen
+import com.example.busalotico.ui.navigation.BusAppNavigation
 import com.example.busalotico.ui.screen.PermissionsRequesterScreen
 import com.example.shared.presentation.LocationViewModel
-import com.example.shared.presentation.navigation.BusAppNavigation
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.location.LOCATION
@@ -39,6 +36,7 @@ fun AppContent(viewModel: LocationViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     MaterialTheme {
+        // Mantenemos el PermissionsRequesterScreen como el filtro principal
         PermissionsRequesterScreen(
             permissions = listOf(
                 PermissionRequest(
@@ -51,6 +49,7 @@ fun AppContent(viewModel: LocationViewModel) {
             snackbarHostState = snackbarHostState
         ) { controller, isGranted ->
 
+            // Lógica de GPS original
             if (isGranted) {
                 val locationTracker = remember { getLocationTracker(controller) }
                 BindLocationTrackerEffect(locationTracker = locationTracker)
@@ -64,13 +63,10 @@ fun AppContent(viewModel: LocationViewModel) {
                 }
             }
 
+            // LLAMADO FINAL  AL NAVEGADOR
+            // Le pasamos la coordenada (que puede ser nula) y él se encarga del resto
             BusAppNavigation(
-                mapContent = {
-                    HomeScreen(
-                        coordinate = coordinate,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                coordinate = coordinate
             )
         }
     }
