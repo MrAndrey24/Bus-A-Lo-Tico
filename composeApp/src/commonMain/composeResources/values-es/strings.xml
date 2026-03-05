@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- EnableLocationScreen -->
+    <string name="enable_location_title">Activar ubicación</string>
+    <string name="enable_location_description">Para mostrarte los mejores servicios cerca de ti y mejorar tu experiencia, necesitamos acceso a tu ubicación.</string>
+    <string name="allow_access">Permitir acceso</string>
+    <string name="not_now">Ahora no</string>
+
+    <!-- SelectRouteButton -->
+    <string name="select_route">Seleccione una ruta</string>
+
+    <!-- SearchBar -->
+    <string name="search_placeholder">¿Adonde vas?</string>
+    <string name="search_clear">Limpiar</string>
+
+    <!-- Permissions -->
+    <string name="permission_required_message">%s es requerido para esta función.</string>
+    <string name="try_again">Intentar de nuevo</string>
+    <string name="permission_location_title">Ubicación</string>
+    <string name="permission_location_description">Para mostrar tu ubicación y paradas cercanas</string>
+
+    <!-- BottomNavBar -->
+    <string name="nav_map">Mapa</string>
+    <string name="nav_routes">Rutas</string>
+    <string name="nav_detail">Detalle</string>
+</resources>
