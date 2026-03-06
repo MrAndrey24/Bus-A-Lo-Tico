@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -31,7 +32,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PermissionsRequesterScreen(
     permissions: List<PermissionRequest>,
-    snackbarHostState: SnackbarHostState,
+    snackBarHostState: SnackbarHostState,
     onAllPermissionsGranted: () -> Unit = {},
     content: @Composable (PermissionsController, Boolean) -> Unit
 ) {
@@ -39,22 +40,21 @@ fun PermissionsRequesterScreen(
     val controller = remember(factory) { factory.createPermissionsController() }
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
-
     BindEffect(controller)
-
     var permissionStates by remember {
         mutableStateOf(permissions.associate { it.permission to PermissionState.NotDetermined })
     }
-
     var isSkipped by remember { mutableStateOf(false) }
-
     var isRequesting by remember { mutableStateOf(false) }
+    var isCheckingPermissions by remember { mutableStateOf(true) }
+
 
     val refreshPermissions: () -> Unit = {
         scope.launch {
             permissionStates = permissions.associate { req ->
                 req.permission to controller.getPermissionState(req.permission)
             }
+            isCheckingPermissions = false
         }
     }
 
@@ -67,10 +67,11 @@ fun PermissionsRequesterScreen(
                     try {
                         controller.providePermission(req.permission)
                     } catch (e: DeniedAlwaysException) {
+                        controller.openAppSettings()
                     } catch (e: DeniedException) {
-                        val result = snackbarHostState.showSnackbar(
-                            message = "${req.title} is required for this function.",
-                            actionLabel = "Try again",
+                        val result = snackBarHostState.showSnackbar(
+                            message = "${req.title} es necesario para esta función.",
+                            actionLabel = "Inténtalo de nuevo",
                             duration = SnackbarDuration.Long
                         )
                         if (result == SnackbarResult.ActionPerformed) {
@@ -110,12 +111,25 @@ fun PermissionsRequesterScreen(
     }
 
     when {
+        isCheckingPermissions -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(
+                    color = Color.Black
+                )
+            }
+        }
+
         allGranted -> {
             content(controller, true)
         }
 
-        isSkipped -> {
-            content(controller, false)
+        isSkipped || anyPermanentlyDenied -> {
+            LocationRequiredScreen(
+                onRetryClick = {
+                    isSkipped = false
+                    onRequestPermissionsClick()
+                }
+            )
         }
 
         isRequesting -> {
@@ -123,7 +137,9 @@ fun PermissionsRequesterScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    color = Color.Black
+                )
             }
         }
 
