@@ -46,11 +46,10 @@ fun AppContent(viewModel: LocationViewModel) {
                     icon = Icons.Default.LocationOn
                 )
             ),
-            snackbarHostState = snackbarHostState
+            snackBarHostState = snackbarHostState
         ) { controller, isGranted ->
 
-            // Lógica de GPS original
-            if (isGranted) {
+            // Lógica de GPS
                 val locationTracker = remember { getLocationTracker(controller) }
                 BindLocationTrackerEffect(locationTracker = locationTracker)
 
@@ -61,7 +60,6 @@ fun AppContent(viewModel: LocationViewModel) {
                 DisposableEffect(Unit) {
                     onDispose { viewModel.stopTracking() }
                 }
-            }
 
             // LLAMADO FINAL  AL NAVEGADOR
             // Le pasamos la coordenada (que puede ser nula) y él se encarga del resto
