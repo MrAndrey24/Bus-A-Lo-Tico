@@ -16,7 +16,7 @@ import busalotico.composeapp.generated.resources.permission_location_title
 import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.navigation.BusAppNavigation
-import com.example.busalotico.ui.screen.PermissionsRequesterScreen
+import com.example.busalotico.ui.screen.onboarding.PermissionsRequesterScreen
 import com.example.shared.presentation.LocationViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.permissions.Permission

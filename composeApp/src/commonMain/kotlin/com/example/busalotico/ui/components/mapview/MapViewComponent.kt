@@ -7,5 +7,8 @@ import com.example.shared.domain.entities.Coordinate
 @Composable
 expect fun MapViewComponent(
     modifier: Modifier = Modifier,
-    coordinate: Coordinate
+    coordinate: Coordinate,
+    recenterTrigger: Int,
+    zoomInTrigger: Int = 0,
+    zoomOutTrigger: Int = 0
 )

@@ -89,6 +89,8 @@ navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-co
 
 # Material Icons
 material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCoreVersion" }
+material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsCoreVersion" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
