@@ -17,7 +17,10 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 @Composable
 actual fun MapViewComponent(
     modifier: Modifier,
-    coordinate: Coordinate
+    coordinate: Coordinate,
+    recenterTrigger: Int,
+    zoomInTrigger: Int,
+    zoomOutTrigger: Int
 ) {
     val currentPoint = Point.fromLngLat(coordinate.longitude, coordinate.latitude)
 
@@ -29,6 +32,7 @@ actual fun MapViewComponent(
         }
     }
 
+    // Map GPS
     LaunchedEffect(coordinate) {
         mapViewportState.easeTo(
             cameraOptions {
@@ -41,6 +45,46 @@ actual fun MapViewComponent(
         )
     }
 
+    // Recenter GPS
+    LaunchedEffect(recenterTrigger) {
+        if (recenterTrigger > 0) {
+            mapViewportState.easeTo(
+                cameraOptions {
+                    center(currentPoint)
+                    zoom(15.0)
+                },
+                MapAnimationOptions.mapAnimationOptions { duration(800) }
+            )
+        }
+    }
+
+    // Zoom In
+    LaunchedEffect(zoomInTrigger) {
+        if (zoomInTrigger > 0) {
+            val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
+            mapViewportState.easeTo(
+                cameraOptions {
+                    zoom(currentZoom + 1.0)
+                },
+                MapAnimationOptions.mapAnimationOptions { duration(300) }
+            )
+        }
+    }
+
+    // Zoom Out
+    LaunchedEffect(zoomOutTrigger) {
+        if (zoomOutTrigger > 0) {
+            val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
+            mapViewportState.easeTo(
+                cameraOptions {
+                    zoom(currentZoom - 1.0)
+                },
+                MapAnimationOptions.mapAnimationOptions { duration(300) }
+            )
+        }
+    }
+
+
     MapboxMap(
         modifier = modifier,
         mapViewportState = mapViewportState,
@@ -50,7 +94,7 @@ actual fun MapViewComponent(
     ) {
         CircleAnnotation(point = currentPoint) {
             circleRadius = 10.0
-            circleColor = Color.Red
+            circleColor = Color.Blue
             circleStrokeWidth = 3.0
             circleStrokeColor = Color.White
         }
