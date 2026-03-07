@@ -1,7 +1,7 @@
 package com.example.shared.domain.usecases
 
 import com.example.shared.domain.entities.Route
-import com.example.shared.domain.repository.IRouteRepository
+import com.example.shared.data.repository.route.IRouteRepository
 
 class GetRouteUseCase(
     private val repository: IRouteRepository

@@ -1,7 +1,7 @@
 package com.example.shared.domain.usecases
 
 import com.example.shared.domain.entities.Company
-import com.example.shared.domain.repository.ICompanyRepository
+import com.example.shared.data.repository.company.ICompanyRepository
 
 class GetCompanyUseCase(
     private val repository: ICompanyRepository

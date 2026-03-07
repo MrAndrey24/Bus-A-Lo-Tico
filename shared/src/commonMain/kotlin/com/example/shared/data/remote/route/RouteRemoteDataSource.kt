@@ -1,14 +1,28 @@
-package com.example.shared.data.remote
+package com.example.shared.data.remote.route
 
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteSchedule
 import com.example.shared.domain.entities.RouteStop
-import com.example.shared.domain.repository.IRouteRepository
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.serialization.Serializable
 
-class RouteFirestoreDataSource : IRouteRepository {
+class RouteRemoteDataSource : IRouteRemoteDataSource {
+
+    override suspend fun getRoutes(): List<Route> {
+        return Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .get()
+            .documents
+            .map { routeSnapshot ->
+                val routeDto = routeSnapshot.data(RouteDto.serializer())
+                routeDto.toDomain(
+                    documentId = routeSnapshot.id,
+                    stops = emptyList(),
+                    schedules = emptyList()
+                )
+            }
+    }
 
     override suspend fun getRoute(routeId: String): Route? {
         val routeRef = Firebase.firestore

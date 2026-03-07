@@ -8,7 +8,7 @@ import org.koin.dsl.includes
 
 fun initKoin(config: KoinAppDeclaration? = null) : KoinApplication {
     return startKoin {
-        includes(config) // Extensiones específicas de plataforma
+        includes(config)
         modules(sharedModule)
     }
 }

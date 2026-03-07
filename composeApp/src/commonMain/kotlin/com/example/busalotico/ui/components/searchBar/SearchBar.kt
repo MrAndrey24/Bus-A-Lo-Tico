@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
+    placeholder: String = "Where are you going?",
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -60,7 +61,7 @@ fun SearchBar(
                 decorationBox = { innerTextField ->
                     if (query.isEmpty()) {
                         Text(
-                            text = "Where are you going?",
+                            text = placeholder,
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodyMedium
                         )
