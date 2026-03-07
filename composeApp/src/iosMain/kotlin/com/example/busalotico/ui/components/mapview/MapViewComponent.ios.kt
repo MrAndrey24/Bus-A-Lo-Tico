@@ -7,6 +7,9 @@ import com.example.shared.domain.entities.Coordinate
 @Composable
 actual fun MapViewComponent(
     modifier: Modifier,
-    coordinate: Coordinate
+    coordinate: Coordinate,
+    recenterTrigger: Int,
+    zoomInTrigger: Int,
+    zoomOutTrigger: Int
 ) {
 }
