@@ -3,7 +3,7 @@ package com.example.busalotico.ui.components.mapview
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -17,7 +17,6 @@ import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportS
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
-import kotlinx.coroutines.delay
 
 @Composable
 actual fun MapViewComponent(
@@ -28,7 +27,7 @@ actual fun MapViewComponent(
     zoomOutTrigger: Int
 ) {
     val currentPoint = Point.fromLngLat(coordinate.longitude, coordinate.latitude)
-    var locationUpdateCount by remember { mutableStateOf(0) }
+    var locationUpdateCount by remember { mutableIntStateOf(0) }
 
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
@@ -40,9 +39,6 @@ actual fun MapViewComponent(
     // Map GPS
     LaunchedEffect(coordinate) {
         if (locationUpdateCount < 2) {
-            if (locationUpdateCount == 0) {
-                delay(500)
-            }
             mapViewportState.easeTo(
                 cameraOptions {
                     center(currentPoint)
@@ -96,6 +92,7 @@ actual fun MapViewComponent(
     }
 
 
+    // Map Style
     MapboxMap(
         modifier = modifier,
         mapViewportState = mapViewportState,
@@ -103,6 +100,7 @@ actual fun MapViewComponent(
             MapStyle(style = Style.MAPBOX_STREETS)
         }
     ) {
+        // User Location Point
         CircleAnnotation(point = currentPoint) {
             circleRadius = 10.0
             circleColor = Color.Blue
