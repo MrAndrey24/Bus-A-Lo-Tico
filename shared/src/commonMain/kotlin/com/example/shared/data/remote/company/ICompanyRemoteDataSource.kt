@@ -1,7 +1,7 @@
-package com.example.shared.domain.repository
+package com.example.shared.data.remote.company
 
 import com.example.shared.domain.entities.Company
 
-interface ICompanyRepository {
+interface ICompanyRemoteDataSource {
     suspend fun getCompany(companyId: String): Company?
 }

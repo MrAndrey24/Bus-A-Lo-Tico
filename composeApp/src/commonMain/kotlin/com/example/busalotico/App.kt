@@ -21,8 +21,10 @@ import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.screen.HomeScreen
 import com.example.busalotico.ui.screen.PermissionsRequesterScreen
-import com.example.busalotico.ui.screen.RouteDebugScreen
-import com.example.shared.presentation.CompanyViewModel
+import com.example.busalotico.ui.screen.RouteSelectionScreen
+import com.example.busalotico.ui.screen.RouteSelectionTab
+import com.example.busalotico.ui.screen.RouteSelectionUiState
+import com.example.busalotico.ui.screen.toRouteListItemUi
 import com.example.shared.presentation.LocationViewModel
 import com.example.shared.presentation.RouteViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
@@ -33,11 +35,9 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun App() {
     val locationViewModel = koinViewModel<LocationViewModel>()
-    val companyViewModel = koinViewModel<CompanyViewModel>()
     val routeViewModel = koinViewModel<RouteViewModel>()
     AppContent(
         locationViewModel = locationViewModel,
-        companyViewModel = companyViewModel,
         routeViewModel = routeViewModel
     )
 }
@@ -45,19 +45,13 @@ fun App() {
 @Composable
 fun AppContent(
     locationViewModel: LocationViewModel,
-    companyViewModel: CompanyViewModel,
     routeViewModel: RouteViewModel
 ) {
     val coordinate by locationViewModel.coordinate.collectAsState()
-    val company by companyViewModel.company.collectAsState()
-    val route by routeViewModel.route.collectAsState()
+    val routeUiState by routeViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showRouteScreen by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        companyViewModel.loadCompany("company1")
-        routeViewModel.loadRoute("route1")
-    }
+    var selectedTab by remember { mutableStateOf(RouteSelectionTab.ROUTES) }
 
     MaterialTheme {
         Scaffold(
@@ -92,10 +86,19 @@ fun AppContent(
 
                 // default (without GPS active)
                 if (showRouteScreen) {
-                    RouteDebugScreen(
-                        company = company,
-                        route = route,
+                    val routeItems = remember(routeUiState.routes) {
+                        routeUiState.routes.map { it.toRouteListItemUi() }
+                    }
+
+                    RouteSelectionScreen(
+                        uiState = RouteSelectionUiState(
+                            routes = routeItems,
+                            selectedTab = selectedTab
+                        ),
                         onBackClick = { showRouteScreen = false },
+                        onMoreClick = { },
+                        onRouteClick = { },
+                        onTabClick = { selectedTab = it },
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)

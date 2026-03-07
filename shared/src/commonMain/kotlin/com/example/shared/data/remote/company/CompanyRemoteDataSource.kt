@@ -1,12 +1,11 @@
-package com.example.shared.data.remote
+package com.example.shared.data.remote.company
 
 import com.example.shared.domain.entities.Company
-import com.example.shared.domain.repository.ICompanyRepository
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.serialization.Serializable
 
-class CompanyFirestoreDataSource : ICompanyRepository {
+class CompanyRemoteDataSource : ICompanyRemoteDataSource {
 
     override suspend fun getCompany(companyId: String): Company? {
         val snapshot = Firebase.firestore

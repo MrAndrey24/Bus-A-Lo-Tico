@@ -1,7 +1,8 @@
-package com.example.shared.domain.repository
+package com.example.shared.data.repository.route
 
 import com.example.shared.domain.entities.Route
 
 interface IRouteRepository {
     suspend fun getRoute(routeId: String): Route?
+    suspend fun getRoutes(): List<Route>
 }
