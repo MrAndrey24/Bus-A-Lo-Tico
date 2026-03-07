@@ -13,13 +13,18 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.screen.HomeScreen
 import com.example.busalotico.ui.screen.PermissionsRequesterScreen
+import com.example.busalotico.ui.screen.RouteDebugScreen
+import com.example.shared.presentation.CompanyViewModel
 import com.example.shared.presentation.LocationViewModel
+import com.example.shared.presentation.RouteViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.location.LOCATION
@@ -27,14 +32,32 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
-    val viewModel = koinViewModel<LocationViewModel>()
-    AppContent(viewModel = viewModel)
+    val locationViewModel = koinViewModel<LocationViewModel>()
+    val companyViewModel = koinViewModel<CompanyViewModel>()
+    val routeViewModel = koinViewModel<RouteViewModel>()
+    AppContent(
+        locationViewModel = locationViewModel,
+        companyViewModel = companyViewModel,
+        routeViewModel = routeViewModel
+    )
 }
 
 @Composable
-fun AppContent(viewModel: LocationViewModel) {
-    val coordinate by viewModel.coordinate.collectAsState()
+fun AppContent(
+    locationViewModel: LocationViewModel,
+    companyViewModel: CompanyViewModel,
+    routeViewModel: RouteViewModel
+) {
+    val coordinate by locationViewModel.coordinate.collectAsState()
+    val company by companyViewModel.company.collectAsState()
+    val route by routeViewModel.route.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showRouteScreen by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        companyViewModel.loadCompany("company1")
+        routeViewModel.loadRoute("route1")
+    }
 
     MaterialTheme {
         Scaffold(
@@ -59,21 +82,33 @@ fun AppContent(viewModel: LocationViewModel) {
                     BindLocationTrackerEffect(locationTracker = locationTracker)
 
                     LaunchedEffect(Unit) {
-                        viewModel.startTracking(locationTracker)
+                        locationViewModel.startTracking(locationTracker)
                     }
 
                     DisposableEffect(Unit) {
-                        onDispose { viewModel.stopTracking() }
+                        onDispose { locationViewModel.stopTracking() }
                     }
                 }
 
                 // default (without GPS active)
-                HomeScreen(
-                    coordinate = coordinate,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                )
+                if (showRouteScreen) {
+                    RouteDebugScreen(
+                        company = company,
+                        route = route,
+                        onBackClick = { showRouteScreen = false },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    )
+                } else {
+                    HomeScreen(
+                        coordinate = coordinate,
+                        onSelectRouteClick = { showRouteScreen = true },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    )
+                }
             }
         }
     }
