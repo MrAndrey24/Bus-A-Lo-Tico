@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.androidLint)
 }
@@ -84,6 +85,9 @@ kotlin {
                 implementation(libs.moko.permissions)
                 implementation(libs.moko.permissions.compose)
                 implementation(libs.moko.permissions.geo)
+
+                // Firebase Kotlin SDK (GitLive)
+                implementation(libs.firebase.firestore)
             }
         }
 
@@ -103,6 +107,9 @@ kotlin {
                 // Add Android-specific dependencies here. Note that this source set depends on
                 // commonMain by default and will correctly pull the Android artifacts of any KMP
                 // dependencies declared in commonMain.
+
+                // Required by GitLive Firebase Android artifacts.
+                implementation(project.dependencies.platform(libs.firebase.bom))
 
                 // Koin
                 implementation(libs.koin.android)

@@ -36,7 +36,6 @@ fun AppContent(viewModel: LocationViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     MaterialTheme {
-        // Mantenemos el PermissionsRequesterScreen como el filtro principal
         PermissionsRequesterScreen(
             permissions = listOf(
                 PermissionRequest(
@@ -47,25 +46,19 @@ fun AppContent(viewModel: LocationViewModel) {
                 )
             ),
             snackBarHostState = snackbarHostState
-        ) { controller, isGranted ->
+        ) { controller, _ ->
+            val locationTracker = remember { getLocationTracker(controller) }
+            BindLocationTrackerEffect(locationTracker = locationTracker)
 
-            // Lógica de GPS
-                val locationTracker = remember { getLocationTracker(controller) }
-                BindLocationTrackerEffect(locationTracker = locationTracker)
+            LaunchedEffect(Unit) {
+                viewModel.startTracking(locationTracker)
+            }
 
-                LaunchedEffect(Unit) {
-                    viewModel.startTracking(locationTracker)
-                }
+            DisposableEffect(Unit) {
+                onDispose { viewModel.stopTracking() }
+            }
 
-                DisposableEffect(Unit) {
-                    onDispose { viewModel.stopTracking() }
-                }
-
-            // LLAMADO FINAL  AL NAVEGADOR
-            // Le pasamos la coordenada (que puede ser nula) y él se encarga del resto
-            BusAppNavigation(
-                coordinate = coordinate
-            )
+            BusAppNavigation(coordinate = coordinate)
         }
     }
 }
