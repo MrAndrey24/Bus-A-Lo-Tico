@@ -2,7 +2,14 @@ package com.example.shared.domain.entities
 
 data class Route(
     val id: String,
+    val code: String,
     val name: String,
+    val statusText: String,
+    val etaText: String,
+    val frequencyText: String,
+    val isActive: Boolean,
+    val isLive: Boolean,
+    val isFavorite: Boolean,
     val startLatitude: Double,
     val startLongitude: Double,
     val endLatitude: Double,
