@@ -1,6 +1,6 @@
 package com.example.shared.data.local
 
-import com.example.shared.data.repository.ILocationRepository
+import com.example.shared.data.repository.location.ILocationRepository
 import com.example.shared.domain.entities.Coordinate
 import dev.icerock.moko.geo.LocationTracker
 import kotlinx.coroutines.flow.Flow

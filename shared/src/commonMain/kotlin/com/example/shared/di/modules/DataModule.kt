@@ -7,7 +7,7 @@ import com.example.shared.data.remote.route.IRouteRemoteDataSource
 import com.example.shared.data.remote.route.RouteRemoteDataSource
 import com.example.shared.data.repository.company.CompanyRepository
 import com.example.shared.data.repository.company.ICompanyRepository
-import com.example.shared.data.repository.ILocationRepository
+import com.example.shared.data.repository.location.ILocationRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.route.RouteRepository
 import org.koin.dsl.module

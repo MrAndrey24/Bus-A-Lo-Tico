@@ -1,4 +1,4 @@
-package com.example.shared.data.repository
+package com.example.shared.data.repository.location
 
 import com.example.shared.domain.entities.Coordinate
 import dev.icerock.moko.geo.LocationTracker

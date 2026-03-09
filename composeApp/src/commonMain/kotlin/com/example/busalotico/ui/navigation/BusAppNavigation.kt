@@ -20,8 +20,8 @@ import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
-import com.example.shared.presentation.RouteUiState
-import com.example.shared.presentation.RouteViewModel
+import com.example.shared.presentation.route.RouteUiState
+import com.example.shared.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
