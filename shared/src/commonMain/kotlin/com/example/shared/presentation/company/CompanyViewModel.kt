@@ -1,9 +1,9 @@
-package com.example.shared.presentation
+package com.example.shared.presentation.company
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shared.domain.entities.Company
-import com.example.shared.domain.usecases.GetCompanyUseCase
+import com.example.shared.domain.usecases.company.GetCompanyUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -1,4 +1,4 @@
-package com.example.shared.presentation
+package com.example.shared.presentation.route
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
