@@ -1,6 +1,5 @@
 package com.example.shared.data.local
 
-import com.example.shared.data.repository.location.ILocationRepository
 import com.example.shared.domain.entities.Coordinate
 import dev.icerock.moko.geo.LocationTracker
 import kotlinx.coroutines.flow.Flow
@@ -8,7 +7,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 
-class LocationLocalDataSource : ILocationRepository {
+class LocationLocalDataSource : ILocationLocalDataSource {
 
     override fun getLocationUpdates(tracker: LocationTracker): Flow<Coordinate> {
         return tracker.getLocationsFlow()
@@ -20,5 +19,6 @@ class LocationLocalDataSource : ILocationRepository {
                 tracker.stopTracking()
             }
     }
+
 
 }
