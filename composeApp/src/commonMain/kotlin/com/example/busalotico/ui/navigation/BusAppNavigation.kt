@@ -21,9 +21,9 @@ import com.example.busalotico.ui.screen.home.HomeScreen
 import com.example.busalotico.ui.screen.RouteDetailScreen // NUESTRO IMPORT
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
-import com.example.shared.presentation.RouteUiState
-import com.example.shared.presentation.RouteViewModel
 import com.example.shared.presentation.RouteDetailViewModel // NUESTRO IMPORT
+import com.example.shared.presentation.route.RouteUiState
+import com.example.shared.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.LocalContentColor
