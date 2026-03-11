@@ -1,9 +1,9 @@
 package com.example.shared.di.modules
 
-import com.example.shared.presentation.CompanyViewModel
-import com.example.shared.presentation.LocationViewModel
+import com.example.shared.presentation.company.CompanyViewModel
+import com.example.shared.presentation.location.LocationViewModel
+import com.example.shared.presentation.route.RouteViewModel
 import com.example.shared.presentation.RouteDetailViewModel
-import com.example.shared.presentation.RouteViewModel
 import org.koin.dsl.module
 
 val presentationModule = module {
