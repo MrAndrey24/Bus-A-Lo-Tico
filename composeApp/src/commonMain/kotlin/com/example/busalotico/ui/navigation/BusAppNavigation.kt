@@ -18,19 +18,30 @@ import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
+import com.example.busalotico.ui.screen.RouteDetailScreen // NUESTRO IMPORT
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
 import com.example.shared.presentation.RouteUiState
 import com.example.shared.presentation.RouteViewModel
+import com.example.shared.presentation.RouteDetailViewModel // NUESTRO IMPORT
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun BusAppNavigation(
-    coordinate: Coordinate? // Recibimos la ubicación que viene del ViewModel
+    coordinate: Coordinate?
 ) {
     val navController = rememberNavController()
     val routeViewModel = koinViewModel<RouteViewModel>()
+
+    val detailViewModel = koinViewModel<RouteDetailViewModel>()
+    val selectedId by detailViewModel.selectedRouteId.collectAsState()
+    val isDetailEnabled = selectedId.isNotEmpty()
+
     val routeUiState by routeViewModel.uiState.collectAsState()
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: BusAppScreen.Home.name
 
@@ -51,9 +62,34 @@ fun BusAppNavigation(
                 )
                 NavigationBarItem(
                     selected = currentRoute == BusAppScreen.Detail.name,
-                    onClick = { navController.navigate(BusAppScreen.Detail.name) },
-                    label = { Text("Detalle") },
-                    icon = { Text("📋") }
+                    enabled = isDetailEnabled,
+                    onClick = {
+                        if (isDetailEnabled) {
+                            navController.navigate(BusAppScreen.Detail.name)
+                        }
+                    },
+                    label = {
+                        Text(
+                            text = "Detalle",
+                            // Opacidad en letras en caso desabilitado
+                            color = if (isDetailEnabled) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            }
+                        )
+                    },
+                    icon = {
+                        // LocalContentColor para que el icono también se vea deslavado
+                        CompositionLocalProvider(
+                            LocalContentColor provides if (isDetailEnabled)
+                                MaterialTheme.colorScheme.onSurface
+                            else
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        ) {
+                            Text("📋")
+                        }
+                    }
                 )
             }
         }
@@ -64,16 +100,14 @@ fun BusAppNavigation(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(route = BusAppScreen.Home.name) {
-                // LÓGICA DE SEGURIDAD: Solo entramos si hay coordenadas
                 val currentCoord = coordinate
                 if (currentCoord != null) {
                     HomeScreen(
-                        coordinate = currentCoord, // Aquí ya no es nulo, error resuelto
+                        coordinate = currentCoord,
                         onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // Si es nulo, ponemos un mensaje simple para no quebrar la app
                     Text("Buscando señal GPS...")
                 }
             }
@@ -86,7 +120,7 @@ fun BusAppNavigation(
             }
 
             composable(route = BusAppScreen.Detail.name) {
-                Text("Pantalla de Detalle")
+                RouteDetailScreen(routeId = selectedId)
             }
         }
     }
