@@ -17,6 +17,7 @@ import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.navigation.BusAppNavigation
 import com.example.busalotico.ui.screen.onboarding.PermissionsRequesterScreen
+import com.example.busalotico.ui.theme.AppTheme
 import com.example.shared.presentation.location.LocationViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.permissions.Permission
@@ -26,10 +27,11 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
-    val viewModel = koinViewModel<LocationViewModel>()
-    AppContent(viewModel = viewModel)
+    AppTheme {
+        val viewModel = koinViewModel<LocationViewModel>()
+        AppContent(viewModel = viewModel)
+    }
 }
-
 @Composable
 fun AppContent(viewModel: LocationViewModel) {
     val coordinate by viewModel.coordinate.collectAsState()
