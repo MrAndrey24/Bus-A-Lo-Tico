@@ -15,10 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.busalotico.ui.components.mapview.MapViewComponent // Componente reutilizado
+import com.example.busalotico.ui.components.RecenterButton
+import com.example.busalotico.ui.components.ZoomControls
+import com.example.busalotico.ui.components.mapview.MapViewComponent
+import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
-import com.example.shared.presentation.LocationViewModel
+import com.example.shared.presentation.route.RouteDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 
 // Modelo de apoyo para los datos de la lista
 data class BusStopDetail(
@@ -32,22 +37,19 @@ data class BusStopDetail(
 @Composable
 fun RouteDetailScreen(
     routeId: String,
-    locationViewModel: LocationViewModel = koinViewModel()
+    coordinate: Coordinate,
+    // Usamos el ViewModel que tiene el selectedRouteId y la polyline
+    viewModel: RouteDetailViewModel = koinViewModel()
 ) {
-    // 1. Estado de ubicación global
-    val userCoordinate by locationViewModel.coordinate.collectAsState()
+    // 1. OBSERVAMOS LOS PUNTOS DE LA CALLE (La línea azul)
+    val polylinePoints by viewModel.polylinePoints.collectAsState()
 
-    // 2. Triggers replicados del HomeScreen para el control del mapa
-    var recenterTrigger by remember { mutableStateOf(0) }
-    var zoomInTrigger by remember { mutableStateOf(0) }
-    var zoomOutTrigger by remember { mutableStateOf(0) }
+    // Triggers para el control del mapa
+    var recenterTrigger by remember { mutableIntStateOf(0) }
+    var zoomInTrigger by remember { mutableIntStateOf(0) }
+    var zoomOutTrigger by remember { mutableIntStateOf(0) }
 
-    // Disparamos el centrado inicial cuando carga la coordenada
-    LaunchedEffect(userCoordinate) {
-        recenterTrigger++
-    }
-
-    // Lista de paradas quemada para pruebas
+    // Lista de paradas quemada para la UI
     val detailedStops = remember(routeId) {
         listOf(
             BusStopDetail(RouteStop("1", "Terminal San José", 9.9347, -84.0797, 1), "08:15", "Completada", isCompleted = true),
@@ -57,14 +59,35 @@ fun RouteDetailScreen(
         )
     }
 
+    // Extraemos las coordenadas de las paradas
+    val stopCoordinates = remember(detailedStops) {
+        detailedStops.map { Coordinate(it.baseStop.latitude, it.baseStop.longitude) }
+    }
+
+    // 2. DISPARAMOS LA CARGA DE LA LÍNEA
+    // Si ya la navegación lo hizo, esto solo asegura que los puntos estén ahí.
+    LaunchedEffect(routeId) {
+        viewModel.loadMapboxLine(stopCoordinates)
+    }
+
+    // Centrado automático cuando cambia el GPS del usuario
+    LaunchedEffect(coordinate) {
+        if (coordinate.latitude != 0.0) {
+            recenterTrigger++
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .padding(16.dp)
     ) {
-        // --- HEADER ---
-        Text(text = "San José — Alajuela", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(
+            text = "San José — Alajuela",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
 
         Row(modifier = Modifier.padding(vertical = 8.dp)) {
             StatusBadge(text = "En tránsito", color = Color(0xFFE8F5E9), textColor = Color(0xFF2E7D32))
@@ -74,28 +97,51 @@ fun RouteDetailScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- EL MAPA: RÉPLICA EXACTA DEL HOME ---
+        // --- SECCIÓN DEL MAPA ---
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp),
+                .height(250.dp),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 MapViewComponent(
-                    coordinate = userCoordinate,
+                    modifier = Modifier.fillMaxSize(),
+                    coordinate = coordinate,
                     recenterTrigger = recenterTrigger,
                     zoomInTrigger = zoomInTrigger,
-                    zoomOutTrigger = zoomOutTrigger
+                    zoomOutTrigger = zoomOutTrigger,
+                    stops = detailedStops.map { it.baseStop },
+                    // PASAMOS LA LÍNEA DEL VIEWMODEL
+                    polylinePoints = polylinePoints
                 )
+
+                // Controles de Mapa
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    ZoomControls(
+                        onZoomIn = { zoomInTrigger++ },
+                        onZoomOut = { zoomOutTrigger++ }
+                    )
+                    RecenterButton(
+                        onClick = { recenterTrigger++ }
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        Text(text = "Próximas paradas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(
+            text = "Próximas paradas",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
 
-        // --- LISTA DE PARADAS ---
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(detailedStops) { item ->
                 StopItem(
@@ -117,7 +163,10 @@ fun StatusBadge(text: String, color: Color, textColor: Color, border: Boolean = 
         shape = RoundedCornerShape(20.dp),
         border = if (border) BorderStroke(1.dp, Color.LightGray) else null
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        ) {
             if (!border) Box(modifier = Modifier.size(8.dp).background(textColor, CircleShape))
             Spacer(modifier = Modifier.width(6.dp))
             Text(text = text, color = textColor, style = MaterialTheme.typography.labelLarge)
@@ -142,7 +191,11 @@ fun StopItem(name: String, time: String, status: String, isCompleted: Boolean = 
         }
         Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
             Text(text = name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-            Text(text = status, color = if (isCurrent) Color(0xFF4CAF50) else Color.Gray, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = status,
+                color = if (isCurrent) Color(0xFF4CAF50) else Color.Gray,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
         Text(text = time, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
     }

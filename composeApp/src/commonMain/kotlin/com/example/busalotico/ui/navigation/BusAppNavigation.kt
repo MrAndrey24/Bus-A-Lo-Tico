@@ -21,13 +21,15 @@ import com.example.busalotico.ui.screen.home.HomeScreen
 import com.example.busalotico.ui.screen.RouteDetailScreen // NUESTRO IMPORT
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
-import com.example.shared.presentation.RouteDetailViewModel // NUESTRO IMPORT
+import com.example.shared.presentation.route.RouteDetailViewModel // NUESTRO IMPORT
 import com.example.shared.presentation.route.RouteUiState
 import com.example.shared.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
 
 @Composable
 fun BusAppNavigation(
@@ -120,7 +122,21 @@ fun BusAppNavigation(
             }
 
             composable(route = BusAppScreen.Detail.name) {
-                RouteDetailScreen(routeId = selectedId)
+                // 1. Usamos la misma lógica que en Home: Validamos que haya señal
+                val currentCoord = coordinate
+
+                if (currentCoord != null) {
+                    RouteDetailScreen(
+                        routeId = selectedId,
+                        // 2. PASO FINAL: Le pasamos la coordenada real al detalle
+                        coordinate = currentCoord
+                    )
+                } else {
+                    // Un estado de carga elegante mientras llega el primer fix del GPS
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Sincronizando ubicación con el bus...")
+                    }
+                }
             }
         }
     }

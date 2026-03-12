@@ -91,7 +91,8 @@ class RouteRemoteDataSource : IRouteRemoteDataSource {
                 endLatitude = endLatitude,
                 endLongitude = endLongitude,
                 stops = stops,
-                schedules = schedules
+                schedules = schedules,
+                polylinePoints = emptyList()
             )
         }
     }
