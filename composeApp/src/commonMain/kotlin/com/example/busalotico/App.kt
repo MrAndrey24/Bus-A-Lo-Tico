@@ -16,7 +16,9 @@ import busalotico.composeapp.generated.resources.permission_location_title
 import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.navigation.BusAppNavigation
+import com.example.busalotico.ui.screen.auth.AuthScreen
 import com.example.busalotico.ui.screen.onboarding.PermissionsRequesterScreen
+import com.example.shared.presentation.auth.AuthViewModel
 import com.example.shared.presentation.location.LocationViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.permissions.Permission
@@ -26,16 +28,33 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
-    val viewModel = koinViewModel<LocationViewModel>()
-    AppContent(viewModel = viewModel)
+    val locationViewModel = koinViewModel<LocationViewModel>()
+    val authViewModel = koinViewModel<AuthViewModel>()
+    AppContent(
+        locationViewModel = locationViewModel,
+        authViewModel = authViewModel
+    )
 }
 
 @Composable
-fun AppContent(viewModel: LocationViewModel) {
-    val coordinate by viewModel.coordinate.collectAsState()
+fun AppContent(
+    locationViewModel: LocationViewModel,
+    authViewModel: AuthViewModel
+) {
+    val coordinate by locationViewModel.coordinate.collectAsState()
+    val authUiState by authViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     MaterialTheme {
+        if (!authUiState.isAuthenticated) {
+            AuthScreen(
+                uiState = authUiState,
+                onSignIn = authViewModel::signIn,
+                onSignUp = authViewModel::signUp
+            )
+            return@MaterialTheme
+        }
+
         PermissionsRequesterScreen(
             permissions = listOf(
                 PermissionRequest(
@@ -51,14 +70,19 @@ fun AppContent(viewModel: LocationViewModel) {
             BindLocationTrackerEffect(locationTracker = locationTracker)
 
             LaunchedEffect(Unit) {
-                viewModel.startTracking(locationTracker)
+                locationViewModel.startTracking(locationTracker)
             }
 
             DisposableEffect(Unit) {
-                onDispose { viewModel.stopTracking() }
+                onDispose { locationViewModel.stopTracking() }
             }
 
-            BusAppNavigation(coordinate = coordinate)
+            BusAppNavigation(
+                coordinate = coordinate,
+                favoriteRouteIds = authUiState.currentUser?.favoriteRouteIds ?: emptySet(),
+                onToggleFavorite = authViewModel::toggleFavorite,
+                onSignOut = authViewModel::signOut
+            )
         }
     }
 }
