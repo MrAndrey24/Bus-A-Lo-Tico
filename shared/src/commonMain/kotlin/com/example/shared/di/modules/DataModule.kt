@@ -10,6 +10,8 @@ import com.example.shared.data.repository.company.CompanyRepository
 import com.example.shared.data.repository.company.ICompanyRepository
 import com.example.shared.data.repository.location.ILocationRepository
 import com.example.shared.data.repository.location.LocationRepository
+import com.example.shared.data.repository.mapbox.IMapboxRepository
+import com.example.shared.data.repository.mapbox.MapboxRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.route.RouteRepository
 import org.koin.dsl.module
@@ -21,4 +23,5 @@ val dataModule = module {
     single<IRouteRemoteDataSource> { RouteRemoteDataSource() }
     single<ICompanyRepository> { CompanyRepository(get()) }
     single<IRouteRepository> { RouteRepository(get()) }
+    single<IMapboxRepository> { MapboxRepository(get()) }
 }

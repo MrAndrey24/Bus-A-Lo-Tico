@@ -20,7 +20,7 @@ import com.example.busalotico.ui.components.ZoomControls
 import com.example.busalotico.ui.components.mapview.MapViewComponent
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
-import com.example.shared.presentation.route.RouteDetailViewModel
+import com.example.shared.presentation.route.RouteDetailViewModel // Corregido el typo de "rpesentation"
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
@@ -38,10 +38,10 @@ data class BusStopDetail(
 fun RouteDetailScreen(
     routeId: String,
     coordinate: Coordinate,
-    // Usamos el ViewModel que tiene el selectedRouteId y la polyline
+    // Koin nos da la misma instancia 'single' que usamos en la navegación
     viewModel: RouteDetailViewModel = koinViewModel()
 ) {
-    // 1. OBSERVAMOS LOS PUNTOS DE LA CALLE (La línea azul)
+    // 1. OBSERVAMOS EL ESTADO (La línea azul que se cargó al hacer clic)
     val polylinePoints by viewModel.polylinePoints.collectAsState()
 
     // Triggers para el control del mapa
@@ -49,7 +49,7 @@ fun RouteDetailScreen(
     var zoomInTrigger by remember { mutableIntStateOf(0) }
     var zoomOutTrigger by remember { mutableIntStateOf(0) }
 
-    // Lista de paradas quemada para la UI
+    // Lista de paradas (Basura temporal que coincide con los puntos de prueba del NavHost)
     val detailedStops = remember(routeId) {
         listOf(
             BusStopDetail(RouteStop("1", "Terminal San José", 9.9347, -84.0797, 1), "08:15", "Completada", isCompleted = true),
@@ -59,16 +59,9 @@ fun RouteDetailScreen(
         )
     }
 
-    // Extraemos las coordenadas de las paradas
-    val stopCoordinates = remember(detailedStops) {
-        detailedStops.map { Coordinate(it.baseStop.latitude, it.baseStop.longitude) }
-    }
-
-    // 2. DISPARAMOS LA CARGA DE LA LÍNEA
-    // Si ya la navegación lo hizo, esto solo asegura que los puntos estén ahí.
-    LaunchedEffect(routeId) {
-        viewModel.loadMapboxLine(stopCoordinates)
-    }
+    // --- ELIMINADO EL LAUNCHEDEFFECT DE LOADMAPBOXLINE ---
+    // Ya no es necesario porque el NavHost disparó la carga al hacer clic.
+    // Así evitamos llamadas dobles al API de Mapbox.
 
     // Centrado automático cuando cambia el GPS del usuario
     LaunchedEffect(coordinate) {
@@ -84,7 +77,7 @@ fun RouteDetailScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "San José — Alajuela",
+            text = "Detalle de Ruta: $routeId", // Ahora usa el ID real seleccionado
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -92,7 +85,7 @@ fun RouteDetailScreen(
         Row(modifier = Modifier.padding(vertical = 8.dp)) {
             StatusBadge(text = "En tránsito", color = Color(0xFFE8F5E9), textColor = Color(0xFF2E7D32))
             Spacer(Modifier.width(8.dp))
-            StatusBadge(text = "Actualizado hace 1 min", color = Color.White, textColor = Color.Gray, border = true)
+            StatusBadge(text = "Actualizado ahora", color = Color.White, textColor = Color.Gray, border = true)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -113,7 +106,7 @@ fun RouteDetailScreen(
                     zoomInTrigger = zoomInTrigger,
                     zoomOutTrigger = zoomOutTrigger,
                     stops = detailedStops.map { it.baseStop },
-                    // PASAMOS LA LÍNEA DEL VIEWMODEL
+                    // PASAMOS LA LÍNEA QUE VIENE DEL VIEWMODEL COMPARTIDO
                     polylinePoints = polylinePoints
                 )
 
@@ -156,6 +149,7 @@ fun RouteDetailScreen(
     }
 }
 
+// ... (StatusBadge y StopItem se mantienen igual ya que son UI pura)
 @Composable
 fun StatusBadge(text: String, color: Color, textColor: Color, border: Boolean = false) {
     Surface(
