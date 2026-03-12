@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,13 +24,16 @@ fun SelectableFilterChip(
     showChevron: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = Color.White
-    val borderColor = if (selected) Color(0xFFBFC3CC) else Color(0xFFD2D4DB)
-    val textColor = Color(0xFF2A2C33)
+    val shape = RoundedCornerShape(999.dp)
+    val backgroundColor = if (selected) Color(0xFF1B1D23) else Color.White
+    val borderColor = if (selected) Color(0xFF1B1D23) else Color(0xFFD2D4DB)
+    val textColor = if (selected) Color.White else Color(0xFF2A2C33)
 
     Surface(
-        modifier = modifier.clickable { onClick() },
-        shape = RoundedCornerShape(999.dp),
+        modifier = modifier
+            .clip(shape)
+            .clickable(onClick = onClick),
+        shape = shape,
         color = backgroundColor,
         border = androidx.compose.foundation.BorderStroke(1.dp, borderColor)
     ) {
@@ -48,7 +52,7 @@ fun SelectableFilterChip(
                 Text(
                     text = "▾",
                     style = MaterialTheme.typography.labelSmall,
-                    color = textColor.copy(alpha = 0.75f)
+                    color = textColor.copy(alpha = if (selected) 0.9f else 0.75f)
                 )
             }
         }

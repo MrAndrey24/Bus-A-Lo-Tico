@@ -26,7 +26,10 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun BusAppNavigation(
-    coordinate: Coordinate? // Recibimos la ubicación que viene del ViewModel
+    coordinate: Coordinate?,
+    favoriteRouteIds: Set<String>,
+    onToggleFavorite: (String) -> Unit,
+    onSignOut: () -> Unit
 ) {
     val navController = rememberNavController()
     val routeViewModel = koinViewModel<RouteViewModel>()
@@ -68,20 +71,21 @@ fun BusAppNavigation(
                 val currentCoord = coordinate
                 if (currentCoord != null) {
                     HomeScreen(
-                        coordinate = currentCoord, // Aquí ya no es nulo, error resuelto
+                        coordinate = currentCoord,
                         onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // Si es nulo, ponemos un mensaje simple para no quebrar la app
                     Text("Buscando señal GPS...")
                 }
             }
 
             composable(route = BusAppScreen.Routes.name) {
                 RouteSelectionScreen(
-                    uiState = routeUiState.toRouteSelectionUiState(),
-                    onBackClick = { navController.popBackStack() }
+                    uiState = routeUiState.toRouteSelectionUiState(favoriteRouteIds),
+                    onBackClick = { navController.popBackStack() },
+                    onMoreClick = onSignOut,
+                    onToggleFavorite = { routeId, _ -> onToggleFavorite(routeId) }
                 )
             }
 
@@ -92,15 +96,19 @@ fun BusAppNavigation(
     }
 }
 
-private fun RouteUiState.toRouteSelectionUiState(): RouteSelectionUiState {
+private fun RouteUiState.toRouteSelectionUiState(
+    favoriteRouteIds: Set<String>
+): RouteSelectionUiState {
     return RouteSelectionUiState(
-        routes = routes.map { route -> route.toRouteListItemUi() },
+        routes = routes.map { route -> route.toRouteListItemUi(favoriteRouteIds) },
         isLoading = isLoading,
         errorMessage = errorMessage
     )
 }
 
-private fun Route.toRouteListItemUi(): RouteListItemUi {
+private fun Route.toRouteListItemUi(
+    favoriteRouteIds: Set<String>
+): RouteListItemUi {
     return RouteListItemUi(
         id = id,
         code = code,
@@ -110,6 +118,6 @@ private fun Route.toRouteListItemUi(): RouteListItemUi {
         frequencyText = frequencyText,
         isActive = isActive,
         isLive = isLive,
-        isFavorite = isFavorite
+        isFavorite = favoriteRouteIds.contains(id)
     )
 }

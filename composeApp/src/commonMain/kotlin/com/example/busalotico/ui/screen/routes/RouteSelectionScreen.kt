@@ -61,7 +61,8 @@ fun RouteSelectionScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
-    onRouteClick: (RouteListItemUi) -> Unit = {}
+    onRouteClick: (RouteListItemUi) -> Unit = {},
+    onToggleFavorite: (routeId: String, isFavorite: Boolean) -> Unit = { _, _ -> }
 ) {
     val provinces = remember { demoCRGeoData() }
     var showLocationPanel by remember { mutableStateOf(false) }
@@ -235,9 +236,11 @@ fun RouteSelectionScreen(
                                     route = route,
                                     onClick = { onRouteClick(route) },
                                     onToggleFavorite = {
+                                        val nextFavoriteState = !favoriteRouteIds.contains(route.id)
                                         favoriteRouteIds =
                                             if (favoriteRouteIds.contains(route.id)) favoriteRouteIds - route.id
                                             else favoriteRouteIds + route.id
+                                        onToggleFavorite(route.id, nextFavoriteState)
                                     }
                                 )
                             }
