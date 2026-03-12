@@ -6,5 +6,4 @@ import com.example.shared.domain.entities.Route
 interface IRouteRepository {
     suspend fun getRoute(routeId: String): Route?
     suspend fun getRoutes(): List<Route>
-    suspend fun getRouteGeometry(stops: List<Coordinate>): List<Coordinate>
 }
