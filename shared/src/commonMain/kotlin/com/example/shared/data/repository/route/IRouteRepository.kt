@@ -1,5 +1,6 @@
 package com.example.shared.data.repository.route
 
+import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
 
 interface IRouteRepository {
