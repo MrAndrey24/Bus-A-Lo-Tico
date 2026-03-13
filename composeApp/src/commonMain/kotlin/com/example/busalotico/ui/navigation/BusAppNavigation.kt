@@ -18,19 +18,31 @@ import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
+import com.example.busalotico.ui.screen.RouteDetailScreen // IMPORTANTE: Importar tu pantalla de detalle
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
+import com.example.shared.presentation.route.RouteDetailViewModel
 import com.example.shared.presentation.route.RouteUiState
 import com.example.shared.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun BusAppNavigation(
-    coordinate: Coordinate? // Recibimos la ubicación que viene del ViewModel
+    coordinate: Coordinate?
 ) {
     val navController = rememberNavController()
     val routeViewModel = koinViewModel<RouteViewModel>()
+
+    // ViewModel compartido (single en Koin)
+    val detailViewModel = koinViewModel<RouteDetailViewModel>()
+    val selectedId by detailViewModel.selectedRouteId.collectAsState()
+    val isDetailEnabled = selectedId.isNotEmpty()
+
     val routeUiState by routeViewModel.uiState.collectAsState()
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: BusAppScreen.Home.name
 
@@ -51,9 +63,32 @@ fun BusAppNavigation(
                 )
                 NavigationBarItem(
                     selected = currentRoute == BusAppScreen.Detail.name,
-                    onClick = { navController.navigate(BusAppScreen.Detail.name) },
-                    label = { Text("Detalle") },
-                    icon = { Text("📋") }
+                    enabled = isDetailEnabled,
+                    onClick = {
+                        if (isDetailEnabled) {
+                            navController.navigate(BusAppScreen.Detail.name)
+                        }
+                    },
+                    label = {
+                        Text(
+                            text = "Detalle",
+                            color = if (isDetailEnabled) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            }
+                        )
+                    },
+                    icon = {
+                        CompositionLocalProvider(
+                            LocalContentColor provides if (isDetailEnabled)
+                                MaterialTheme.colorScheme.onSurface
+                            else
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        ) {
+                            Text("📋")
+                        }
+                    }
                 )
             }
         }
@@ -63,35 +98,62 @@ fun BusAppNavigation(
             startDestination = BusAppScreen.Home.name,
             modifier = Modifier.padding(innerPadding)
         ) {
+            // 1. Pantalla de Mapa (Home)
             composable(route = BusAppScreen.Home.name) {
-                // LÓGICA DE SEGURIDAD: Solo entramos si hay coordenadas
                 val currentCoord = coordinate
                 if (currentCoord != null) {
                     HomeScreen(
-                        coordinate = currentCoord, // Aquí ya no es nulo, error resuelto
+                        coordinate = currentCoord,
                         onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // Si es nulo, ponemos un mensaje simple para no quebrar la app
                     Text("Buscando señal GPS...")
                 }
             }
 
+            // 2. Pantalla de Selección de Rutas
             composable(route = BusAppScreen.Routes.name) {
                 RouteSelectionScreen(
                     uiState = routeUiState.toRouteSelectionUiState(),
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    onRouteClick = { routeItem ->
+                        // Guardamos el ID dinámico
+                        detailViewModel.updateSelectedRoute(routeItem.id)
+
+                        // Cargamos los puntos de prueba en el ViewModel compartido
+                        val paradasDePrueba = listOf(
+                            Coordinate(9.9347, -84.0797),
+                            Coordinate(9.9358, -84.1021),
+                            Coordinate(9.9515, -84.1147),
+                            Coordinate(10.0163, -84.2138)
+                        )
+                        detailViewModel.loadMapboxLine(paradasDePrueba)
+
+                        // NAVEGACIÓN: Ahora sí existe el destino "Detail"
+                        navController.navigate(BusAppScreen.Detail.name)
+                    }
                 )
             }
 
+            // 3. Pantalla de Detalle (LA QUE FALTABA)
             composable(route = BusAppScreen.Detail.name) {
-                Text("Pantalla de Detalle")
+                val currentCoord = coordinate
+                if (currentCoord != null) {
+                    RouteDetailScreen(
+                        routeId = selectedId,
+                        coordinate = currentCoord,
+                        viewModel = detailViewModel // Le pasamos el mismo VM para que vea los puntos
+                    )
+                } else {
+                    Text("Esperando GPS para el detalle...")
+                }
             }
         }
     }
 }
 
+// Helpers de conversión
 private fun RouteUiState.toRouteSelectionUiState(): RouteSelectionUiState {
     return RouteSelectionUiState(
         routes = routes.map { route -> route.toRouteListItemUi() },
@@ -103,7 +165,7 @@ private fun RouteUiState.toRouteSelectionUiState(): RouteSelectionUiState {
 private fun Route.toRouteListItemUi(): RouteListItemUi {
     return RouteListItemUi(
         id = id,
-        code = code,
+        code = code.ifBlank { id.takeLast(3) },
         title = name,
         statusText = statusText,
         etaText = etaText,

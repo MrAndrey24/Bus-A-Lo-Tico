@@ -15,7 +15,8 @@ data class Route(
     val endLatitude: Double,
     val endLongitude: Double,
     val stops: List<RouteStop>,
-    val schedules: List<RouteSchedule>
+    val schedules: List<RouteSchedule>,
+    val polylinePoints: List<Coordinate>
 )
 
 data class RouteStop(
