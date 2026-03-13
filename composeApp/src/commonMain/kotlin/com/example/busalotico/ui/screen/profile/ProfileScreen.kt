@@ -149,21 +149,21 @@ private fun ProfileInfoRow(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(16.dp),
         color = Color(0xFFF7F7F9),
         border = BorderStroke(1.dp, Color(0xFFE7E8EC))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .padding(horizontal = 16.dp, vertical = 11.dp)
         ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF8B8E95)
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyLarge,
