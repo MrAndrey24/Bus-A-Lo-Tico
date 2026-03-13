@@ -90,15 +90,5 @@ actual fun MapViewDetail(
             stops = stops
         )
 
-        // B. Paradas (Puntos Rojos)
-        stops.forEach { stop ->
-            CircleAnnotation(point = Point.fromLngLat(stop.longitude, stop.latitude)) {
-                circleRadius = 8.0
-                circleColor = Color.Red
-                circleStrokeWidth = 2.0
-                circleStrokeColor = Color.White
-            }
-        }
-
     }
 }
