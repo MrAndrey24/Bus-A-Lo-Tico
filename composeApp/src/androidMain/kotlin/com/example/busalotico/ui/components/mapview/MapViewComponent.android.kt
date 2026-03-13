@@ -1,8 +1,14 @@
 package com.example.busalotico.ui.components.mapview
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.example.busalotico.ui.components.mapview.route.RouteAnnotations
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
 import com.mapbox.geojson.Point
@@ -11,7 +17,6 @@ import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
-import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 
@@ -35,9 +40,7 @@ actual fun MapViewComponent(
         }
     }
 
-    // --- LÓGICA DE CÁMARA ---
-
-    // 1. Centrado automático inicial (GPS)
+    // (GPS)
     LaunchedEffect(coordinate) {
         if (locationUpdateCount < 2) {
             mapViewportState.easeTo(
@@ -48,7 +51,7 @@ actual fun MapViewComponent(
         }
     }
 
-    // 2. Acción del botón de centrar (Punto Verde)
+    // (Green Point)
     LaunchedEffect(recenterTrigger) {
         if (recenterTrigger > 0) {
             mapViewportState.easeTo(
@@ -58,7 +61,7 @@ actual fun MapViewComponent(
         }
     }
 
-    // 3. Acción del botón Zoom In (+) -> AQUÍ ESTABA EL ERROR
+    // Zoom In (+)
     LaunchedEffect(zoomInTrigger) {
         if (zoomInTrigger > 0) {
             val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
@@ -69,7 +72,7 @@ actual fun MapViewComponent(
         }
     }
 
-    // 4. Acción del botón Zoom Out (-) -> AQUÍ ESTABA EL ERROR
+    // Zoom Out (-)
     LaunchedEffect(zoomOutTrigger) {
         if (zoomOutTrigger > 0) {
             val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
@@ -80,7 +83,7 @@ actual fun MapViewComponent(
         }
     }
 
-    // --- RENDERIZADO DEL MAPA ---
+    // --- VIEW MAP ---
     MapboxMap(
         modifier = modifier,
         mapViewportState = mapViewportState,
@@ -88,33 +91,19 @@ actual fun MapViewComponent(
             MapStyle(style = Style.MAPBOX_STREETS)
         }
     ) {
-        // A. Dibujamos la ruta (Calles reales)
-        if (polylinePoints.isNotEmpty()) {
-            PolylineAnnotation(
-                points = polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) }
-            ) {
-                lineColor = Color(0xFF007AFF) // Azul pro
-                lineWidth = 6.0
-                lineOpacity = 0.8
-            }
-        }
 
-        // B. Paradas (Puntos Rojos)
-        stops.forEach { stop ->
-            CircleAnnotation(point = Point.fromLngLat(stop.longitude, stop.latitude)) {
-                circleRadius = 8.0
-                circleColor = Color.Red
-                circleStrokeWidth = 2.0
-                circleStrokeColor = Color.White
-            }
-        }
-
-        // C. Posición del Usuario (Punto Azul)
+        // User Position (Blue Point)
         CircleAnnotation(point = currentPoint) {
             circleRadius = 10.0
             circleColor = Color.Blue
             circleStrokeWidth = 3.0
             circleStrokeColor = Color.White
         }
+
+        // Print Routes and Stops
+        RouteAnnotations(
+            polylinePoints = polylinePoints,
+            stops = stops
+        )
     }
 }

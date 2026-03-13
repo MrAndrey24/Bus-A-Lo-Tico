@@ -1,16 +1,18 @@
 package com.example.shared.data.repository.mapbox
 
+import com.example.shared.AppSecrets
 import com.example.shared.domain.entities.Coordinate
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import kotlinx.serialization.Serializable
 
 class MapboxRepository(
     private val httpClient: HttpClient
 ) : IMapboxRepository {
 
-    private val accessToken = MapboxSecrets.TOKEN
+    private val accessToken = AppSecrets.TOKEN
 
     override suspend fun getStreetGeometry(waypoints: List<Coordinate>): List<Coordinate> {
         if (waypoints.size < 2) return waypoints
