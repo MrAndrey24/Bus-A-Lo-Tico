@@ -10,5 +10,5 @@ val presentationModule = module {
     factory { AuthViewModel(get(), get()) }
     factory { LocationViewModel(get()) }
     factory { CompanyViewModel(get()) }
-    factory { RouteViewModel(get()) }
+    factory { RouteViewModel(get(), get(), get()) }
 }

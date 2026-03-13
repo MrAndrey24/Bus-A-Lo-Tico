@@ -7,6 +7,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,6 +19,7 @@ import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
+import com.example.busalotico.ui.screen.profile.ProfileScreen
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
 import com.example.shared.presentation.route.RouteUiState
@@ -27,8 +29,10 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun BusAppNavigation(
     coordinate: Coordinate?,
-    favoriteRouteIds: Set<String>,
-    onToggleFavorite: (String) -> Unit,
+    userId: String,
+    userName: String,
+    userEmail: String,
+    userRole: String,
     onSignOut: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -36,6 +40,10 @@ fun BusAppNavigation(
     val routeUiState by routeViewModel.uiState.collectAsState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: BusAppScreen.Home.name
+
+    LaunchedEffect(userId) {
+        routeViewModel.onUserChanged(userId.ifBlank { null })
+    }
 
     Scaffold(
         bottomBar = {
@@ -57,6 +65,12 @@ fun BusAppNavigation(
                     onClick = { navController.navigate(BusAppScreen.Detail.name) },
                     label = { Text("Detalle") },
                     icon = { Text("📋") }
+                )
+                NavigationBarItem(
+                    selected = currentRoute == BusAppScreen.Profile.name,
+                    onClick = { navController.navigate(BusAppScreen.Profile.name) },
+                    label = { Text("Perfil") },
+                    icon = { Text("👤") }
                 )
             }
         }
@@ -82,23 +96,29 @@ fun BusAppNavigation(
 
             composable(route = BusAppScreen.Routes.name) {
                 RouteSelectionScreen(
-                    uiState = routeUiState.toRouteSelectionUiState(favoriteRouteIds),
+                    uiState = routeUiState.toRouteSelectionUiState(),
                     onBackClick = { navController.popBackStack() },
-                    onMoreClick = onSignOut,
-                    onToggleFavorite = { routeId, _ -> onToggleFavorite(routeId) }
+                    onToggleFavorite = routeViewModel::toggleFavorite
                 )
             }
 
             composable(route = BusAppScreen.Detail.name) {
                 Text("Pantalla de Detalle")
             }
+
+            composable(route = BusAppScreen.Profile.name) {
+                ProfileScreen(
+                    userName = userName,
+                    userEmail = userEmail,
+                    userRole = userRole,
+                    onSignOut = onSignOut
+                )
+            }
         }
     }
 }
 
-private fun RouteUiState.toRouteSelectionUiState(
-    favoriteRouteIds: Set<String>
-): RouteSelectionUiState {
+private fun RouteUiState.toRouteSelectionUiState(): RouteSelectionUiState {
     return RouteSelectionUiState(
         routes = routes.map { route -> route.toRouteListItemUi(favoriteRouteIds) },
         isLoading = isLoading,
@@ -112,12 +132,26 @@ private fun Route.toRouteListItemUi(
     return RouteListItemUi(
         id = id,
         code = code,
-        title = name,
+        title = name.toDisplayRouteName(),
         statusText = statusText,
         etaText = etaText,
         frequencyText = frequencyText,
         isActive = isActive,
         isLive = isLive,
-        isFavorite = favoriteRouteIds.contains(id)
+        isFavorite = favoriteRouteIds.contains(id),
+        province = startLocation.province,
+        canton = startLocation.canton,
+        district = startLocation.district
     )
+}
+
+private fun String.toDisplayRouteName(): String {
+    return trim()
+        .lowercase()
+        .split(Regex("\\s+"))
+        .joinToString(" ") { word ->
+            word.replaceFirstChar { char ->
+                if (char.isLowerCase()) char.titlecase() else char.toString()
+            }
+        }
 }
