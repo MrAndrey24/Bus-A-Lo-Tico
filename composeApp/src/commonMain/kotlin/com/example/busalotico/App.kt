@@ -18,6 +18,7 @@ import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.navigation.BusAppNavigation
 import com.example.busalotico.ui.screen.auth.AuthScreen
 import com.example.busalotico.ui.screen.onboarding.PermissionsRequesterScreen
+import com.example.shared.domain.entities.UserRole
 import com.example.shared.presentation.auth.AuthViewModel
 import com.example.shared.presentation.location.LocationViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
@@ -29,23 +30,27 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun App() {
     val locationViewModel = koinViewModel<LocationViewModel>()
+
     val authViewModel = koinViewModel<AuthViewModel>()
+
     AppContent(
         locationViewModel = locationViewModel,
         authViewModel = authViewModel
     )
 }
-
 @Composable
 fun AppContent(
     locationViewModel: LocationViewModel,
     authViewModel: AuthViewModel
 ) {
     val coordinate by locationViewModel.coordinate.collectAsState()
+
     val authUiState by authViewModel.uiState.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     MaterialTheme {
+        //Si el usuario no está autenticado, se muestra AuthScreen.
         if (!authUiState.isAuthenticated) {
             AuthScreen(
                 uiState = authUiState,
@@ -79,10 +84,20 @@ fun AppContent(
 
             BusAppNavigation(
                 coordinate = coordinate,
-                favoriteRouteIds = authUiState.currentUser?.favoriteRouteIds ?: emptySet(),
-                onToggleFavorite = authViewModel::toggleFavorite,
+                userId = authUiState.currentUser?.id.orEmpty(),
+                userName = authUiState.currentUser?.name.orEmpty(),
+                userEmail = authUiState.currentUser?.email.orEmpty(),
+                userRole = authUiState.currentUser?.role?.toDisplayName().orEmpty(),
                 onSignOut = authViewModel::signOut
             )
         }
+    }
+}
+
+private fun UserRole.toDisplayName(): String {
+    return when (this) {
+        UserRole.PASSENGER -> "Pasajero"
+        UserRole.DRIVER -> "Conductor"
+        UserRole.ADMIN -> "Administrador"
     }
 }
