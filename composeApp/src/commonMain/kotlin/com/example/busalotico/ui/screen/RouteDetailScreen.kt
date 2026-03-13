@@ -3,13 +3,33 @@ package com.example.busalotico.ui.screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,13 +37,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.busalotico.ui.components.RecenterButton
 import com.example.busalotico.ui.components.ZoomControls
-import com.example.busalotico.ui.components.mapview.MapViewComponent
+import com.example.busalotico.ui.components.mapview.details.MapViewDetail
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
-import com.example.shared.presentation.route.RouteDetailViewModel // Corregido el typo de "rpesentation"
+import com.example.shared.presentation.route.RouteDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
 
 // Modelo de apoyo para los datos de la lista
 data class BusStopDetail(
@@ -58,10 +76,6 @@ fun RouteDetailScreen(
             BusStopDetail(RouteStop("4", "Alajuela Central", 10.0163, -84.2138, 4), "09:10", "Destino Final")
         )
     }
-
-    // --- ELIMINADO EL LAUNCHEDEFFECT DE LOADMAPBOXLINE ---
-    // Ya no es necesario porque el NavHost disparó la carga al hacer clic.
-    // Así evitamos llamadas dobles al API de Mapbox.
 
     // Centrado automático cuando cambia el GPS del usuario
     LaunchedEffect(coordinate) {
@@ -99,9 +113,8 @@ fun RouteDetailScreen(
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                MapViewComponent(
+                MapViewDetail(
                     modifier = Modifier.fillMaxSize(),
-                    coordinate = coordinate,
                     recenterTrigger = recenterTrigger,
                     zoomInTrigger = zoomInTrigger,
                     zoomOutTrigger = zoomOutTrigger,

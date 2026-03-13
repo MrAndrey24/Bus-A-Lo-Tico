@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -21,17 +22,20 @@ import com.example.busalotico.ui.components.ZoomControls
 import com.example.busalotico.ui.components.mapview.MapViewComponent
 import com.example.busalotico.ui.components.searchBar.SearchBar
 import com.example.shared.domain.entities.Coordinate
+import com.example.shared.domain.entities.RouteStop
 
 @Composable
 fun HomeScreen(
     coordinate: Coordinate,
     modifier: Modifier = Modifier,
     onSelectRouteClick: () -> Unit = {},
+    polylinePoints: List<Coordinate> = emptyList(),
+    stops: List<RouteStop> = emptyList()
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var recenterTrigger by remember { mutableStateOf(0) }
-    var zoomInTrigger by remember { mutableStateOf(0) }
-    var zoomOutTrigger by remember { mutableStateOf(0) }
+    var recenterTrigger by remember { mutableIntStateOf(0) }
+    var zoomInTrigger by remember { mutableIntStateOf(0) }
+    var zoomOutTrigger by remember { mutableIntStateOf(0) }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -40,7 +44,9 @@ fun HomeScreen(
             coordinate = coordinate, // If there are no permissions, the coordinate will be null and the map will display the default view.
             recenterTrigger = recenterTrigger,
             zoomInTrigger = zoomInTrigger,
-            zoomOutTrigger = zoomOutTrigger
+            zoomOutTrigger = zoomOutTrigger,
+            stops = stops,
+            polylinePoints = polylinePoints
         )
 
         Row(
