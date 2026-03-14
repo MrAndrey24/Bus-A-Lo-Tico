@@ -71,7 +71,7 @@ actual fun MapViewDetail(
             }
 
             if (coordinatesToFrame.isNotEmpty()) {
-                // Calcule el centro y el zoom para que todos los puntos quepan en pantalla
+                // Centro y el zoom para que todos los puntos quepan en pantalla
                 val cameraOptions = mapView.mapboxMap.cameraForCoordinates(
                     coordinatesToFrame,
                     EdgeInsets(100.0, 100.0, 100.0, 100.0) // Los márgenes
@@ -80,7 +80,7 @@ actual fun MapViewDetail(
                 // Center
                 mapView.mapboxMap.easeTo(
                     cameraOptions,
-                    MapAnimationOptions.mapAnimationOptions { duration(1000) }
+                    MapAnimationOptions.mapAnimationOptions { duration(800) }
                 )
             }
         }
