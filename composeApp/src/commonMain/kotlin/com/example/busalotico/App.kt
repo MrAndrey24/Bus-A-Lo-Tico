@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import busalotico.composeapp.generated.resources.Res
 import busalotico.composeapp.generated.resources.permission_location_description
 import busalotico.composeapp.generated.resources.permission_location_title
+import com.example.busalotico.config.DevSessionConfig
 import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.navigation.BusAppNavigation
@@ -48,9 +49,15 @@ fun AppContent(
     val coordinate by viewModel.coordinate.collectAsState()
     val authUiState by authViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val currentUser = if (DevSessionConfig.BYPASS_AUTH) {
+        DevSessionConfig.devUser
+    } else {
+        authUiState.currentUser
+    }
+    val isAuthenticated = DevSessionConfig.BYPASS_AUTH || authUiState.isAuthenticated
 
     MaterialTheme {
-        if (!authUiState.isAuthenticated) {
+        if (!isAuthenticated) {
             AuthScreen(
                 uiState = authUiState,
                 onSignIn = authViewModel::signIn,
@@ -83,11 +90,15 @@ fun AppContent(
 
             BusAppNavigation(
                 coordinate = coordinate,
-                userId = authUiState.currentUser?.id.orEmpty(),
-                userName = authUiState.currentUser?.name.orEmpty(),
-                userEmail = authUiState.currentUser?.email.orEmpty(),
-                userRole = authUiState.currentUser?.role?.toDisplayName().orEmpty(),
-                onSignOut = authViewModel::signOut
+                userId = currentUser?.id.orEmpty(),
+                userName = currentUser?.name.orEmpty(),
+                userEmail = currentUser?.email.orEmpty(),
+                userRole = currentUser?.role?.toDisplayName().orEmpty(),
+                onSignOut = if (DevSessionConfig.BYPASS_AUTH) {
+                    {}
+                } else {
+                    authViewModel::signOut
+                }
             )
         }
     }
