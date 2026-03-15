@@ -30,7 +30,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onSelectRouteClick: () -> Unit = {},
     polylinePoints: List<Coordinate> = emptyList(),
-    stops: List<RouteStop> = emptyList()
+    stops: List<RouteStop> = emptyList(),
+    busLocation: Coordinate? = null
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var recenterTrigger by remember { mutableIntStateOf(0) }
@@ -45,8 +46,9 @@ fun HomeScreen(
             recenterTrigger = recenterTrigger,
             zoomInTrigger = zoomInTrigger,
             zoomOutTrigger = zoomOutTrigger,
+            polylinePoints = polylinePoints,
             stops = stops,
-            polylinePoints = polylinePoints
+            busLocation = busLocation
         )
 
         Row(

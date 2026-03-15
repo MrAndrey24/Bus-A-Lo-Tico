@@ -11,7 +11,8 @@ import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 @Composable
 actual fun RouteAnnotations(
     polylinePoints: List<Coordinate>,
-    stops: List<RouteStop>
+    stops: List<RouteStop>,
+    busLocation: Coordinate?
 ) {
     // Route Line
     if (polylinePoints.isNotEmpty()) {
@@ -26,12 +27,25 @@ actual fun RouteAnnotations(
 
 
     // Stops
-    stops.forEach { stop ->
-        CircleAnnotation(point = Point.fromLngLat(stop.longitude, stop.latitude)) {
+    if (stops.isNotEmpty()){
+        stops.forEach { stop ->
+            CircleAnnotation(point = Point.fromLngLat(stop.longitude, stop.latitude)) {
+                circleRadius = 8.0
+                circleColor = Color.Red
+                circleStrokeWidth = 2.0
+                circleStrokeColor = Color.White
+            }
+        }
+    }
+
+
+    // Bus
+    if (busLocation != null) {
+        CircleAnnotation(point = Point.fromLngLat(busLocation.longitude, busLocation.latitude)) {
             circleRadius = 8.0
-            circleColor = Color.Red
-            circleStrokeWidth = 2.0
-            circleStrokeColor = Color.White
+            circleColor = Color.Yellow
+            circleStrokeWidth = 3.0
+            circleStrokeColor = Color.Black
         }
     }
 }
