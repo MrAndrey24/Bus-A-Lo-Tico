@@ -19,5 +19,6 @@ data class Route(
     val isLive: Boolean,
     val isFavorite: Boolean,
     val stops: List<RouteStop>,
-    val schedules: List<RouteSchedule>
+    val schedules: List<RouteSchedule>,
+    val polylinePoints: List<Coordinate>
 )

@@ -18,6 +18,7 @@ import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.navigation.BusAppNavigation
 import com.example.busalotico.ui.screen.auth.AuthScreen
 import com.example.busalotico.ui.screen.onboarding.PermissionsRequesterScreen
+import com.example.busalotico.ui.theme.AppTheme
 import com.example.shared.domain.entities.UserRole
 import com.example.shared.presentation.auth.AuthViewModel
 import com.example.shared.presentation.location.LocationViewModel
@@ -29,28 +30,26 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
-    val viewModel = koinViewModel<LocationViewModel>()
-
-    val authViewModel = koinViewModel<AuthViewModel>()
-
-    AppContent(
-        viewModel = viewModel,
-        authViewModel = authViewModel
-    )
+    AppTheme {
+        val viewModel = koinViewModel<LocationViewModel>()
+        val authViewModel = koinViewModel<AuthViewModel>()
+        AppContent(
+            viewModel = viewModel,
+            authViewModel = authViewModel
+        )
+    }
 }
+
 @Composable
 fun AppContent(
     viewModel: LocationViewModel,
     authViewModel: AuthViewModel
 ) {
     val coordinate by viewModel.coordinate.collectAsState()
-
     val authUiState by authViewModel.uiState.collectAsState()
-
     val snackbarHostState = remember { SnackbarHostState() }
 
     MaterialTheme {
-        //Si el usuario no está autenticado, se muestra AuthScreen.
         if (!authUiState.isAuthenticated) {
             AuthScreen(
                 uiState = authUiState,
