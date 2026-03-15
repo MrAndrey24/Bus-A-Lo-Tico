@@ -28,8 +28,13 @@ actual fun MapViewComponent(
     zoomInTrigger: Int,
     zoomOutTrigger: Int,
     stops: List<RouteStop>,
-    polylinePoints: List<Coordinate>
+    polylinePoints: List<Coordinate>,
+    busLocation: Coordinate?
 ) {
+
+    println(stops.size)
+
+
     val currentPoint = Point.fromLngLat(coordinate.longitude, coordinate.latitude)
     var locationUpdateCount by remember { mutableIntStateOf(0) }
 
@@ -103,7 +108,8 @@ actual fun MapViewComponent(
         // Print Routes and Stops
         RouteAnnotations(
             polylinePoints = polylinePoints,
-            stops = stops
+            stops = stops,
+            busLocation = busLocation
         )
     }
 }

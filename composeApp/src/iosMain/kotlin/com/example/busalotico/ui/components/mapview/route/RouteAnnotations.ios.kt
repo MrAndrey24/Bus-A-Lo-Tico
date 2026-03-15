@@ -7,6 +7,7 @@ import com.example.shared.domain.entities.RouteStop
 @Composable
 actual fun RouteAnnotations(
     polylinePoints: List<Coordinate>,
-    stops: List<RouteStop>
+    stops: List<RouteStop>,
+    busLocation: Coordinate?
 ) {
 }

@@ -2,11 +2,14 @@ package com.example.busalotico.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -16,18 +19,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
+import com.example.busalotico.ui.screen.RouteDetailScreen
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
-import com.example.busalotico.ui.screen.RouteDetailScreen // IMPORTANTE: Importar tu pantalla de detalle
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
 import com.example.shared.presentation.route.RouteDetailViewModel
 import com.example.shared.presentation.route.RouteUiState
 import com.example.shared.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun BusAppNavigation(
@@ -40,6 +40,9 @@ fun BusAppNavigation(
     val detailViewModel = koinViewModel<RouteDetailViewModel>()
     val selectedId by detailViewModel.selectedRouteId.collectAsState()
     val isDetailEnabled = selectedId.isNotEmpty()
+
+    val polylinePoints by detailViewModel.polylinePoints.collectAsState()
+    val busLocation by detailViewModel.busLocation.collectAsState()
 
     val routeUiState by routeViewModel.uiState.collectAsState()
 
@@ -100,12 +103,13 @@ fun BusAppNavigation(
         ) {
             // 1. Pantalla de Mapa (Home)
             composable(route = BusAppScreen.Home.name) {
-                val currentCoord = coordinate
-                if (currentCoord != null) {
+                if (coordinate != null) {
                     HomeScreen(
-                        coordinate = currentCoord,
+                        coordinate = coordinate,
                         onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        polylinePoints = polylinePoints,
+                        busLocation = busLocation
                     )
                 } else {
                     Text("Buscando señal GPS...")
@@ -123,10 +127,17 @@ fun BusAppNavigation(
 
                         // Cargamos los puntos de prueba en el ViewModel compartido
                         val paradasDePrueba = listOf(
-                            Coordinate(9.9347, -84.0797),
-                            Coordinate(9.9358, -84.1021),
-                            Coordinate(9.9515, -84.1147),
-                            Coordinate(10.0163, -84.2138)
+                            Coordinate(9.984506, -84.729457),
+                            Coordinate(9.982033, -84.734038),
+                            Coordinate(9.979011, -84.734060),
+                            Coordinate(9.978060, -84.735616),
+                            Coordinate(9.980385, -84.735727),
+                            Coordinate(9.981832, -84.735448),
+                            Coordinate(9.983544, -84.735658),
+                            Coordinate(9.984326, -84.734534),
+                            Coordinate(9.985152, -84.732383),
+                            Coordinate(9.986002, -84.730219),
+                            Coordinate(9.984506, -84.729457),
                         )
                         detailViewModel.loadMapboxLine(paradasDePrueba)
 

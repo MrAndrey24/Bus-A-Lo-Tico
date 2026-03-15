@@ -61,6 +61,7 @@ fun RouteDetailScreen(
 ) {
     // 1. OBSERVAMOS EL ESTADO (La línea azul que se cargó al hacer clic)
     val polylinePoints by viewModel.polylinePoints.collectAsState()
+    val busLocation by viewModel.busLocation.collectAsState()
 
     // Triggers para el control del mapa
     var recenterTrigger by remember { mutableIntStateOf(0) }
@@ -70,10 +71,17 @@ fun RouteDetailScreen(
     // Lista de paradas (Basura temporal que coincide con los puntos de prueba del NavHost)
     val detailedStops = remember(routeId) {
         listOf(
-            BusStopDetail(RouteStop("1", "Terminal San José", 9.9347, -84.0797, 1), "08:15", "Completada", isCompleted = true),
-            BusStopDetail(RouteStop("2", "La Sabana", 9.9358, -84.1021, 2), "08:27", "Llegando ahora", isCurrent = true),
-            BusStopDetail(RouteStop("3", "Hospital México", 9.9515, -84.1147, 3), "08:39", "En 12 mins aprox"),
-            BusStopDetail(RouteStop("4", "Alajuela Central", 10.0163, -84.2138, 4), "09:10", "Destino Final")
+            BusStopDetail(RouteStop("1", "Terminal San José",  9.984506, -84.729457, 1), "08:15", "Completada",       isCompleted = true),
+            BusStopDetail(RouteStop("2", "La Sabana",          9.982033, -84.734038, 2), "08:27", "Llegando ahora",   isCurrent = true),
+            BusStopDetail(RouteStop("3", "Hospital México",    9.979011, -84.734060, 3), "08:39", "En 12 mins aprox"),
+            BusStopDetail(RouteStop("4", "Río Segundo",        9.978060, -84.735616, 4), "08:45", "En 18 mins aprox"),
+            BusStopDetail(RouteStop("5", "San Antonio",        9.980385, -84.735727, 5), "08:51", "En 24 mins aprox"),
+            BusStopDetail(RouteStop("6", "La Uruca",           9.981832, -84.735448, 6), "08:57", "En 30 mins aprox"),
+            BusStopDetail(RouteStop("7", "La Garita",          9.983544, -84.735658, 7), "09:03", "En 36 mins aprox"),
+            BusStopDetail(RouteStop("8", "San Joaquín",        9.984326, -84.734534, 8), "09:09", "En 42 mins aprox"),
+            BusStopDetail(RouteStop("9", "Ciruelas",           9.985152, -84.732383, 9), "09:15", "En 48 mins aprox"),
+            BusStopDetail(RouteStop("10", "Alajuela Central",  9.986002, -84.730219, 10), "09:10", "Destino Final"),
+            BusStopDetail(RouteStop("1", "Terminal San José",  9.984506, -84.729457, 1), "08:15", "Completada",       isCompleted = true),
         )
     }
 
@@ -120,7 +128,8 @@ fun RouteDetailScreen(
                     zoomOutTrigger = zoomOutTrigger,
                     stops = detailedStops.map { it.baseStop },
                     // PASAMOS LA LÍNEA QUE VIENE DEL VIEWMODEL COMPARTIDO
-                    polylinePoints = polylinePoints
+                    polylinePoints = polylinePoints,
+                    busLocation = busLocation
                 )
 
                 // Controles de Mapa

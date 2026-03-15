@@ -12,6 +12,7 @@ actual fun MapViewDetail(
     zoomInTrigger: Int,
     zoomOutTrigger: Int,
     stops: List<RouteStop>,
-    polylinePoints: List<Coordinate>
+    polylinePoints: List<Coordinate>,
+    busLocation: Coordinate?
 ) {
 }

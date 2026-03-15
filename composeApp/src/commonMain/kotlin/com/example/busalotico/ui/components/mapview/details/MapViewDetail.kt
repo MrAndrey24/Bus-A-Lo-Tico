@@ -12,5 +12,7 @@ expect fun MapViewDetail(
     zoomInTrigger: Int,
     zoomOutTrigger: Int,
     stops: List<RouteStop> = emptyList(),
-    polylinePoints: List<Coordinate> = emptyList()
+    polylinePoints: List<Coordinate> = emptyList(),
+    busLocation: Coordinate?
+
 )

@@ -3,7 +3,6 @@ package com.example.busalotico.ui.components.mapview.details
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.example.busalotico.ui.components.mapview.route.RouteAnnotations
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
@@ -14,7 +13,6 @@ import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
-import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.easeTo
@@ -26,7 +24,8 @@ actual fun MapViewDetail(
     zoomInTrigger: Int,
     zoomOutTrigger: Int,
     stops: List<RouteStop>,
-    polylinePoints: List<Coordinate>
+    polylinePoints: List<Coordinate>,
+    busLocation: Coordinate?
 ) {
     val mapViewportState = rememberMapViewportState()
 
@@ -87,7 +86,8 @@ actual fun MapViewDetail(
 
         RouteAnnotations(
             polylinePoints = polylinePoints,
-            stops = stops
+            stops = stops,
+            busLocation = busLocation
         )
 
     }
