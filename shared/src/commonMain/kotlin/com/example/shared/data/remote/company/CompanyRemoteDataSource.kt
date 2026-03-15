@@ -1,9 +1,9 @@
 package com.example.shared.data.remote.company
 
+import com.example.shared.data.remote.company.dto.CompanyDto
 import com.example.shared.domain.entities.Company
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
-import kotlinx.serialization.Serializable
 
 class CompanyRemoteDataSource : ICompanyRemoteDataSource {
 
@@ -17,16 +17,6 @@ class CompanyRemoteDataSource : ICompanyRemoteDataSource {
 
         val dto = snapshot.data(CompanyDto.serializer())
         return dto.toDomain(snapshot.id)
-    }
-
-    @Serializable
-    private data class CompanyDto(
-        val name: String = ""
-    ) {
-        fun toDomain(documentId: String): Company = Company(
-            id = documentId,
-            name = name
-        )
     }
 
     private companion object {

@@ -98,6 +98,7 @@ material-icons-extended = { module = "org.jetbrains.compose.material:material-ic
 # Firebase Kotlin SDK
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "firebaseKotlinSdk" }
+firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebaseKotlinSdk" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

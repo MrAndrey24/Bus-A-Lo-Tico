@@ -21,5 +21,3 @@ captures
 node_modules/
 shared/AppSecrets.kt
 composeApp/google-services.json
-
-
