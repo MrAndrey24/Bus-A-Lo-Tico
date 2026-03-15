@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.busalotico.ui.components.button.PillActionButton
 import com.example.busalotico.ui.components.chip.SelectableFilterChip
+import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.busalotico.ui.components.input.DropdownSelectField
 import com.example.busalotico.ui.components.searchBar.SearchBar
 import com.example.busalotico.ui.model.Canton
@@ -53,15 +53,14 @@ import com.example.busalotico.ui.model.Province
 import com.example.busalotico.ui.model.RouteFiltersState
 import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
-import com.example.shared.domain.entities.Route
 
 @Composable
 fun RouteSelectionScreen(
     uiState: RouteSelectionUiState,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
-    onMoreClick: () -> Unit = {},
-    onRouteClick: (RouteListItemUi) -> Unit = {}
+    onRouteClick: (RouteListItemUi) -> Unit = {},
+    onToggleFavorite: (routeId: String, isFavorite: Boolean) -> Unit = { _, _ -> }
 ) {
     val provinces = remember { demoCRGeoData() }
     var showLocationPanel by remember { mutableStateOf(false) }
@@ -95,9 +94,12 @@ fun RouteSelectionScreen(
 
                 val nearMeMatches = !filters.nearMeOnly || route.isNearMe
                 val favoritesMatch = !filters.favoritesOnly || route.isFavorite
-                val provinceMatch = filters.selectedProvince == null || route.province == filters.selectedProvince?.name
-                val cantonMatch = filters.selectedCanton == null || route.canton == filters.selectedCanton?.name
-                val districtMatch = filters.selectedDistrict == null || route.district == filters.selectedDistrict
+                val provinceMatch = filters.selectedProvince == null ||
+                    route.province.equals(filters.selectedProvince?.name, ignoreCase = true)
+                val cantonMatch = filters.selectedCanton == null ||
+                    route.canton.equals(filters.selectedCanton?.name, ignoreCase = true)
+                val districtMatch = filters.selectedDistrict == null ||
+                    route.district.equals(filters.selectedDistrict, ignoreCase = true)
 
                 queryMatches && nearMeMatches && favoritesMatch && provinceMatch && cantonMatch && districtMatch
             }
@@ -109,12 +111,7 @@ fun RouteSelectionScreen(
         color = Color(0xFFF4F4F6)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            RouteSelectionTopBar(
-                onBackClick = onBackClick,
-                onMoreClick = onMoreClick
-            )
-
-            Divider(color = Color(0xFFE4E4E8))
+            RouteSelectionTopBar(onBackClick = onBackClick)
 
             Column(
                 modifier = Modifier
@@ -235,9 +232,11 @@ fun RouteSelectionScreen(
                                     route = route,
                                     onClick = { onRouteClick(route) },
                                     onToggleFavorite = {
+                                        val nextFavoriteState = !favoriteRouteIds.contains(route.id)
                                         favoriteRouteIds =
                                             if (favoriteRouteIds.contains(route.id)) favoriteRouteIds - route.id
                                             else favoriteRouteIds + route.id
+                                        onToggleFavorite(route.id, nextFavoriteState)
                                     }
                                 )
                             }
@@ -253,17 +252,12 @@ fun RouteSelectionScreen(
 
 @Composable
 private fun RouteSelectionTopBar(
-    onBackClick: () -> Unit,
-    onMoreClick: () -> Unit
+    onBackClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 6.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    ScreenHeader(
+        title = "Rutas",
+        subtitle = "Seleccion de rutas",
+        leadingContent = {
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
@@ -271,30 +265,8 @@ private fun RouteSelectionTopBar(
                     tint = Color(0xFF1E1F24)
                 )
             }
-            Column {
-                Text(
-                    text = "Bus A Lo Tico",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF17181C)
-                )
-                Text(
-                    text = "SELECCIÓN DE RUTAS",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF8B8E95)
-                )
-            }
         }
-
-        Text(
-            text = "⋯",
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color(0xFF555861),
-            modifier = Modifier
-                .padding(end = 14.dp)
-                .clickable { onMoreClick() }
-        )
-    }
+    )
 }
 
 @Composable
@@ -552,8 +524,8 @@ private fun RouteCodeTile(code: String, isActive: Boolean) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("RUTA", style = MaterialTheme.typography.labelSmall, color = fg.copy(alpha = 0.9f))
-            Text(code, style = MaterialTheme.typography.titleMedium, color = fg, fontWeight = FontWeight.SemiBold)
+            Text("RUTA", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium), color = fg.copy(alpha = 0.9f))
+            Text(code, style = MaterialTheme.typography.titleSmall, color = fg, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -943,29 +915,4 @@ private fun demoCRGeoData(): List<Province> = listOf(
                 )
             )
         )
-    )
-
-
-fun Route.toRouteListItemUi(
-    isNearMe: Boolean = true
-): RouteListItemUi {
-    val digits = id.filter { it.isDigit() }
-    val fallbackCode = if (digits.isNotBlank()) digits.takeLast(3).padStart(3, '0') else "000"
-    val routeCode = code.ifBlank { fallbackCode }
-
-    return RouteListItemUi(
-        id = id,
-        code = routeCode,
-        title = name,
-        statusText = statusText,
-        etaText = etaText,
-        frequencyText = frequencyText,
-        isActive = isActive,
-        isLive = isLive,
-        isFavorite = isFavorite,
-        isNearMe = isNearMe,
-        province = "San José",
-        canton = "San José",
-        district = "Catedral"
-    )
-}
+)

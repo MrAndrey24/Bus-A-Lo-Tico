@@ -4,32 +4,21 @@ data class Route(
     val id: String,
     val code: String,
     val name: String,
+    val companyId: String?,
+    val operator: String,
+    val startLocation: RouteLocation,
+    val endLocation: RouteLocation,
+    val distanceKm: Double?,
+    val slopeCategory: String?,
+    val pavedPercentage: Double?,
+    val surveyYear: Int?,
     val statusText: String,
     val etaText: String,
     val frequencyText: String,
     val isActive: Boolean,
     val isLive: Boolean,
     val isFavorite: Boolean,
-    val startLatitude: Double,
-    val startLongitude: Double,
-    val endLatitude: Double,
-    val endLongitude: Double,
     val stops: List<RouteStop>,
     val schedules: List<RouteSchedule>,
     val polylinePoints: List<Coordinate>
-)
-
-data class RouteStop(
-    val id: String,
-    val name: String,
-    val latitude: Double,
-    val longitude: Double,
-    val order: Int
-)
-
-data class RouteSchedule(
-    val id: String,
-    val driverId: String,
-    val departureTime: String,
-    val arrivalTime: String
 )

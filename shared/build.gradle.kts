@@ -71,6 +71,7 @@ kotlin {
                 implementation(libs.moko.permissions.geo)
 
                 // Firebase Kotlin SDK (GitLive)
+                implementation(libs.firebase.auth)
                 implementation(libs.firebase.firestore)
             }
         }
