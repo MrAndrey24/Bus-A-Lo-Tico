@@ -98,30 +98,6 @@ class AuthViewModel(
         }
     }
 
-    fun toggleFavorite(routeId: String) {
-        val user = _uiState.value.currentUser ?: return
-        val isFavorite = user.favoriteRouteIds.contains(routeId)
-        val updatedFavoriteIds = if (isFavorite) {
-            user.favoriteRouteIds - routeId
-        } else {
-            user.favoriteRouteIds + routeId
-        }
-
-        viewModelScope.launch {
-            runCatching {
-                userRepository.setRouteFavorite(user.id, routeId, !isFavorite)
-            }.onSuccess {
-                _uiState.value = _uiState.value.copy(
-                    currentUser = user.copy(favoriteRouteIds = updatedFavoriteIds),
-                    errorMessage = null
-                )
-            }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = error.toSpanishAuthMessage("No se pudo actualizar favorita")
-                )
-            }
-        }
-    }
 }
 
 private fun Throwable.toSpanishAuthMessage(defaultMessage: String): String {
