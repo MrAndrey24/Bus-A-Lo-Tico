@@ -29,21 +29,21 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
-    val locationViewModel = koinViewModel<LocationViewModel>()
+    val viewModel = koinViewModel<LocationViewModel>()
 
     val authViewModel = koinViewModel<AuthViewModel>()
 
     AppContent(
-        locationViewModel = locationViewModel,
+        viewModel = viewModel,
         authViewModel = authViewModel
     )
 }
 @Composable
 fun AppContent(
-    locationViewModel: LocationViewModel,
+    viewModel: LocationViewModel,
     authViewModel: AuthViewModel
 ) {
-    val coordinate by locationViewModel.coordinate.collectAsState()
+    val coordinate by viewModel.coordinate.collectAsState()
 
     val authUiState by authViewModel.uiState.collectAsState()
 
@@ -75,11 +75,11 @@ fun AppContent(
             BindLocationTrackerEffect(locationTracker = locationTracker)
 
             LaunchedEffect(Unit) {
-                locationViewModel.startTracking(locationTracker)
+                viewModel.startTracking(locationTracker)
             }
 
             DisposableEffect(Unit) {
-                onDispose { locationViewModel.stopTracking() }
+                onDispose { viewModel.stopTracking() }
             }
 
             BusAppNavigation(
