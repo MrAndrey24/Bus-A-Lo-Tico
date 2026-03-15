@@ -16,6 +16,8 @@ import com.example.shared.data.repository.company.CompanyRepository
 import com.example.shared.data.repository.company.ICompanyRepository
 import com.example.shared.data.repository.location.ILocationRepository
 import com.example.shared.data.repository.location.LocationRepository
+import com.example.shared.data.repository.mapbox.IMapboxRepository
+import com.example.shared.data.repository.mapbox.MapboxRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.route.RouteRepository
 import com.example.shared.data.repository.user.IUserRepository
@@ -33,4 +35,5 @@ val dataModule = module {
     single<ICompanyRepository> { CompanyRepository(get()) }
     single<IRouteRepository> { RouteRepository(get()) }
     single<IUserRepository> { UserRepository(get()) }
+    single<IMapboxRepository> { MapboxRepository(get()) }
 }

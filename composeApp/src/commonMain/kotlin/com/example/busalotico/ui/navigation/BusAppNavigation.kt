@@ -2,11 +2,15 @@ package com.example.busalotico.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,11 +21,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
+import com.example.busalotico.ui.screen.RouteDetailScreen
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
+import com.example.shared.presentation.route.RouteDetailViewModel
 import com.example.shared.presentation.route.RouteUiState
 import com.example.shared.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -37,6 +43,9 @@ fun BusAppNavigation(
 ) {
     val navController = rememberNavController()
     val routeViewModel = koinViewModel<RouteViewModel>()
+    val detailViewModel = koinViewModel<RouteDetailViewModel>()
+    val selectedId by detailViewModel.selectedRouteId.collectAsState()
+    val isDetailEnabled = selectedId.isNotEmpty()
     val routeUiState by routeViewModel.uiState.collectAsState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: BusAppScreen.Home.name
@@ -62,9 +71,32 @@ fun BusAppNavigation(
                 )
                 NavigationBarItem(
                     selected = currentRoute == BusAppScreen.Detail.name,
-                    onClick = { navController.navigate(BusAppScreen.Detail.name) },
-                    label = { Text("Detalle") },
-                    icon = { Text("📋") }
+                    enabled = isDetailEnabled,
+                    onClick = {
+                        if (isDetailEnabled) {
+                            navController.navigate(BusAppScreen.Detail.name)
+                        }
+                    },
+                    label = {
+                        Text(
+                            text = "Detalle",
+                            color = if (isDetailEnabled) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            }
+                        )
+                    },
+                    icon = {
+                        CompositionLocalProvider(
+                            LocalContentColor provides if (isDetailEnabled)
+                                MaterialTheme.colorScheme.onSurface
+                            else
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        ) {
+                            Text("📋")
+                        }
+                    }
                 )
                 NavigationBarItem(
                     selected = currentRoute == BusAppScreen.Profile.name,
@@ -81,7 +113,6 @@ fun BusAppNavigation(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(route = BusAppScreen.Home.name) {
-                // LÓGICA DE SEGURIDAD: Solo entramos si hay coordenadas
                 val currentCoord = coordinate
                 if (currentCoord != null) {
                     HomeScreen(
@@ -98,12 +129,32 @@ fun BusAppNavigation(
                 RouteSelectionScreen(
                     uiState = routeUiState.toRouteSelectionUiState(),
                     onBackClick = { navController.popBackStack() },
+                    onRouteClick = { routeItem ->
+                        detailViewModel.updateSelectedRoute(routeItem.id)
+                        val paradasDePrueba = listOf(
+                            Coordinate(9.9347, -84.0797),
+                            Coordinate(9.9358, -84.1021),
+                            Coordinate(9.9515, -84.1147),
+                            Coordinate(10.0163, -84.2138)
+                        )
+                        detailViewModel.loadMapboxLine(paradasDePrueba)
+                        navController.navigate(BusAppScreen.Detail.name)
+                    },
                     onToggleFavorite = routeViewModel::toggleFavorite
                 )
             }
 
             composable(route = BusAppScreen.Detail.name) {
-                Text("Pantalla de Detalle")
+                val currentCoord = coordinate
+                if (currentCoord != null) {
+                    RouteDetailScreen(
+                        routeId = selectedId,
+                        coordinate = currentCoord,
+                        viewModel = detailViewModel
+                    )
+                } else {
+                    Text("Esperando GPS para el detalle...")
+                }
             }
 
             composable(route = BusAppScreen.Profile.name) {

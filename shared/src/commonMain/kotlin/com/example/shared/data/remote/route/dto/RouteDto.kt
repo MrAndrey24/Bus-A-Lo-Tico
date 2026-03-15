@@ -44,7 +44,8 @@ data class RouteDto(
             isLive = isLive,
             isFavorite = isFavorite,
             stops = stops,
-            schedules = schedules
+            schedules = schedules,
+            polylinePoints = emptyList()
         )
     }
 }
