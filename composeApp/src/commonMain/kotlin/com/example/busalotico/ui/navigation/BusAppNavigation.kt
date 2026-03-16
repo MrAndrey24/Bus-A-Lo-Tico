@@ -2,7 +2,6 @@ package com.example.busalotico.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -21,7 +20,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
-import com.example.busalotico.ui.screen.RouteDetailScreen
 import com.example.busalotico.ui.screen.RouteDetailScreen
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
@@ -46,6 +44,7 @@ fun BusAppNavigation(
     val routeViewModel = koinViewModel<RouteViewModel>()
     val detailViewModel = koinViewModel<RouteDetailViewModel>()
     val selectedId by detailViewModel.selectedRouteId.collectAsState()
+    val stops by detailViewModel.stops.collectAsState()
     val isDetailEnabled = selectedId.isNotEmpty()
 
     val polylinePoints by detailViewModel.polylinePoints.collectAsState()
@@ -124,7 +123,8 @@ fun BusAppNavigation(
                         onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
                         modifier = Modifier.fillMaxSize(),
                         polylinePoints = polylinePoints,
-                        busLocation = busLocation
+                        stops = stops,
+                        busLocation = busLocation,
                     )
                 } else {
                     Text("Buscando señal GPS...")
@@ -136,21 +136,7 @@ fun BusAppNavigation(
                     uiState = routeUiState.toRouteSelectionUiState(),
                     onBackClick = { navController.popBackStack() },
                     onRouteClick = { routeItem ->
-                        detailViewModel.updateSelectedRoute(routeItem.id)
-                        val paradasDePrueba = listOf(
-                            Coordinate(9.984506, -84.729457),
-                            Coordinate(9.982033, -84.734038),
-                            Coordinate(9.979011, -84.734060),
-                            Coordinate(9.978060, -84.735616),
-                            Coordinate(9.980385, -84.735727),
-                            Coordinate(9.981832, -84.735448),
-                            Coordinate(9.983544, -84.735658),
-                            Coordinate(9.984326, -84.734534),
-                            Coordinate(9.985152, -84.732383),
-                            Coordinate(9.986002, -84.730219),
-                            Coordinate(9.984506, -84.729457),
-                        )
-                        detailViewModel.loadMapboxLine(paradasDePrueba)
+                        detailViewModel.loadStops(routeItem.id)
                         navController.navigate(BusAppScreen.Detail.name)
                     },
                     onToggleFavorite = routeViewModel::toggleFavorite
