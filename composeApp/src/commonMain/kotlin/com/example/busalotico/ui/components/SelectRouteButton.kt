@@ -18,6 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import busalotico.composeapp.generated.resources.Res
+import busalotico.composeapp.generated.resources.select_route
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SelectRouteButton(onClick: () -> Unit) {
@@ -38,7 +41,7 @@ fun SelectRouteButton(onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "Select a route",
+            text = stringResource(Res.string.select_route),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold
         )

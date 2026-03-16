@@ -1,4 +1,4 @@
-package com.example.busalotico.ui.screen
+package com.example.busalotico.ui.screen.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,30 +9,46 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.busalotico.ui.components.RecenterButton
 import com.example.busalotico.ui.components.SelectRouteButton
+import com.example.busalotico.ui.components.ZoomControls
 import com.example.busalotico.ui.components.mapview.MapViewComponent
 import com.example.busalotico.ui.components.searchBar.SearchBar
 import com.example.shared.domain.entities.Coordinate
+import com.example.shared.domain.entities.RouteStop
 
 @Composable
 fun HomeScreen(
     coordinate: Coordinate,
     modifier: Modifier = Modifier,
     onSelectRouteClick: () -> Unit = {},
+    polylinePoints: List<Coordinate> = emptyList(),
+    stops: List<RouteStop> = emptyList(),
+    busLocation: Coordinate? = null
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var recenterTrigger by remember { mutableIntStateOf(0) }
+    var zoomInTrigger by remember { mutableIntStateOf(0) }
+    var zoomOutTrigger by remember { mutableIntStateOf(0) }
 
     Box(
         modifier = modifier.fillMaxSize()
     ) {
         MapViewComponent(
-            coordinate = coordinate // If there are no permissions, the coordinate will be null and the map will display the default view.
+            coordinate = coordinate, // If there are no permissions, the coordinate will be null and the map will display the default view.
+            recenterTrigger = recenterTrigger,
+            zoomInTrigger = zoomInTrigger,
+            zoomOutTrigger = zoomOutTrigger,
+            polylinePoints = polylinePoints,
+            stops = stops,
+            busLocation = busLocation
         )
 
         Row(
@@ -49,6 +65,22 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 120.dp, end = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ZoomControls(
+                onZoomIn = { zoomInTrigger++ },
+                onZoomOut = { zoomOutTrigger++ }
+            )
+            RecenterButton(
+                onClick = { recenterTrigger++ }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()

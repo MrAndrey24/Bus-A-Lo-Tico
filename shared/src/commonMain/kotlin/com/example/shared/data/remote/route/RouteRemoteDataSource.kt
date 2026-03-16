@@ -1,0 +1,68 @@
+package com.example.shared.data.remote.route
+
+import com.example.shared.data.remote.route.dto.RouteDto
+import com.example.shared.data.remote.route.dto.RouteScheduleDto
+import com.example.shared.data.remote.route.dto.RouteStopDto
+import com.example.shared.domain.entities.Route
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.firestore.firestore
+
+class RouteRemoteDataSource : IRouteRemoteDataSource {
+
+    override suspend fun getRoutes(): List<Route> {
+        return Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .get()
+            .documents
+            .map { routeSnapshot ->
+                val routeDto = routeSnapshot.data(RouteDto.serializer())
+                routeDto.toDomain(
+                    documentId = routeSnapshot.id,
+                    stops = emptyList(),
+                    schedules = emptyList()
+                )
+            }
+    }
+
+    override suspend fun getRoute(routeId: String): Route? {
+        val routeRef = Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .document(routeId)
+
+        val routeSnapshot = routeRef.get()
+        if (!routeSnapshot.exists) return null
+
+        val routeDto = routeSnapshot.data(RouteDto.serializer())
+
+        val stops = routeRef
+            .collection(STOPS_COLLECTION)
+            .get()
+            .documents
+            .map { stopSnapshot ->
+                val stopDto = stopSnapshot.data(RouteStopDto.serializer())
+                stopDto.toDomain(stopSnapshot.id)
+            }
+            .sortedBy { it.order }
+
+        val schedules = routeRef
+            .collection(SCHEDULES_COLLECTION)
+            .get()
+            .documents
+            .map { scheduleSnapshot ->
+                val scheduleDto = scheduleSnapshot.data(RouteScheduleDto.serializer())
+                scheduleDto.toDomain(scheduleSnapshot.id)
+            }
+
+        return routeDto.toDomain(
+            documentId = routeSnapshot.id,
+            stops = stops,
+            schedules = schedules
+        )
+    }
+
+    private companion object {
+        const val ROUTES_COLLECTION = "routes"
+        const val STOPS_COLLECTION = "stops"
+        const val SCHEDULES_COLLECTION = "schedules"
+    }
+}
