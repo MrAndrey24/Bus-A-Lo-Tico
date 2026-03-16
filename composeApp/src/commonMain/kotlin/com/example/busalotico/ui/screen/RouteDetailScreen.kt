@@ -43,7 +43,6 @@ import com.example.shared.domain.entities.RouteStop
 import com.example.shared.presentation.route.RouteDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
-// Modelo de apoyo para los datos de la lista
 data class BusStopDetail(
     val baseStop: RouteStop,
     val time: String,
@@ -56,36 +55,38 @@ data class BusStopDetail(
 fun RouteDetailScreen(
     routeId: String,
     coordinate: Coordinate,
-    // Koin nos da la misma instancia 'single' que usamos en la navegación
+    // Koin
     viewModel: RouteDetailViewModel = koinViewModel()
 ) {
-    // 1. OBSERVAMOS EL ESTADO (La línea azul que se cargó al hacer clic)
     val polylinePoints by viewModel.polylinePoints.collectAsState()
+    val realStops by viewModel.stops.collectAsState()
     val busLocation by viewModel.busLocation.collectAsState()
 
-    // Triggers para el control del mapa
+    // Triggers for map control
     var recenterTrigger by remember { mutableIntStateOf(0) }
     var zoomInTrigger by remember { mutableIntStateOf(0) }
     var zoomOutTrigger by remember { mutableIntStateOf(0) }
 
-    // Lista de paradas (Basura temporal que coincide con los puntos de prueba del NavHost)
+
     val detailedStops = remember(routeId) {
-        listOf(
-            BusStopDetail(RouteStop("1", "Terminal San José",  9.984506, -84.729457, 1), "08:15", "Completada",       isCompleted = true),
-            BusStopDetail(RouteStop("2", "La Sabana",          9.982033, -84.734038, 2), "08:27", "Llegando ahora",   isCurrent = true),
-            BusStopDetail(RouteStop("3", "Hospital México",    9.979011, -84.734060, 3), "08:39", "En 12 mins aprox"),
-            BusStopDetail(RouteStop("4", "Río Segundo",        9.978060, -84.735616, 4), "08:45", "En 18 mins aprox"),
-            BusStopDetail(RouteStop("5", "San Antonio",        9.980385, -84.735727, 5), "08:51", "En 24 mins aprox"),
-            BusStopDetail(RouteStop("6", "La Uruca",           9.981832, -84.735448, 6), "08:57", "En 30 mins aprox"),
-            BusStopDetail(RouteStop("7", "La Garita",          9.983544, -84.735658, 7), "09:03", "En 36 mins aprox"),
-            BusStopDetail(RouteStop("8", "San Joaquín",        9.984326, -84.734534, 8), "09:09", "En 42 mins aprox"),
-            BusStopDetail(RouteStop("9", "Ciruelas",           9.985152, -84.732383, 9), "09:15", "En 48 mins aprox"),
-            BusStopDetail(RouteStop("10", "Alajuela Central",  9.986002, -84.730219, 10), "09:10", "Destino Final"),
-            BusStopDetail(RouteStop("1", "Terminal San José",  9.984506, -84.729457, 1), "08:15", "Completada",       isCompleted = true),
-        )
+        realStops.mapIndexed { index, routeStop ->
+            BusStopDetail(
+                baseStop = routeStop,
+                // Later, connect it to real-time schedules in Firebase
+                time = "12:00",
+                status = when {
+                    index == 0 -> "Completada"
+                    index == 1 -> "Llegando ahora"
+                    index == realStops.lastIndex -> "Destino Final"
+                    else -> "En tránsito"
+                },
+                isCompleted = index <= 0,
+                isCurrent = index == 1
+            )
+        }
     }
 
-    // Centrado automático cuando cambia el GPS del usuario
+    // Automatically centers when the user's GPS location changes
     LaunchedEffect(coordinate) {
         if (coordinate.latitude != 0.0) {
             recenterTrigger++
@@ -99,7 +100,7 @@ fun RouteDetailScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Detalle de Ruta: $routeId", // Ahora usa el ID real seleccionado
+            text = "Detalle de Ruta: $routeId", // Real ID selected
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -126,8 +127,7 @@ fun RouteDetailScreen(
                     recenterTrigger = recenterTrigger,
                     zoomInTrigger = zoomInTrigger,
                     zoomOutTrigger = zoomOutTrigger,
-                    stops = detailedStops.map { it.baseStop },
-                    // PASAMOS LA LÍNEA QUE VIENE DEL VIEWMODEL COMPARTIDO
+                    stops = realStops,
                     polylinePoints = polylinePoints,
                     busLocation = busLocation
                 )
@@ -171,7 +171,6 @@ fun RouteDetailScreen(
     }
 }
 
-// ... (StatusBadge y StopItem se mantienen igual ya que son UI pura)
 @Composable
 fun StatusBadge(text: String, color: Color, textColor: Color, border: Boolean = false) {
     Surface(
