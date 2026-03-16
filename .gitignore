@@ -1,6 +1,8 @@
 *.iml
 .kotlin
 .gradle
+/.gradle-local/
+**/.gradle-local/
 **/build/
 xcuserdata
 !src/**/build/
@@ -17,3 +19,5 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+shared/AppSecrets.kt
+composeApp/google-services.json

@@ -25,6 +25,9 @@ moko = "0.20.1"
 moko-geo = "0.8.0"
 navigationCompose = "2.9.2"
 materialIconsCoreVersion = "1.7.3"
+googleServices = "4.4.4"
+firebaseKotlinSdk = "2.4.0"
+firebaseBom = "33.10.0"
 
 
 [libraries]
@@ -89,6 +92,13 @@ navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-co
 
 # Material Icons
 material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCoreVersion" }
+material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsCoreVersion" }
+
+
+# Firebase Kotlin SDK
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "firebaseKotlinSdk" }
+firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebaseKotlinSdk" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -96,5 +106,7 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 androidLint = { id = "com.android.lint", version.ref = "agp" }
+googleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }
