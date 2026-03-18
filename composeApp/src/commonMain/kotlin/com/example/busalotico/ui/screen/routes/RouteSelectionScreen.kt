@@ -453,12 +453,29 @@ private fun RouteSelectionCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = route.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = Color(0xFF1F2126),
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+
+                val locationAndCompany = listOfNotNull(
+                    route.province?.takeIf { it.isNotBlank() },
+                    route.companyName?.takeIf { it.isNotBlank() }
+                ).joinToString(" • ")
+
+                if (locationAndCompany.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = locationAndCompany,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF7E8189),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(4.dp))
 

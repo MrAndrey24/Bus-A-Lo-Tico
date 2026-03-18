@@ -13,6 +13,7 @@ data class RouteListItemUi(
     val id: String,
     val code: String,
     val title: String,
+    val companyName: String? = null,
     val statusText: String,
     val etaText: String,
     val frequencyText: String,
