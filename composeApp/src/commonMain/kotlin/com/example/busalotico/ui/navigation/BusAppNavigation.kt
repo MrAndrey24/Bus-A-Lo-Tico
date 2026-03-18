@@ -183,6 +183,7 @@ private fun Route.toRouteListItemUi(
         id = id,
         code = code,
         title = name.toDisplayRouteName(),
+        companyName = operator.toDisplayRouteName(),
         statusText = statusText,
         etaText = etaText,
         frequencyText = frequencyText,
