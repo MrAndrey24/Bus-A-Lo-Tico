@@ -1,12 +1,20 @@
 package com.example.busalotico.ui.components.mapview.route
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.example.busalotico.R
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
 import com.mapbox.geojson.Point
-import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
+import com.mapbox.maps.ViewAnnotationOptions
+import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
+import com.mapbox.maps.viewannotation.geometry
 
 @Composable
 actual fun RouteAnnotations(
@@ -19,7 +27,7 @@ actual fun RouteAnnotations(
         PolylineAnnotation(
             points = polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) }
         ) {
-            lineColor = Color(0xFF007AFF) // Blue
+            lineColor = Color(0xFF1D4ED8)
             lineWidth = 6.0
             lineOpacity = 0.8
         }
@@ -29,11 +37,17 @@ actual fun RouteAnnotations(
     // Stops
     if (stops.isNotEmpty()){
         stops.forEach { stop ->
-            CircleAnnotation(point = Point.fromLngLat(stop.longitude, stop.latitude)) {
-                circleRadius = 8.0
-                circleColor = Color.Red
-                circleStrokeWidth = 2.0
-                circleStrokeColor = Color.White
+            ViewAnnotation(
+                options = ViewAnnotationOptions.Builder()
+                    .geometry(Point.fromLngLat(stop.longitude, stop.latitude))
+                    .allowOverlap(true)
+                    .build()
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.stops),
+                    contentDescription = "Parada: ${stop.name}",
+                    modifier = Modifier.size(36.dp)
+                )
             }
         }
     }
@@ -41,11 +55,17 @@ actual fun RouteAnnotations(
 
     // Bus
     if (busLocation != null) {
-        CircleAnnotation(point = Point.fromLngLat(busLocation.longitude, busLocation.latitude)) {
-            circleRadius = 8.0
-            circleColor = Color.Yellow
-            circleStrokeWidth = 3.0
-            circleStrokeColor = Color.Black
+        ViewAnnotation(
+            options = ViewAnnotationOptions.Builder()
+                .geometry(Point.fromLngLat(busLocation.longitude, busLocation.latitude))
+                .allowOverlap(true)
+                .build()
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.bus),
+                contentDescription = "Bus",
+                modifier = Modifier.size(36.dp)
+            )
         }
     }
 }
