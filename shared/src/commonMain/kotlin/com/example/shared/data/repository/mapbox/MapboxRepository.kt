@@ -1,4 +1,5 @@
 package com.example.shared.data.repository.mapbox
+import com.example.shared.AppSecrets
 import com.example.shared.domain.entities.Coordinate
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
