@@ -11,7 +11,7 @@ kotlin {
     android {
         namespace = "com.example.busalotico.library"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
-        compilerOptions { jvmTarget.set(JvmTarget.JVM_21) }
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
 
         androidResources { enable = true }
     }
