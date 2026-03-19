@@ -20,4 +20,4 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 **/AppSecrets.kt
-composeApp/google-services.json
+androidApp/google-services.json

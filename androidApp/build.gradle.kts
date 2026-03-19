@@ -5,7 +5,6 @@ plugins {
   alias(libs.plugins.composeMultiplatform)
   alias(libs.plugins.composeCompiler)
   alias(libs.plugins.googleServices)
-  // alias(libs.plugins.firebaseCrashlytics)
 }
 
 kotlin {
@@ -22,13 +21,8 @@ kotlin {
     implementation(libs.mapbox.android)
     implementation(libs.mapbox.compose.android)
 
-    // implementation(project.dependencies.platform(libs.firebase.bom))
-    // implementation(libs.gitlive.firebase.common)
-    // implementation(libs.gitlive.firebase.analytics)
-    // implementation(libs.gitlive.firebase.crashlytics)
-    // implementation(libs.kotlinx.coroutines.android)
-    // implementation(project.dependencies.platform(libs.koin.bom))
-    // implementation(libs.koin.android)
+    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.koin.android)
   }
 }
 
@@ -57,7 +51,7 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+      sourceCompatibility = JavaVersion.VERSION_21
+      targetCompatibility = JavaVersion.VERSION_21
     }
 }

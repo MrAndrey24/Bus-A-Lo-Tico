@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.busalotico.R
+import com.example.busalotico.library.R
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
 import com.mapbox.geojson.Point
