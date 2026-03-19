@@ -2,14 +2,19 @@ package com.example.busalotico.ui.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsBus
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -60,18 +65,41 @@ fun BusAppNavigation(
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
+            ) {
                 NavigationBarItem(
                     selected = currentRoute == BusAppScreen.Home.name,
                     onClick = { navController.navigate(BusAppScreen.Home.name) },
                     label = { Text("Mapa") },
-                    icon = { Text("📍") }
+                    icon = { 
+                        Icon(
+                            imageVector = Icons.Default.Map,
+                            contentDescription = "Mapa"
+                        ) 
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 )
                 NavigationBarItem(
                     selected = currentRoute == BusAppScreen.Routes.name,
                     onClick = { navController.navigate(BusAppScreen.Routes.name) },
                     label = { Text("Rutas") },
-                    icon = { Text("🚌") }
+                    icon = { 
+                        Icon(
+                            imageVector = Icons.Default.DirectionsBus,
+                            contentDescription = "Rutas"
+                        ) 
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 )
                 NavigationBarItem(
                     selected = currentRoute == BusAppScreen.Detail.name,
@@ -81,32 +109,36 @@ fun BusAppNavigation(
                             navController.navigate(BusAppScreen.Detail.name)
                         }
                     },
-                    label = {
-                        Text(
-                            text = "Detalle",
-                            color = if (isDetailEnabled) {
-                                MaterialTheme.colorScheme.onSurface
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            }
-                        )
+                    label = { Text("Detalle") },
+                    icon = { 
+                        Icon(
+                            imageVector = Icons.Default.Route,
+                            contentDescription = "Detalle"
+                        ) 
                     },
-                    icon = {
-                        CompositionLocalProvider(
-                            LocalContentColor provides if (isDetailEnabled)
-                                MaterialTheme.colorScheme.onSurface
-                            else
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        ) {
-                            Text("📋")
-                        }
-                    }
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                        disabledIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    )
                 )
                 NavigationBarItem(
                     selected = currentRoute == BusAppScreen.Profile.name,
                     onClick = { navController.navigate(BusAppScreen.Profile.name) },
                     label = { Text("Perfil") },
-                    icon = { Text("👤") }
+                    icon = { 
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Perfil"
+                        ) 
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 )
             }
         }
