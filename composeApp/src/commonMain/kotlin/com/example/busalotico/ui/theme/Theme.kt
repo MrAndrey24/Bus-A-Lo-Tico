@@ -5,19 +5,24 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 val AppColorScheme = lightColorScheme(
-
     primary = DeepNavy,
     onPrimary = White,
+    primaryContainer = LightNavy,
+    onPrimaryContainer = DeepNavy,
 
     background = White,
     onBackground = NearBlack,
 
     surface = LightGray,
     onSurface = NearBlack,
+    surfaceVariant = PaleGray,
+    onSurfaceVariant = MediumGray,
 
     secondary = MediumGray,
-    outline = PaleGray,
+    secondaryContainer = PaleGray,
+    onSecondaryContainer = NearBlack,
 
+    outline = PaleGray,
     tertiary = SuccessGreen
 )
 
