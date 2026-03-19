@@ -9,7 +9,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import busalotico.composeapp.generated.resources.Res
 import busalotico.composeapp.generated.resources.permission_location_description
 import busalotico.composeapp.generated.resources.permission_location_title
@@ -19,6 +21,7 @@ import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.navigation.BusAppNavigation
 import com.example.busalotico.ui.screen.auth.AuthScreen
 import com.example.busalotico.ui.screen.onboarding.PermissionsRequesterScreen
+import com.example.busalotico.ui.screen.splash.SplashScreen
 import com.example.busalotico.ui.theme.AppTheme
 import com.example.shared.domain.entities.UserRole
 import com.example.shared.presentation.auth.AuthViewModel
@@ -26,6 +29,7 @@ import com.example.shared.presentation.location.LocationViewModel
 import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.location.LOCATION
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -49,6 +53,7 @@ fun AppContent(
     val coordinate by viewModel.coordinate.collectAsState()
     val authUiState by authViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showSplash by remember { mutableStateOf(true) }
     val currentUser = if (DevSessionConfig.BYPASS_AUTH) {
         DevSessionConfig.devUser
     } else {
@@ -56,7 +61,17 @@ fun AppContent(
     }
     val isAuthenticated = DevSessionConfig.BYPASS_AUTH || authUiState.isAuthenticated
 
+    LaunchedEffect(Unit) {
+        delay(1300)
+        showSplash = false
+    }
+
     MaterialTheme {
+        if (showSplash) {
+            SplashScreen()
+            return@MaterialTheme
+        }
+
         if (!isAuthenticated) {
             AuthScreen(
                 uiState = authUiState,
