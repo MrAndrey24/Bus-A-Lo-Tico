@@ -181,7 +181,8 @@ fun BusAppNavigation(
                     RouteDetailScreen(
                         routeId = selectedId,
                         coordinate = currentCoord,
-                        viewModel = detailViewModel
+                        viewModel = detailViewModel,
+                        onBackClick = { navController.popBackStack() }
                     )
                 } else {
                     Text("Esperando GPS para el detalle...")

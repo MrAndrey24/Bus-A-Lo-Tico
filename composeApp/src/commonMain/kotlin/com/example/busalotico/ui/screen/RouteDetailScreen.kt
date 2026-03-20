@@ -1,6 +1,7 @@
 package com.example.busalotico.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,9 +17,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.RecenterButton
 import com.example.busalotico.ui.components.ZoomControls
+import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.busalotico.ui.components.mapview.details.MapViewDetail
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
@@ -45,17 +51,13 @@ import com.example.shared.presentation.route.RouteDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 // ---------------------------------------------------------------------------
-// Colors
-// ---------------------------------------------------------------------------
-private val GreenActive  = Color(0xFF2E7D32)
-private val GreenLight   = Color(0xFFE8F5E9)
-private val GreenDot     = Color(0xFF4CAF50)
-private val GreyText     = Color(0xFF9E9E9E)
-private val GreySurface  = Color(0xFFF5F5F5)
-private val GreyLine     = Color(0xFFE0E0E0)
-private val TextPrimary  = Color(0xFF1A1A1A)
-private val BlueLight    = Color(0xFFE3F2FD)
-private val BlueText     = Color(0xFF1565C0)
+private val GreenActive = Color(0xFF2E7D32)
+private val GreenLight = Color(0xFFE8F5E9)
+private val GreenDot = Color(0xFF4CAF50)
+private val GreyText = Color(0xFF8B8E95)
+private val GreySurface = Color(0xFFF7F7F9)
+private val GreyLine = Color(0xFFE4E4E8)
+private val TextPrimary = Color(0xFF17181C)
 
 // ---------------------------------------------------------------------------
 // Screen
@@ -64,7 +66,8 @@ private val BlueText     = Color(0xFF1565C0)
 fun RouteDetailScreen(
     routeId: String,
     coordinate: Coordinate,
-    viewModel: RouteDetailViewModel = koinViewModel()
+    viewModel: RouteDetailViewModel = koinViewModel(),
+    onBackClick: () -> Unit = {}
 ) {
     val polylinePoints by viewModel.polylinePoints.collectAsState()
     val stops          by viewModel.stops.collectAsState()
@@ -84,9 +87,14 @@ fun RouteDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color(0xFFF4F4F6))
     ) {
-        RouteHeader(routeName = routeName)
+        RouteHeader(
+            routeName = routeName,
+            onBackClick = onBackClick
+        )
+
+        Spacer(Modifier.height(12.dp))
 
         MapCard(
             recenterTrigger = recenterTrigger,
@@ -104,8 +112,9 @@ fun RouteDetailScreen(
 
         Text(
             text       = "Próximas paradas",
-            style      = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
+            style      = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color      = Color(0xFF7B7D84),
             modifier   = Modifier.padding(horizontal = 20.dp)
         )
 
@@ -137,41 +146,23 @@ fun RouteDetailScreen(
 // Header
 // ---------------------------------------------------------------------------
 @Composable
-private fun RouteHeader(routeName: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 20.dp, vertical = 14.dp)
-    ) {
-        Text(
-            text          = "RUTA ACTIVA",
-            style         = MaterialTheme.typography.labelSmall,
-            color         = GreyText,
-            letterSpacing = 1.2.sp
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text       = routeName.ifBlank { "Cargando ruta..." },
-            style      = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color      = TextPrimary
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            StatusChip(
-                text      = "En tránsito",
-                dotColor  = GreenDot,
-                bgColor   = GreenLight,
-                textColor = GreenActive
-            )
-            StatusChip(
-                text      = "Actualizado ahora",
-                bgColor   = GreySurface,
-                textColor = GreyText
-            )
+private fun RouteHeader(
+    routeName: String,
+    onBackClick: () -> Unit
+) {
+    ScreenHeader(
+        title = "Detalle",
+        subtitle = routeName.ifBlank { "Cargando ruta..." },
+        leadingContent = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color(0xFF555861)
+                )
+            }
         }
-    }
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -195,7 +186,9 @@ private fun MapCard(
             .padding(horizontal = 20.dp)
             .height(210.dp),
         shape     = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors    = CardDefaults.cardColors(containerColor = Color.White),
+        border    = BorderStroke(1.dp, Color(0xFFE5E6EB)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             MapViewDetail(
@@ -329,8 +322,9 @@ private fun StopRow(
         // ── Right badge ───────────────────────────────────────────────────────
         if (badgeText != null) {
             Surface(
-                color  = badgeBg,
-                shape  = RoundedCornerShape(12.dp)
+                color = badgeBg,
+                shape = RoundedCornerShape(12.dp),
+                border = if (isCurrent) null else BorderStroke(1.dp, Color(0xFFE7E8EC))
             ) {
                 Text(
                     text     = badgeText,
@@ -339,30 +333,6 @@ private fun StopRow(
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                 )
             }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Status chip
-// ---------------------------------------------------------------------------
-@Composable
-private fun StatusChip(
-    text: String,
-    bgColor: Color,
-    textColor: Color,
-    dotColor: Color? = null
-) {
-    Surface(color = bgColor, shape = RoundedCornerShape(20.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier          = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-        ) {
-            if (dotColor != null) {
-                Box(modifier = Modifier.size(7.dp).background(dotColor, CircleShape))
-                Spacer(Modifier.width(5.dp))
-            }
-            Text(text = text, style = MaterialTheme.typography.labelMedium, color = textColor)
         }
     }
 }
