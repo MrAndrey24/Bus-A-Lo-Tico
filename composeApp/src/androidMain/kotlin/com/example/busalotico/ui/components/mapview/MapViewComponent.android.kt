@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.example.busalotico.ui.components.mapview.icon.UserPoint
 import com.example.busalotico.ui.components.mapview.route.RouteAnnotations
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
@@ -16,7 +16,6 @@ import com.mapbox.maps.Style
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
-import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.style.MapStyle
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 
@@ -98,12 +97,7 @@ actual fun MapViewComponent(
     ) {
 
         // User Position (Blue Point)
-        CircleAnnotation(point = currentPoint) {
-            circleRadius = 10.0
-            circleColor = Color.Blue
-            circleStrokeWidth = 3.0
-            circleStrokeColor = Color.White
-        }
+        UserPoint(currentPoint)
 
         // Print Routes and Stops
         RouteAnnotations(
