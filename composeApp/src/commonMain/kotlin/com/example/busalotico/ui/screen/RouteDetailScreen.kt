@@ -87,12 +87,14 @@ fun RouteDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF4F4F6))
+            .background(Color.White)
     ) {
         RouteHeader(
             routeName = routeName,
             onBackClick = onBackClick
         )
+
+        RouteStatusChips()
 
         Spacer(Modifier.height(12.dp))
 
@@ -151,7 +153,7 @@ private fun RouteHeader(
     onBackClick: () -> Unit
 ) {
     ScreenHeader(
-        title = "Detalle",
+        title = "Ruta activa",
         subtitle = routeName.ifBlank { "Cargando ruta..." },
         leadingContent = {
             IconButton(onClick = onBackClick) {
@@ -163,6 +165,52 @@ private fun RouteHeader(
             }
         }
     )
+}
+
+@Composable
+private fun RouteStatusChips() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Surface(
+            color = GreenLight,
+            shape = RoundedCornerShape(999.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(GreenDot, CircleShape)
+                )
+                Text(
+                    text = "En transito",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = GreenActive,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        Surface(
+            color = Color(0xFFF3F4F6),
+            shape = RoundedCornerShape(999.dp)
+        ) {
+            Text(
+                text = "Actualizado ahora",
+                style = MaterialTheme.typography.labelSmall,
+                color = GreyText,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            )
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
