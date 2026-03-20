@@ -28,82 +28,81 @@ actual fun MapViewComponent(
     zoomOutTrigger: Int,
     stops: List<RouteStop>,
     polylinePoints: List<Coordinate>,
-    busLocation: Coordinate?
+    busLocation: Coordinate?,
 ) {
 
-    println(stops.size)
+  println(stops.size)
 
+  val currentPoint = Point.fromLngLat(coordinate.longitude, coordinate.latitude)
+  var locationUpdateCount by remember { mutableIntStateOf(0) }
 
-    val currentPoint = Point.fromLngLat(coordinate.longitude, coordinate.latitude)
-    var locationUpdateCount by remember { mutableIntStateOf(0) }
+  val mapViewportState = rememberMapViewportState {
+    setCameraOptions {
+      center(currentPoint)
+      zoom(15.0)
+    }
+  }
 
-    val mapViewportState = rememberMapViewportState {
-        setCameraOptions {
+  // (GPS)
+  LaunchedEffect(coordinate) {
+    if (locationUpdateCount < 2) {
+      mapViewportState.easeTo(
+          cameraOptions {
             center(currentPoint)
             zoom(15.0)
-        }
+          },
+          MapAnimationOptions.mapAnimationOptions { duration(1000) },
+      )
+      locationUpdateCount++
     }
+  }
 
-    // (GPS)
-    LaunchedEffect(coordinate) {
-        if (locationUpdateCount < 2) {
-            mapViewportState.easeTo(
-                cameraOptions { center(currentPoint); zoom(15.0) },
-                MapAnimationOptions.mapAnimationOptions { duration(1000) }
-            )
-            locationUpdateCount++
-        }
+  // (Green Point)
+  LaunchedEffect(recenterTrigger) {
+    if (recenterTrigger > 0) {
+      mapViewportState.easeTo(
+          cameraOptions {
+            center(currentPoint)
+            zoom(15.0)
+          },
+          MapAnimationOptions.mapAnimationOptions { duration(800) },
+      )
     }
+  }
 
-    // (Green Point)
-    LaunchedEffect(recenterTrigger) {
-        if (recenterTrigger > 0) {
-            mapViewportState.easeTo(
-                cameraOptions { center(currentPoint); zoom(15.0) },
-                MapAnimationOptions.mapAnimationOptions { duration(800) }
-            )
-        }
+  // Zoom In (+)
+  LaunchedEffect(zoomInTrigger) {
+    if (zoomInTrigger > 0) {
+      val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
+      mapViewportState.easeTo(
+          cameraOptions { zoom(currentZoom + 1.0) },
+          MapAnimationOptions.mapAnimationOptions { duration(300) },
+      )
     }
+  }
 
-    // Zoom In (+)
-    LaunchedEffect(zoomInTrigger) {
-        if (zoomInTrigger > 0) {
-            val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
-            mapViewportState.easeTo(
-                cameraOptions { zoom(currentZoom + 1.0) },
-                MapAnimationOptions.mapAnimationOptions { duration(300) }
-            )
-        }
+  // Zoom Out (-)
+  LaunchedEffect(zoomOutTrigger) {
+    if (zoomOutTrigger > 0) {
+      val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
+      mapViewportState.easeTo(
+          cameraOptions { zoom(currentZoom - 1.0) },
+          MapAnimationOptions.mapAnimationOptions { duration(300) },
+      )
     }
+  }
 
-    // Zoom Out (-)
-    LaunchedEffect(zoomOutTrigger) {
-        if (zoomOutTrigger > 0) {
-            val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
-            mapViewportState.easeTo(
-                cameraOptions { zoom(currentZoom - 1.0) },
-                MapAnimationOptions.mapAnimationOptions { duration(300) }
-            )
-        }
-    }
+  // --- VIEW MAP ---
+  MapboxMap(
+      modifier = modifier,
+      mapViewportState = mapViewportState,
+      style = { MapStyle(style = Style.MAPBOX_STREETS) },
+  ) {
 
-    // --- VIEW MAP ---
-    MapboxMap(
-        modifier = modifier,
-        mapViewportState = mapViewportState,
-        style = {
-            MapStyle(style = Style.MAPBOX_STREETS)
-        }
-    ) {
+    // User Position (Blue Point)
+    UserPoint(currentPoint)
 
-        // User Position (Blue Point)
-        UserPoint(currentPoint)
-
-        // Print Routes and Stops
-        RouteAnnotations(
-            polylinePoints = polylinePoints,
-            stops = stops,
-            busLocation = busLocation
-        )
-    }
+    // Print Routes and Stops
+    RouteAnnotations(polylinePoints = polylinePoints, stops = stops, busLocation = busLocation)
+  }
 }

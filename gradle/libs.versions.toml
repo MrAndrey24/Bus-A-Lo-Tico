@@ -28,6 +28,7 @@ materialIconsCoreVersion = "1.7.3"
 googleServices = "4.4.4"
 firebaseKotlinSdk = "2.4.0"
 firebaseBom = "33.10.0"
+spotless = "8.3.0"
 
 
 [libraries]
@@ -110,3 +111,5 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 androidLint = { id = "com.android.lint", version.ref = "agp" }
 googleServices = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+# Formatting
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

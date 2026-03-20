@@ -60,227 +60,228 @@ fun RouteSelectionScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     onRouteClick: (RouteListItemUi) -> Unit = {},
-    onToggleFavorite: (routeId: String, isFavorite: Boolean) -> Unit = { _, _ -> }
+    onToggleFavorite: (routeId: String, isFavorite: Boolean) -> Unit = { _, _ -> },
 ) {
-    val provinces = remember { demoCRGeoData() }
-    var showLocationPanel by remember { mutableStateOf(false) }
+  val provinces = remember { demoCRGeoData() }
+  var showLocationPanel by remember { mutableStateOf(false) }
 
-    var filters by remember { mutableStateOf(RouteFiltersState()) }
-    var favoriteRouteIds by remember(uiState.routes) {
+  var filters by remember { mutableStateOf(RouteFiltersState()) }
+  var favoriteRouteIds by
+      remember(uiState.routes) {
         mutableStateOf(uiState.routes.filter { it.isFavorite }.map { it.id }.toSet())
-    }
+      }
 
-    val availableCantons = filters.selectedProvince?.cantons ?: emptyList()
-    val availableDistricts = filters.selectedCanton?.districts ?: emptyList()
+  val availableCantons = filters.selectedProvince?.cantons ?: emptyList()
+  val availableDistricts = filters.selectedCanton?.districts ?: emptyList()
 
-    val routesWithFavorites by remember(uiState.routes, favoriteRouteIds) {
+  val routesWithFavorites by
+      remember(uiState.routes, favoriteRouteIds) {
         derivedStateOf {
-            uiState.routes.map { route ->
-                route.copy(isFavorite = route.isFavorite || favoriteRouteIds.contains(route.id))
-            }
+          uiState.routes.map { route ->
+            route.copy(isFavorite = route.isFavorite || favoriteRouteIds.contains(route.id))
+          }
         }
-    }
+      }
 
-    val filteredRoutes by remember(routesWithFavorites, filters) {
+  val filteredRoutes by
+      remember(routesWithFavorites, filters) {
         derivedStateOf {
-            routesWithFavorites.filter { route ->
-                if (!route.isActive) return@filter false
+          routesWithFavorites.filter { route ->
+            if (!route.isActive) return@filter false
 
-                val queryMatches = if (filters.query.isBlank()) {
-                true
-            } else {
-                (route.title + " " + route.code).contains(filters.query, ignoreCase = true)
-            }
+            val queryMatches =
+                if (filters.query.isBlank()) {
+                  true
+                } else {
+                  (route.title + " " + route.code).contains(filters.query, ignoreCase = true)
+                }
 
-                val nearMeMatches = !filters.nearMeOnly || route.isNearMe
-                val favoritesMatch = !filters.favoritesOnly || route.isFavorite
-                val provinceMatch = filters.selectedProvince == null ||
+            val nearMeMatches = !filters.nearMeOnly || route.isNearMe
+            val favoritesMatch = !filters.favoritesOnly || route.isFavorite
+            val provinceMatch =
+                filters.selectedProvince == null ||
                     route.province.equals(filters.selectedProvince?.name, ignoreCase = true)
-                val cantonMatch = filters.selectedCanton == null ||
+            val cantonMatch =
+                filters.selectedCanton == null ||
                     route.canton.equals(filters.selectedCanton?.name, ignoreCase = true)
-                val districtMatch = filters.selectedDistrict == null ||
+            val districtMatch =
+                filters.selectedDistrict == null ||
                     route.district.equals(filters.selectedDistrict, ignoreCase = true)
 
-                queryMatches && nearMeMatches && favoritesMatch && provinceMatch && cantonMatch && districtMatch
-            }
+            queryMatches &&
+                nearMeMatches &&
+                favoritesMatch &&
+                provinceMatch &&
+                cantonMatch &&
+                districtMatch
+          }
         }
-    }
+      }
 
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = Color(0xFFF4F4F6)
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            RouteSelectionTopBar(onBackClick = onBackClick)
+  Surface(modifier = modifier.fillMaxSize(), color = Color(0xFFF4F4F6)) {
+    Column(modifier = Modifier.fillMaxSize()) {
+      RouteSelectionTopBar(onBackClick = onBackClick)
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+      Column(modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp)) {
+        Spacer(modifier = Modifier.height(14.dp))
+
+        SearchField(
+            value = filters.query,
+            onValueChange = { filters = filters.copy(query = it) },
+            placeholder = "Buscar ruta, parada o lugar...",
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        FilterChipsRow(
+            nearMe = filters.nearMeOnly,
+            onNearMeToggle = { filters = filters.copy(nearMeOnly = !filters.nearMeOnly) },
+            locationLabel =
+                buildLocationLabel(
+                    filters.selectedProvince,
+                    filters.selectedCanton,
+                    filters.selectedDistrict,
+                ),
+            locationSelected = showLocationPanel,
+            onLocationClick = { showLocationPanel = !showLocationPanel },
+            favoriteCount = routesWithFavorites.count { it.isFavorite },
+            favoritesOnly = filters.favoritesOnly,
+            onFavoritesToggle = { filters = filters.copy(favoritesOnly = !filters.favoritesOnly) },
+        )
+
+        AnimatedVisibility(visible = showLocationPanel) {
+          LocationPanel(
+              provinces = provinces,
+              selectedProvince = filters.selectedProvince,
+              onProvinceSelected = { province ->
+                filters =
+                    filters.copy(
+                        selectedProvince = province,
+                        selectedCanton = null,
+                        selectedDistrict = null,
+                    )
+              },
+              cantons = availableCantons,
+              selectedCanton = filters.selectedCanton,
+              onCantonSelected = { canton ->
+                filters = filters.copy(selectedCanton = canton, selectedDistrict = null)
+              },
+              districts = availableDistricts,
+              selectedDistrict = filters.selectedDistrict,
+              onDistrictSelected = { filters = filters.copy(selectedDistrict = it) },
+              onClear = {
+                filters =
+                    filters.copy(
+                        selectedProvince = null,
+                        selectedCanton = null,
+                        selectedDistrict = null,
+                    )
+              },
+              onApply = { showLocationPanel = false },
+          )
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+              text = "RUTAS DISPONIBLES",
+              style = MaterialTheme.typography.labelMedium,
+              fontWeight = FontWeight.SemiBold,
+              color = Color(0xFF7B7D84),
+          )
+
+          ActiveCountPill(count = filteredRoutes.count { it.isActive })
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (uiState.isLoading) {
+          Text(
+              text = "Cargando rutas...",
+              style = MaterialTheme.typography.bodyMedium,
+              color = Color(0xFF6F7279),
+          )
+        } else {
+          uiState.errorMessage?.let { message ->
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFFFFF3F3),
+                border = BorderStroke(1.dp, Color(0xFFF0C9C9)),
             ) {
-                Spacer(modifier = Modifier.height(14.dp))
-
-                SearchField(
-                    value = filters.query,
-                    onValueChange = { filters = filters.copy(query = it) },
-                    placeholder = "Buscar ruta, parada o lugar..."
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                FilterChipsRow(
-                    nearMe = filters.nearMeOnly,
-                    onNearMeToggle = { filters = filters.copy(nearMeOnly = !filters.nearMeOnly) },
-                    locationLabel = buildLocationLabel(filters.selectedProvince, filters.selectedCanton, filters.selectedDistrict),
-                    locationSelected = showLocationPanel,
-                    onLocationClick = { showLocationPanel = !showLocationPanel },
-                    favoriteCount = routesWithFavorites.count { it.isFavorite },
-                    favoritesOnly = filters.favoritesOnly,
-                    onFavoritesToggle = { filters = filters.copy(favoritesOnly = !filters.favoritesOnly) }
-                )
-
-                AnimatedVisibility(visible = showLocationPanel) {
-                    LocationPanel(
-                        provinces = provinces,
-                        selectedProvince = filters.selectedProvince,
-                        onProvinceSelected = { province ->
-                            filters = filters.copy(
-                                selectedProvince = province,
-                                selectedCanton = null,
-                                selectedDistrict = null
-                            )
-                        },
-                        cantons = availableCantons,
-                        selectedCanton = filters.selectedCanton,
-                        onCantonSelected = { canton ->
-                            filters = filters.copy(
-                                selectedCanton = canton,
-                                selectedDistrict = null
-                            )
-                        },
-                        districts = availableDistricts,
-                        selectedDistrict = filters.selectedDistrict,
-                        onDistrictSelected = { filters = filters.copy(selectedDistrict = it) },
-                        onClear = {
-                            filters = filters.copy(
-                                selectedProvince = null,
-                                selectedCanton = null,
-                                selectedDistrict = null
-                            )
-                        },
-                        onApply = { showLocationPanel = false }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "RUTAS DISPONIBLES",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF7B7D84)
-                    )
-
-                    ActiveCountPill(count = filteredRoutes.count { it.isActive })
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                if (uiState.isLoading) {
-                    Text(
-                        text = "Cargando rutas...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF6F7279)
-                    )
-                } else {
-                    uiState.errorMessage?.let { message ->
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFFFF3F3),
-                            border = BorderStroke(1.dp, Color(0xFFF0C9C9))
-                        ) {
-                            Text(
-                                text = message,
-                                modifier = Modifier.padding(12.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF9A2F2F)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(10.dp))
-                    }
-
-                    if (filteredRoutes.isEmpty()) {
-                        Text(
-                            text = "No hay rutas para los filtros seleccionados.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF6F7279)
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(filteredRoutes, key = { it.id }) { route ->
-                                RouteSelectionCard(
-                                    route = route,
-                                    onClick = { onRouteClick(route) },
-                                    onToggleFavorite = {
-                                        val nextFavoriteState = !favoriteRouteIds.contains(route.id)
-                                        favoriteRouteIds =
-                                            if (favoriteRouteIds.contains(route.id)) favoriteRouteIds - route.id
-                                            else favoriteRouteIds + route.id
-                                        onToggleFavorite(route.id, nextFavoriteState)
-                                    }
-                                )
-                            }
-                            item { Spacer(modifier = Modifier.height(18.dp)) }
-                        }
-                    }
-                }
+              Text(
+                  text = message,
+                  modifier = Modifier.padding(12.dp),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = Color(0xFF9A2F2F),
+              )
             }
+            Spacer(modifier = Modifier.height(10.dp))
+          }
 
+          if (filteredRoutes.isEmpty()) {
+            Text(
+                text = "No hay rutas para los filtros seleccionados.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF6F7279),
+            )
+          } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+              items(filteredRoutes, key = { it.id }) { route ->
+                RouteSelectionCard(
+                    route = route,
+                    onClick = { onRouteClick(route) },
+                    onToggleFavorite = {
+                      val nextFavoriteState = !favoriteRouteIds.contains(route.id)
+                      favoriteRouteIds =
+                          if (favoriteRouteIds.contains(route.id)) favoriteRouteIds - route.id
+                          else favoriteRouteIds + route.id
+                      onToggleFavorite(route.id, nextFavoriteState)
+                    },
+                )
+              }
+              item { Spacer(modifier = Modifier.height(18.dp)) }
+            }
+          }
         }
+      }
     }
+  }
 }
 
 @Composable
-private fun RouteSelectionTopBar(
-    onBackClick: () -> Unit
-) {
-    ScreenHeader(
-        title = "Rutas",
-        subtitle = "Seleccion de rutas",
-        leadingContent = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color(0xFF1E1F24)
-                )
-            }
+private fun RouteSelectionTopBar(onBackClick: () -> Unit) {
+  ScreenHeader(
+      title = "Rutas",
+      subtitle = "Seleccion de rutas",
+      leadingContent = {
+        IconButton(onClick = onBackClick) {
+          Icon(
+              imageVector = Icons.Filled.ArrowBack,
+              contentDescription = "Back",
+              tint = Color(0xFF1E1F24),
+          )
         }
-    )
+      },
+  )
 }
 
 @Composable
-private fun SearchField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String
-) {
-    SearchBar(
-        query = value,
-        onQueryChange = onValueChange,
-        placeholder = placeholder,
-        modifier = Modifier.fillMaxWidth()
-    )
+private fun SearchField(value: String, onValueChange: (String) -> Unit, placeholder: String) {
+  SearchBar(
+      query = value,
+      onQueryChange = onValueChange,
+      placeholder = placeholder,
+      modifier = Modifier.fillMaxWidth(),
+  )
 }
 
 @Composable
@@ -292,33 +293,31 @@ private fun FilterChipsRow(
     onLocationClick: () -> Unit,
     favoriteCount: Int,
     favoritesOnly: Boolean,
-    onFavoritesToggle: () -> Unit
+    onFavoritesToggle: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        SelectableFilterChip(
-            text = if (nearMe) "Cerca de mí ✓" else "Cerca de mí",
-            selected = nearMe,
-            onClick = onNearMeToggle
-        )
+  Row(
+      modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    SelectableFilterChip(
+        text = if (nearMe) "Cerca de mí ✓" else "Cerca de mí",
+        selected = nearMe,
+        onClick = onNearMeToggle,
+    )
 
-        SelectableFilterChip(
-            text = locationLabel,
-            selected = locationSelected,
-            onClick = onLocationClick
-        )
+    SelectableFilterChip(
+        text = locationLabel,
+        selected = locationSelected,
+        onClick = onLocationClick,
+    )
 
-        SelectableFilterChip(
-            text = if (favoritesOnly) "Favoritas ($favoriteCount) ✓" else "Favoritas ($favoriteCount)",
-            selected = favoritesOnly,
-            onClick = onFavoritesToggle
-        )
-    }
+    SelectableFilterChip(
+        text = if (favoritesOnly) "Favoritas ($favoriteCount) ✓" else "Favoritas ($favoriteCount)",
+        selected = favoritesOnly,
+        onClick = onFavoritesToggle,
+    )
+  }
 }
 
 @Composable
@@ -333,603 +332,892 @@ private fun LocationPanel(
     selectedDistrict: String?,
     onDistrictSelected: (String) -> Unit,
     onClear: () -> Unit,
-    onApply: () -> Unit
+    onApply: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp),
-        shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E6EB)),
-        color = Color.White
-    ) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(
-                text = "Ubicación",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Color(0xFF2A2C33)
-            )
+  Surface(
+      modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+      shape = RoundedCornerShape(16.dp),
+      border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E6EB)),
+      color = Color.White,
+  ) {
+    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+      Text(
+          text = "Ubicación",
+          style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+          color = Color(0xFF2A2C33),
+      )
 
-            DropdownSelectField(
-                value = selectedProvince?.name ?: "",
-                placeholder = "Selecciona una provincia",
-                enabled = true,
-                options = provinces.map { it.name },
-                onSelect = { name -> provinces.firstOrNull { it.name == name }?.let(onProvinceSelected) }
-            )
+      DropdownSelectField(
+          value = selectedProvince?.name ?: "",
+          placeholder = "Selecciona una provincia",
+          enabled = true,
+          options = provinces.map { it.name },
+          onSelect = { name -> provinces.firstOrNull { it.name == name }?.let(onProvinceSelected) },
+      )
 
-            DropdownSelectField(
-                value = selectedCanton?.name ?: "",
-                placeholder = if (selectedProvince == null) "Primero elige provincia" else "Selecciona un cantón",
-                enabled = selectedProvince != null,
-                options = cantons.map { it.name },
-                onSelect = { name -> cantons.firstOrNull { it.name == name }?.let(onCantonSelected) }
-            )
+      DropdownSelectField(
+          value = selectedCanton?.name ?: "",
+          placeholder =
+              if (selectedProvince == null) "Primero elige provincia" else "Selecciona un cantón",
+          enabled = selectedProvince != null,
+          options = cantons.map { it.name },
+          onSelect = { name -> cantons.firstOrNull { it.name == name }?.let(onCantonSelected) },
+      )
 
-            DropdownSelectField(
-                value = selectedDistrict ?: "",
-                placeholder = if (selectedCanton == null) "Primero elige cantón" else "Selecciona un distrito",
-                enabled = selectedCanton != null,
-                options = districts,
-                onSelect = onDistrictSelected
-            )
+      DropdownSelectField(
+          value = selectedDistrict ?: "",
+          placeholder =
+              if (selectedCanton == null) "Primero elige cantón" else "Selecciona un distrito",
+          enabled = selectedCanton != null,
+          options = districts,
+          onSelect = onDistrictSelected,
+      )
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                PillActionButton(
-                    text = "Aplicar",
-                    onClick = onApply,
-                    modifier = Modifier.weight(1f),
-                    containerColor = Color(0xFF1B1D23),
-                    contentColor = Color.White
-                )
+      Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+        PillActionButton(
+            text = "Aplicar",
+            onClick = onApply,
+            modifier = Modifier.weight(1f),
+            containerColor = Color(0xFF1B1D23),
+            contentColor = Color.White,
+        )
 
-                PillActionButton(
-                    text = "Limpiar",
-                    onClick = onClear,
-                    modifier = Modifier.weight(1f),
-                    containerColor = Color(0xFFE7E7EC),
-                    contentColor = Color(0xFF66636F)
-                )
-            }
-        }
+        PillActionButton(
+            text = "Limpiar",
+            onClick = onClear,
+            modifier = Modifier.weight(1f),
+            containerColor = Color(0xFFE7E7EC),
+            contentColor = Color(0xFF66636F),
+        )
+      }
     }
+  }
 }
 
 @Composable
 private fun ActiveCountPill(count: Int) {
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        border = BorderStroke(1.dp, Color(0xFFE0E1E6)),
-        color = Color(0xFFF9FAFB)
+  Surface(
+      shape = RoundedCornerShape(999.dp),
+      border = BorderStroke(1.dp, Color(0xFFE0E1E6)),
+      color = Color(0xFFF9FAFB),
+  ) {
+    Row(
+        modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(Color(0xFF7A64FF), CircleShape)
-            )
-            Spacer(modifier = Modifier.size(7.dp))
-            Text(
-                text = "$count activas",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF6F7279)
-            )
-        }
+      Box(modifier = Modifier.size(8.dp).background(Color(0xFF7A64FF), CircleShape))
+      Spacer(modifier = Modifier.size(7.dp))
+      Text(
+          text = "$count activas",
+          style = MaterialTheme.typography.labelSmall,
+          color = Color(0xFF6F7279),
+      )
     }
+  }
 }
 
 @Composable
 private fun RouteSelectionCard(
     route: RouteListItemUi,
     onClick: () -> Unit,
-    onToggleFavorite: () -> Unit
+    onToggleFavorite: () -> Unit,
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = route.isActive, onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = BorderStroke(1.dp, Color(0xFFE5E6EB)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+  Card(
+      modifier = Modifier.fillMaxWidth().clickable(enabled = route.isActive, onClick = onClick),
+      shape = RoundedCornerShape(16.dp),
+      colors = CardDefaults.cardColors(containerColor = Color.White),
+      border = BorderStroke(1.dp, Color(0xFFE5E6EB)),
+      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            RouteCodeTile(code = route.code, isActive = route.isActive)
+      RouteCodeTile(code = route.code, isActive = route.isActive)
 
-            Spacer(modifier = Modifier.size(10.dp))
+      Spacer(modifier = Modifier.size(10.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = route.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color(0xFF1F2126),
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+            text = route.title,
+            style = MaterialTheme.typography.titleSmall,
+            color = Color(0xFF1F2126),
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
 
-                val locationAndCompany = listOfNotNull(
+        val locationAndCompany =
+            listOfNotNull(
                     route.province?.takeIf { it.isNotBlank() },
-                    route.companyName?.takeIf { it.isNotBlank() }
-                ).joinToString(" • ")
-
-                if (locationAndCompany.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = locationAndCompany,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF7E8189),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (route.isLive) {
-                        Text(
-                            text = route.statusText,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF1DB954),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                    }
-
-                    Text(
-                        text = "⏱ ${route.etaText}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF6B6E75)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(3.dp))
-
-                Text(
-                    text = route.frequencyText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF8A8D94)
+                    route.companyName?.takeIf { it.isNotBlank() },
                 )
-            }
+                .joinToString(" • ")
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = "Toggle favorite",
-                    tint = if (route.isFavorite) Color(0xFFF4C430) else Color(0xFFB5B7BE),
-                    modifier = Modifier
-                        .size(18.dp)
-                        .clickable { onToggleFavorite() }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "›",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = Color(0xFFD0D2D7)
-                )
-            }
+        if (locationAndCompany.isNotBlank()) {
+          Spacer(modifier = Modifier.height(4.dp))
+
+          Text(
+              text = locationAndCompany,
+              style = MaterialTheme.typography.bodySmall,
+              color = Color(0xFF7E8189),
+              maxLines = 2,
+              overflow = TextOverflow.Ellipsis,
+          )
         }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          if (route.isLive) {
+            Text(
+                text = route.statusText,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFF1DB954),
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+          }
+
+          Text(
+              text = "⏱ ${route.etaText}",
+              style = MaterialTheme.typography.bodySmall,
+              color = Color(0xFF6B6E75),
+          )
+        }
+
+        Spacer(modifier = Modifier.height(3.dp))
+
+        Text(
+            text = route.frequencyText,
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xFF8A8D94),
+        )
+      }
+
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = "Toggle favorite",
+            tint = if (route.isFavorite) Color(0xFFF4C430) else Color(0xFFB5B7BE),
+            modifier = Modifier.size(18.dp).clickable { onToggleFavorite() },
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = "›", style = MaterialTheme.typography.headlineSmall, color = Color(0xFFD0D2D7))
+      }
     }
+  }
 }
 
 @Composable
 private fun RouteCodeTile(code: String, isActive: Boolean) {
-    val bg = if (isActive) Color(0xFF1B1D23) else Color(0xFFECECEF)
-    val fg = if (isActive) Color.White else Color(0xFFA0A3AA)
+  val bg = if (isActive) Color(0xFF1B1D23) else Color(0xFFECECEF)
+  val fg = if (isActive) Color.White else Color(0xFFA0A3AA)
 
-    Surface(
-        modifier = Modifier.size(56.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = bg
+  Surface(modifier = Modifier.size(56.dp), shape = RoundedCornerShape(12.dp), color = bg) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("RUTA", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium), color = fg.copy(alpha = 0.9f))
-            Text(code, style = MaterialTheme.typography.titleSmall, color = fg, fontWeight = FontWeight.SemiBold)
-        }
+      Text(
+          "RUTA",
+          style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+          color = fg.copy(alpha = 0.9f),
+      )
+      Text(
+          code,
+          style = MaterialTheme.typography.titleSmall,
+          color = fg,
+          fontWeight = FontWeight.SemiBold,
+      )
     }
+  }
 }
 
-private fun buildLocationLabel(
-    province: Province?,
-    canton: Canton?,
-    district: String?
-): String {
-    return when {
-        province == null -> "Ubicación"
-        canton == null -> province.name
-        district == null -> "${province.name} · ${canton.name}"
-        else -> "${province.name} · ${canton.name} · $district"
-    }
+private fun buildLocationLabel(province: Province?, canton: Canton?, district: String?): String {
+  return when {
+    province == null -> "Ubicación"
+    canton == null -> province.name
+    district == null -> "${province.name} · ${canton.name}"
+    else -> "${province.name} · ${canton.name} · $district"
+  }
 }
 
-private fun demoCRGeoData(): List<Province> = listOf(
+private fun demoCRGeoData(): List<Province> =
+    listOf(
         Province(
             name = "San José",
-            cantons = listOf(
-                Canton(
-                    "San José",
-                    listOf("Carmen", "Merced", "Hospital", "Catedral", "Zapote", "San Francisco de Dos Ríos", "Uruca", "Mata Redonda", "Pavas", "Hatillo", "San Sebastián")
+            cantons =
+                listOf(
+                    Canton(
+                        "San José",
+                        listOf(
+                            "Carmen",
+                            "Merced",
+                            "Hospital",
+                            "Catedral",
+                            "Zapote",
+                            "San Francisco de Dos Ríos",
+                            "Uruca",
+                            "Mata Redonda",
+                            "Pavas",
+                            "Hatillo",
+                            "San Sebastián",
+                        ),
+                    ),
+                    Canton("Escazú", listOf("Escazú", "San Antonio", "San Rafael")),
+                    Canton(
+                        "Desamparados",
+                        listOf(
+                            "Desamparados",
+                            "San Miguel",
+                            "San Juan de Dios",
+                            "San Rafael Arriba",
+                            "San Antonio",
+                            "Frailes",
+                            "Patarrá",
+                            "San Cristobal",
+                            "Rosario",
+                            "Damas",
+                            "San Rafael Abajo",
+                            "Gravilias",
+                            "Los Guido",
+                        ),
+                    ),
+                    Canton(
+                        "Puriscal",
+                        listOf(
+                            "Santiago",
+                            "Mercedes Sur",
+                            "Barbacoas",
+                            "Grifo Alto",
+                            "San Rafael",
+                            "Candelarita",
+                            "Desamparaditos",
+                            "San Antonio",
+                            "Chires",
+                        ),
+                    ),
+                    Canton("Tarrazú", listOf("San Marcos", "San Lorenzo", "San Carlos")),
+                    Canton(
+                        "Aserrí",
+                        listOf(
+                            "Aserrí",
+                            "Tarbaca",
+                            "Vuelta de Jorco",
+                            "San Gabriel",
+                            "Legua",
+                            "Monterrey",
+                            "Salitrillos",
+                        ),
+                    ),
+                    Canton(
+                        "Mora",
+                        listOf(
+                            "Colón",
+                            "Guayabo",
+                            "Tabarcia",
+                            "Piedras Negras",
+                            "Picagres",
+                            "Jaris",
+                            "Quitirrisí",
+                        ),
+                    ),
+                    Canton(
+                        "Goicoechea",
+                        listOf(
+                            "Guadalupe",
+                            "San Francisco",
+                            "Calle Blancos",
+                            "Mata de Plátano",
+                            "Ipís",
+                            "Rancho Redondo",
+                            "Purral",
+                        ),
+                    ),
+                    Canton(
+                        "Santa Ana",
+                        listOf("Santa Ana", "Salitral", "Pozos", "Uruca", "Piedades", "Brasil"),
+                    ),
+                    Canton(
+                        "Alajuelita",
+                        listOf(
+                            "Alajuelita",
+                            "San Josecito",
+                            "San Antonio",
+                            "Concepción",
+                            "San Felipe",
+                        ),
+                    ),
+                    Canton(
+                        "Vázquez de Coronado",
+                        listOf(
+                            "San Isidro",
+                            "San Rafael",
+                            "Dulce Nombre de Jesús",
+                            "Patalillo",
+                            "Cascajal",
+                        ),
+                    ),
+                    Canton(
+                        "Acosta",
+                        listOf("San Ignacio", "Guaitil", "Palmichal", "Cangrejal", "Sabanillas"),
+                    ),
+                    Canton(
+                        "Tibás",
+                        listOf(
+                            "San Juan",
+                            "Cinco Esquinas",
+                            "Anselmo Llorente",
+                            "León XIII",
+                            "Colima",
+                        ),
+                    ),
+                    Canton("Moravia", listOf("San Vicente", "San Jerónimo", "La Trinidad")),
+                    Canton(
+                        "Montes de Oca",
+                        listOf("San Pedro", "Sabanilla", "Mercedes", "San Rafael"),
+                    ),
+                    Canton(
+                        "Turrubares",
+                        listOf("San Pablo", "San Pedro", "San Juan de Mata", "San Luis", "Carara"),
+                    ),
+                    Canton("Dota", listOf("Santa María", "Jardín", "Copey")),
+                    Canton("Curridabat", listOf("Curridabat", "Granadilla", "Sánchez", "Tirrases")),
+                    Canton(
+                        "Pérez Zeledón",
+                        listOf(
+                            "San Isidro de El General",
+                            "El General",
+                            "Daniel Flores",
+                            "Rivas",
+                            "San Pedro",
+                            "Platanares",
+                            "Pejibaye",
+                            "Cajón",
+                            "Barú",
+                            "Río Nuevo",
+                            "Páramo",
+                            "La Amistad",
+                        ),
+                    ),
+                    Canton(
+                        "León Cortés Castro",
+                        listOf(
+                            "San Pablo",
+                            "San Andrés",
+                            "Llano Bonito",
+                            "San Isidro",
+                            "Santa Cruz",
+                            "San Antonio",
+                        ),
+                    ),
                 ),
-                Canton(
-                    "Escazú",
-                    listOf("Escazú", "San Antonio", "San Rafael")
-                ),
-                Canton(
-                    "Desamparados",
-                    listOf("Desamparados", "San Miguel", "San Juan de Dios", "San Rafael Arriba", "San Antonio", "Frailes", "Patarrá", "San Cristobal", "Rosario", "Damas", "San Rafael Abajo", "Gravilias", "Los Guido")
-                ),
-                Canton(
-                    "Puriscal",
-                    listOf("Santiago", "Mercedes Sur", "Barbacoas", "Grifo Alto", "San Rafael", "Candelarita", "Desamparaditos", "San Antonio", "Chires")
-                ),
-                Canton(
-                    "Tarrazú",
-                    listOf("San Marcos", "San Lorenzo", "San Carlos")
-                ),
-                Canton(
-                    "Aserrí",
-                    listOf("Aserrí", "Tarbaca", "Vuelta de Jorco", "San Gabriel", "Legua", "Monterrey", "Salitrillos")
-                ),
-                Canton(
-                    "Mora",
-                    listOf("Colón", "Guayabo", "Tabarcia", "Piedras Negras", "Picagres", "Jaris", "Quitirrisí")
-                ),
-                Canton(
-                    "Goicoechea",
-                    listOf("Guadalupe", "San Francisco", "Calle Blancos", "Mata de Plátano", "Ipís", "Rancho Redondo", "Purral")
-                ),
-                Canton(
-                    "Santa Ana",
-                    listOf("Santa Ana", "Salitral", "Pozos", "Uruca", "Piedades", "Brasil")
-                ),
-                Canton(
-                    "Alajuelita",
-                    listOf("Alajuelita", "San Josecito", "San Antonio", "Concepción", "San Felipe")
-                ),
-                Canton(
-                    "Vázquez de Coronado",
-                    listOf("San Isidro", "San Rafael", "Dulce Nombre de Jesús", "Patalillo", "Cascajal")
-                ),
-                Canton(
-                    "Acosta",
-                    listOf("San Ignacio", "Guaitil", "Palmichal", "Cangrejal", "Sabanillas")
-                ),
-                Canton(
-                    "Tibás",
-                    listOf("San Juan", "Cinco Esquinas", "Anselmo Llorente", "León XIII", "Colima")
-                ),
-                Canton(
-                    "Moravia",
-                    listOf("San Vicente", "San Jerónimo", "La Trinidad")
-                ),
-                Canton(
-                    "Montes de Oca",
-                    listOf("San Pedro", "Sabanilla", "Mercedes", "San Rafael")
-                ),
-                Canton(
-                    "Turrubares",
-                    listOf("San Pablo", "San Pedro", "San Juan de Mata", "San Luis", "Carara")
-                ),
-                Canton(
-                    "Dota",
-                    listOf("Santa María", "Jardín", "Copey")
-                ),
-                Canton(
-                    "Curridabat",
-                    listOf("Curridabat", "Granadilla", "Sánchez", "Tirrases")
-                ),
-                Canton(
-                    "Pérez Zeledón",
-                    listOf("San Isidro de El General", "El General", "Daniel Flores", "Rivas", "San Pedro", "Platanares", "Pejibaye", "Cajón", "Barú", "Río Nuevo", "Páramo", "La Amistad")
-                ),
-                Canton(
-                    "León Cortés Castro",
-                    listOf("San Pablo", "San Andrés", "Llano Bonito", "San Isidro", "Santa Cruz", "San Antonio")
-                )
-            )
         ),
         Province(
             name = "Alajuela",
-            cantons = listOf(
-                Canton(
-                    "Alajuela",
-                    listOf("Alajuela", "San José", "Carrizal", "San Antonio", "Guácima", "San Isidro", "Sabanilla", "San Rafael", "Río Segundo", "Desamparados", "Turrúcares", "Tambor", "Garita", "Sarapiquí")
+            cantons =
+                listOf(
+                    Canton(
+                        "Alajuela",
+                        listOf(
+                            "Alajuela",
+                            "San José",
+                            "Carrizal",
+                            "San Antonio",
+                            "Guácima",
+                            "San Isidro",
+                            "Sabanilla",
+                            "San Rafael",
+                            "Río Segundo",
+                            "Desamparados",
+                            "Turrúcares",
+                            "Tambor",
+                            "Garita",
+                            "Sarapiquí",
+                        ),
+                    ),
+                    Canton(
+                        "San Ramón",
+                        listOf(
+                            "San Ramón",
+                            "Santiago",
+                            "San Juan",
+                            "Piedades Norte",
+                            "Piedades Sur",
+                            "San Rafael",
+                            "San Isidro",
+                            "Ángeles",
+                            "Alfaro",
+                            "Volio",
+                            "Concepción",
+                            "Zapotal",
+                            "Peñas Blancas",
+                            "San Lorenzo",
+                        ),
+                    ),
+                    Canton(
+                        "Grecia",
+                        listOf(
+                            "Grecia",
+                            "San Isidro",
+                            "San José",
+                            "San Roque",
+                            "Tacares",
+                            "Puente de Piedra",
+                            "Bolivar",
+                        ),
+                    ),
+                    Canton("San Mateo", listOf("San Mateo", "Desmonte", "Jesús María", "Labrador")),
+                    Canton(
+                        "Atenas",
+                        listOf(
+                            "Atenas",
+                            "Jesús",
+                            "Mercedes",
+                            "San Isidro",
+                            "Concepción",
+                            "San José",
+                            "Santa Eulalia",
+                            "Escobal",
+                        ),
+                    ),
+                    Canton(
+                        "Naranjo",
+                        listOf(
+                            "Naranjo",
+                            "San Miguel",
+                            "San José",
+                            "Cirrí Sur",
+                            "San Jerónimo",
+                            "San Juan",
+                            "El Rosario",
+                            "Palmitos",
+                        ),
+                    ),
+                    Canton(
+                        "Palmares",
+                        listOf(
+                            "Palmares",
+                            "Zaragoza",
+                            "Buenos Aires",
+                            "Santiago",
+                            "Candelaria",
+                            "Esquipulas",
+                            "La Granja",
+                        ),
+                    ),
+                    Canton(
+                        "Poás",
+                        listOf(
+                            "San Pedro",
+                            "San Juan",
+                            "San Rafael",
+                            "Carrillos",
+                            "Sabana Redonda",
+                        ),
+                    ),
+                    Canton(
+                        "Orotina",
+                        listOf("Orotina", "El Mastate", "Hacienda Vieja", "Coyolar", "La Ceiba"),
+                    ),
+                    Canton(
+                        "San Carlos",
+                        listOf(
+                            "Quesada",
+                            "Florencia",
+                            "Buenavista",
+                            "Aguas Zarcas",
+                            "Venecia",
+                            "Pital",
+                            "La Fortuna",
+                            "La Tigra",
+                            "La Palmera",
+                            "Venado",
+                            "Cutris",
+                            "Monterrey",
+                            "Pocosol",
+                        ),
+                    ),
+                    Canton(
+                        "Zarcero",
+                        listOf(
+                            "Zarcero",
+                            "Laguna",
+                            "Tapesco",
+                            "Guadalupe",
+                            "Palmira",
+                            "Zapote",
+                            "Brisas",
+                        ),
+                    ),
+                    Canton(
+                        "Sarchí",
+                        listOf(
+                            "Sarchí Norte",
+                            "Sarchí Sur",
+                            "Toro Amarillo",
+                            "San Pedro",
+                            "Rodríguez",
+                        ),
+                    ),
+                    Canton(
+                        "Upala",
+                        listOf(
+                            "Upala",
+                            "Aguas Claras",
+                            "San José O Pizote",
+                            "Bijagua",
+                            "Delicias",
+                            "Dos Ríos",
+                            "Yolillal",
+                            "Canalete",
+                        ),
+                    ),
+                    Canton(
+                        "Los Chiles",
+                        listOf("Los Chiles", "Caño Negro", "El Amparo", "San Jorge"),
+                    ),
+                    Canton("Guatuso", listOf("San Rafael", "Buenavista", "Cote", "Katira")),
+                    Canton("Río Cuarto", listOf("Río Cuarto", "Santa Rita", "Santa Isabel")),
                 ),
-                Canton(
-                    "San Ramón",
-                    listOf("San Ramón", "Santiago", "San Juan", "Piedades Norte", "Piedades Sur", "San Rafael", "San Isidro", "Ángeles", "Alfaro", "Volio", "Concepción", "Zapotal", "Peñas Blancas", "San Lorenzo")
-                ),
-                Canton(
-                    "Grecia",
-                    listOf("Grecia", "San Isidro", "San José", "San Roque", "Tacares", "Puente de Piedra", "Bolivar")
-                ),
-                Canton(
-                    "San Mateo",
-                    listOf("San Mateo", "Desmonte", "Jesús María", "Labrador")
-                ),
-                Canton(
-                    "Atenas",
-                    listOf("Atenas", "Jesús", "Mercedes", "San Isidro", "Concepción", "San José", "Santa Eulalia", "Escobal")
-                ),
-                Canton(
-                    "Naranjo",
-                    listOf("Naranjo", "San Miguel", "San José", "Cirrí Sur", "San Jerónimo", "San Juan", "El Rosario", "Palmitos")
-                ),
-                Canton(
-                    "Palmares",
-                    listOf("Palmares", "Zaragoza", "Buenos Aires", "Santiago", "Candelaria", "Esquipulas", "La Granja")
-                ),
-                Canton(
-                    "Poás",
-                    listOf("San Pedro", "San Juan", "San Rafael", "Carrillos", "Sabana Redonda")
-                ),
-                Canton(
-                    "Orotina",
-                    listOf("Orotina", "El Mastate", "Hacienda Vieja", "Coyolar", "La Ceiba")
-                ),
-                Canton(
-                    "San Carlos",
-                    listOf("Quesada", "Florencia", "Buenavista", "Aguas Zarcas", "Venecia", "Pital", "La Fortuna", "La Tigra", "La Palmera", "Venado", "Cutris", "Monterrey", "Pocosol")
-                ),
-                Canton(
-                    "Zarcero",
-                    listOf("Zarcero", "Laguna", "Tapesco", "Guadalupe", "Palmira", "Zapote", "Brisas")
-                ),
-                Canton(
-                    "Sarchí",
-                    listOf("Sarchí Norte", "Sarchí Sur", "Toro Amarillo", "San Pedro", "Rodríguez")
-                ),
-                Canton(
-                    "Upala",
-                    listOf("Upala", "Aguas Claras", "San José O Pizote", "Bijagua", "Delicias", "Dos Ríos", "Yolillal", "Canalete")
-                ),
-                Canton(
-                    "Los Chiles",
-                    listOf("Los Chiles", "Caño Negro", "El Amparo", "San Jorge")
-                ),
-                Canton(
-                    "Guatuso",
-                    listOf("San Rafael", "Buenavista", "Cote", "Katira")
-                ),
-                Canton(
-                    "Río Cuarto",
-                    listOf("Río Cuarto", "Santa Rita", "Santa Isabel")
-                )
-            )
         ),
         Province(
             name = "Cartago",
-            cantons = listOf(
-                Canton(
-                    "Cartago",
-                    listOf("Oriental", "Occidental", "Carmen", "San Nicolás", "Aguacaliente o San Francisco", "Guadalupe o Arenilla", "Corralillo", "Tierra Blanca", "Dulce Nombre", "Llano Grande", "Quebradilla")
+            cantons =
+                listOf(
+                    Canton(
+                        "Cartago",
+                        listOf(
+                            "Oriental",
+                            "Occidental",
+                            "Carmen",
+                            "San Nicolás",
+                            "Aguacaliente o San Francisco",
+                            "Guadalupe o Arenilla",
+                            "Corralillo",
+                            "Tierra Blanca",
+                            "Dulce Nombre",
+                            "Llano Grande",
+                            "Quebradilla",
+                        ),
+                    ),
+                    Canton(
+                        "Paraíso",
+                        listOf(
+                            "Paraíso",
+                            "Santiago",
+                            "Orosi",
+                            "Cachí",
+                            "Llanos de Santa Lucía",
+                            "Birrisito",
+                        ),
+                    ),
+                    Canton(
+                        "La Unión",
+                        listOf(
+                            "Tres Ríos",
+                            "San Diego",
+                            "San Juan",
+                            "San Rafael",
+                            "Concepción",
+                            "Dulce Nombre",
+                            "San Ramón",
+                            "Río Azul",
+                        ),
+                    ),
+                    Canton(
+                        "Jiménez",
+                        listOf("Juan Viñas", "Tucurrique", "Pejibaye", "La Victoria"),
+                    ),
+                    Canton(
+                        "Turrialba",
+                        listOf(
+                            "Turrialba",
+                            "La Suiza",
+                            "Peralta",
+                            "Santa Cruz",
+                            "Santa Teresita",
+                            "Pavones",
+                            "Tuis",
+                            "Tayutic",
+                            "Santa Rosa",
+                            "Tres Equis",
+                            "La Isabel",
+                            "Chirripó",
+                        ),
+                    ),
+                    Canton("Alvarado", listOf("Pacayas", "Cervantes", "Capellades")),
+                    Canton(
+                        "Oreamuno",
+                        listOf("San Rafael", "Cot", "Potrero Cerrado", "Cipreses", "Santa Rosa"),
+                    ),
+                    Canton(
+                        "El Guarco",
+                        listOf("El Tejar", "San Isidro", "Tobosi", "Patio de Agua"),
+                    ),
                 ),
-                Canton(
-                    "Paraíso",
-                    listOf("Paraíso", "Santiago", "Orosi", "Cachí", "Llanos de Santa Lucía", "Birrisito")
-                ),
-                Canton(
-                    "La Unión",
-                    listOf("Tres Ríos", "San Diego", "San Juan", "San Rafael", "Concepción", "Dulce Nombre", "San Ramón", "Río Azul")
-                ),
-                Canton(
-                    "Jiménez",
-                    listOf("Juan Viñas", "Tucurrique", "Pejibaye", "La Victoria")
-                ),
-                Canton(
-                    "Turrialba",
-                    listOf("Turrialba", "La Suiza", "Peralta", "Santa Cruz", "Santa Teresita", "Pavones", "Tuis", "Tayutic", "Santa Rosa", "Tres Equis", "La Isabel", "Chirripó")
-                ),
-                Canton(
-                    "Alvarado",
-                    listOf("Pacayas", "Cervantes", "Capellades")
-                ),
-                Canton(
-                    "Oreamuno",
-                    listOf("San Rafael", "Cot", "Potrero Cerrado", "Cipreses", "Santa Rosa")
-                ),
-                Canton(
-                    "El Guarco",
-                    listOf("El Tejar", "San Isidro", "Tobosi", "Patio de Agua")
-                )
-            )
         ),
         Province(
             name = "Heredia",
-            cantons = listOf(
-                Canton(
-                    "Heredia",
-                    listOf("Heredia", "Mercedes", "San Francisco", "Ulloa", "Varablanca")
+            cantons =
+                listOf(
+                    Canton(
+                        "Heredia",
+                        listOf("Heredia", "Mercedes", "San Francisco", "Ulloa", "Varablanca"),
+                    ),
+                    Canton(
+                        "Barva",
+                        listOf(
+                            "Barva",
+                            "San Pedro",
+                            "San Pablo",
+                            "San Roque",
+                            "Santa Lucía",
+                            "San José de la Montaña",
+                            "Puente Salas",
+                        ),
+                    ),
+                    Canton(
+                        "Santo Domingo",
+                        listOf(
+                            "Santo Domingo",
+                            "San Vicente",
+                            "San Miguel",
+                            "Paracito",
+                            "Santo Tomás",
+                            "Santa Rosa",
+                            "Tures",
+                            "Pará",
+                        ),
+                    ),
+                    Canton(
+                        "Santa Bárbara",
+                        listOf(
+                            "Santa Bárbara",
+                            "San Pedro",
+                            "San Juan",
+                            "Jesús",
+                            "Santo Domingo",
+                            "Purabá",
+                        ),
+                    ),
+                    Canton(
+                        "San Rafael",
+                        listOf("San Rafael", "San Josecito", "Santiago", "Ángeles", "Concepción"),
+                    ),
+                    Canton(
+                        "San Isidro",
+                        listOf("San Isidro", "San José", "Concepción", "San Francisco"),
+                    ),
+                    Canton("Belén", listOf("San Antonio", "La Ribera", "La Asunción")),
+                    Canton("Flores", listOf("San Joaquín", "Barrantes", "Llorente")),
+                    Canton("San Pablo", listOf("San Pablo", "Rincón de Sabanilla")),
+                    Canton(
+                        "Sarapiquí",
+                        listOf(
+                            "Puerto Viejo",
+                            "La Virgen",
+                            "Las Horquetas",
+                            "Llanuras del Gaspar",
+                            "Cureña",
+                        ),
+                    ),
                 ),
-                Canton(
-                    "Barva",
-                    listOf("Barva", "San Pedro", "San Pablo", "San Roque", "Santa Lucía", "San José de la Montaña", "Puente Salas")
-                ),
-                Canton(
-                    "Santo Domingo",
-                    listOf("Santo Domingo", "San Vicente", "San Miguel", "Paracito", "Santo Tomás", "Santa Rosa", "Tures", "Pará")
-                ),
-                Canton(
-                    "Santa Bárbara",
-                    listOf("Santa Bárbara", "San Pedro", "San Juan", "Jesús", "Santo Domingo", "Purabá")
-                ),
-                Canton(
-                    "San Rafael",
-                    listOf("San Rafael", "San Josecito", "Santiago", "Ángeles", "Concepción")
-                ),
-                Canton(
-                    "San Isidro",
-                    listOf("San Isidro", "San José", "Concepción", "San Francisco")
-                ),
-                Canton(
-                    "Belén",
-                    listOf("San Antonio", "La Ribera", "La Asunción")
-                ),
-                Canton(
-                    "Flores",
-                    listOf("San Joaquín", "Barrantes", "Llorente")
-                ),
-                Canton(
-                    "San Pablo",
-                    listOf("San Pablo", "Rincón de Sabanilla")
-                ),
-                Canton(
-                    "Sarapiquí",
-                    listOf("Puerto Viejo", "La Virgen", "Las Horquetas", "Llanuras del Gaspar", "Cureña")
-                )
-            )
         ),
         Province(
             name = "Guanacaste",
-            cantons = listOf(
-                Canton(
-                    "Liberia",
-                    listOf("Liberia", "Cañas Dulces", "Mayorga", "Nacascolo", "Curubandé")
+            cantons =
+                listOf(
+                    Canton(
+                        "Liberia",
+                        listOf("Liberia", "Cañas Dulces", "Mayorga", "Nacascolo", "Curubandé"),
+                    ),
+                    Canton(
+                        "Nicoya",
+                        listOf(
+                            "Nicoya",
+                            "Mansión",
+                            "San Antonio",
+                            "Quebrada Honda",
+                            "Sámara",
+                            "Nosara",
+                            "Belén de Nosarita",
+                        ),
+                    ),
+                    Canton(
+                        "Santa Cruz",
+                        listOf(
+                            "Santa Cruz",
+                            "Bolsón",
+                            "Veintisiete de Abril",
+                            "Tempate",
+                            "Cartagena",
+                            "Cuajiniquil",
+                            "Diriá",
+                            "Cabo Velas",
+                            "Tamarindo",
+                        ),
+                    ),
+                    Canton("Bagaces", listOf("Bagaces", "La Fortuna", "Mogote", "Río Naranjo")),
+                    Canton("Carrillo", listOf("Filadelfia", "Palmira", "Sardinal", "Belén")),
+                    Canton(
+                        "Cañas",
+                        listOf("Cañas", "Palmira", "San Miguel", "Bebedero", "Porozal"),
+                    ),
+                    Canton("Abangares", listOf("Las Juntas", "Sierra", "San Juan", "Colorado")),
+                    Canton(
+                        "Tilarán",
+                        listOf(
+                            "Tilarán",
+                            "Quebrada Grande",
+                            "Tronadora",
+                            "Santa Rosa",
+                            "Líbano",
+                            "Tierras Morenas",
+                            "Arenal",
+                            "Cabeceras",
+                        ),
+                    ),
+                    Canton(
+                        "Nandayure",
+                        listOf(
+                            "Carmona",
+                            "Santa Rita",
+                            "Zapotal",
+                            "San Pablo",
+                            "Porvenir",
+                            "Bejuco",
+                        ),
+                    ),
+                    Canton(
+                        "La Cruz",
+                        listOf("La Cruz", "Santa Cecilia", "La Garita", "Santa Elena"),
+                    ),
+                    Canton(
+                        "Hojancha",
+                        listOf("Hojancha", "Monte Romo", "Puerto Carrillo", "Huacas", "Matambú"),
+                    ),
                 ),
-                Canton(
-                    "Nicoya",
-                    listOf("Nicoya", "Mansión", "San Antonio", "Quebrada Honda", "Sámara", "Nosara", "Belén de Nosarita")
-                ),
-                Canton(
-                    "Santa Cruz",
-                    listOf("Santa Cruz", "Bolsón", "Veintisiete de Abril", "Tempate", "Cartagena", "Cuajiniquil", "Diriá", "Cabo Velas", "Tamarindo")
-                ),
-                Canton(
-                    "Bagaces",
-                    listOf("Bagaces", "La Fortuna", "Mogote", "Río Naranjo")
-                ),
-                Canton(
-                    "Carrillo",
-                    listOf("Filadelfia", "Palmira", "Sardinal", "Belén")
-                ),
-                Canton(
-                    "Cañas",
-                    listOf("Cañas", "Palmira", "San Miguel", "Bebedero", "Porozal")
-                ),
-                Canton(
-                    "Abangares",
-                    listOf("Las Juntas", "Sierra", "San Juan", "Colorado")
-                ),
-                Canton(
-                    "Tilarán",
-                    listOf("Tilarán", "Quebrada Grande", "Tronadora", "Santa Rosa", "Líbano", "Tierras Morenas", "Arenal", "Cabeceras")
-                ),
-                Canton(
-                    "Nandayure",
-                    listOf("Carmona", "Santa Rita", "Zapotal", "San Pablo", "Porvenir", "Bejuco")
-                ),
-                Canton(
-                    "La Cruz",
-                    listOf("La Cruz", "Santa Cecilia", "La Garita", "Santa Elena")
-                ),
-                Canton(
-                    "Hojancha",
-                    listOf("Hojancha", "Monte Romo", "Puerto Carrillo", "Huacas", "Matambú")
-                )
-            )
         ),
         Province(
             name = "Puntarenas",
-            cantons = listOf(
-                Canton(
-                    "Puntarenas",
-                    listOf("Puntarenas", "Pitahaya", "Chomes", "Lepanto", "Paquera", "Manzanillo", "Guacimal", "Barranca", "Isla del Coco", "Cóbano", "Chacarita", "Chira", "Acapulco", "El Roble", "Arancibia")
+            cantons =
+                listOf(
+                    Canton(
+                        "Puntarenas",
+                        listOf(
+                            "Puntarenas",
+                            "Pitahaya",
+                            "Chomes",
+                            "Lepanto",
+                            "Paquera",
+                            "Manzanillo",
+                            "Guacimal",
+                            "Barranca",
+                            "Isla del Coco",
+                            "Cóbano",
+                            "Chacarita",
+                            "Chira",
+                            "Acapulco",
+                            "El Roble",
+                            "Arancibia",
+                        ),
+                    ),
+                    Canton(
+                        "Esparza",
+                        listOf(
+                            "Espíritu Santo",
+                            "San Juan Grande",
+                            "Macacona",
+                            "San Rafael",
+                            "San Jerónimo",
+                            "Caldera",
+                        ),
+                    ),
+                    Canton(
+                        "Buenos Aires",
+                        listOf(
+                            "Buenos Aires",
+                            "Volcán",
+                            "Potrero Grande",
+                            "Boruca",
+                            "Pilas",
+                            "Colinas",
+                            "Chánguena",
+                            "Biolley",
+                            "Brunka",
+                        ),
+                    ),
+                    Canton("Montes de Oro", listOf("Miramar", "La Unión", "San Isidro")),
+                    Canton(
+                        "Osa",
+                        listOf(
+                            "Puerto Cortés",
+                            "Palmar",
+                            "Sierpe",
+                            "Bahía Ballena",
+                            "Piedras Blancas",
+                            "Bahía Drake",
+                        ),
+                    ),
+                    Canton("Quepos", listOf("Quepos", "Savegre", "Naranjito")),
+                    Canton("Golfito", listOf("Golfito", "Guaycará", "Pavón")),
+                    Canton(
+                        "Coto Brus",
+                        listOf(
+                            "San Vito",
+                            "Sabalito",
+                            "Aguabuena",
+                            "Limoncito",
+                            "Pittier",
+                            "Gutiérrez Braun",
+                        ),
+                    ),
+                    Canton("Parrita", listOf("Parrita")),
+                    Canton("Corredores", listOf("Corredor", "La Cuesta", "Canoas", "Laurel")),
+                    Canton("Garabito", listOf("Jacó", "Tárcoles", "Lagunillas")),
+                    Canton("Monteverde", listOf("Monteverde")),
+                    Canton("Puerto Jiménez", listOf("Puerto Jiménez")),
                 ),
-                Canton(
-                    "Esparza",
-                    listOf("Espíritu Santo", "San Juan Grande", "Macacona", "San Rafael", "San Jerónimo", "Caldera")
-                ),
-                Canton(
-                    "Buenos Aires",
-                    listOf("Buenos Aires", "Volcán", "Potrero Grande", "Boruca", "Pilas", "Colinas", "Chánguena", "Biolley", "Brunka")
-                ),
-                Canton(
-                    "Montes de Oro",
-                    listOf("Miramar", "La Unión", "San Isidro")
-                ),
-                Canton(
-                    "Osa",
-                    listOf("Puerto Cortés", "Palmar", "Sierpe", "Bahía Ballena", "Piedras Blancas", "Bahía Drake")
-                ),
-                Canton(
-                    "Quepos",
-                    listOf("Quepos", "Savegre", "Naranjito")
-                ),
-                Canton(
-                    "Golfito",
-                    listOf("Golfito", "Guaycará", "Pavón")
-                ),
-                Canton(
-                    "Coto Brus",
-                    listOf("San Vito", "Sabalito", "Aguabuena", "Limoncito", "Pittier", "Gutiérrez Braun")
-                ),
-                Canton(
-                    "Parrita",
-                    listOf("Parrita")
-                ),
-                Canton(
-                    "Corredores",
-                    listOf("Corredor", "La Cuesta", "Canoas", "Laurel")
-                ),
-                Canton(
-                    "Garabito",
-                    listOf("Jacó", "Tárcoles", "Lagunillas")
-                ),
-                Canton(
-                    "Monteverde",
-                    listOf("Monteverde")
-                ),
-                Canton(
-                    "Puerto Jiménez",
-                    listOf("Puerto Jiménez")
-                )
-            )
         ),
         Province(
             name = "Limón",
-            cantons = listOf(
-                Canton(
-                    "Limón",
-                    listOf("Limón", "Valle La Estrella", "Río Blanco", "Matama")
+            cantons =
+                listOf(
+                    Canton("Limón", listOf("Limón", "Valle La Estrella", "Río Blanco", "Matama")),
+                    Canton(
+                        "Pococí",
+                        listOf(
+                            "Guápiles",
+                            "Jiménez",
+                            "Rita",
+                            "Roxana",
+                            "Cariari",
+                            "Colorado",
+                            "La Colonia",
+                        ),
+                    ),
+                    Canton(
+                        "Siquirres",
+                        listOf(
+                            "Siquirres",
+                            "Pacuarito",
+                            "Florida",
+                            "Germania",
+                            "El Cairo",
+                            "Alegría",
+                            "Reventazón",
+                        ),
+                    ),
+                    Canton("Talamanca", listOf("Bratsi", "Sixaola", "Cahuita", "Telire")),
+                    Canton("Matina", listOf("Matina", "Batán", "Carrandí")),
+                    Canton(
+                        "Guácimo",
+                        listOf("Guácimo", "Mercedes", "Pocora", "Río Jiménez", "Duacarí"),
+                    ),
                 ),
-                Canton(
-                    "Pococí",
-                    listOf("Guápiles", "Jiménez", "Rita", "Roxana", "Cariari", "Colorado", "La Colonia")
-                ),
-                Canton(
-                    "Siquirres",
-                    listOf("Siquirres", "Pacuarito", "Florida", "Germania", "El Cairo", "Alegría", "Reventazón")
-                ),
-                Canton(
-                    "Talamanca",
-                    listOf("Bratsi", "Sixaola", "Cahuita", "Telire")
-                ),
-                Canton(
-                    "Matina",
-                    listOf("Matina", "Batán", "Carrandí")
-                ),
-                Canton(
-                    "Guácimo",
-                    listOf("Guácimo", "Mercedes", "Pocora", "Río Jiménez", "Duacarí")
-                )
-            )
-        )
-)
+        ),
+    )

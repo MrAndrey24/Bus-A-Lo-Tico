@@ -16,44 +16,44 @@ import com.mapbox.maps.viewannotation.geometry
 actual fun RouteAnnotations(
     polylinePoints: List<Coordinate>,
     stops: List<RouteStop>,
-    busLocation: Coordinate?
+    busLocation: Coordinate?,
 ) {
-    // Route Line
-    if (polylinePoints.isNotEmpty()) {
-        PolylineAnnotation(
-            points = polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) }
-        ) {
-            lineColor = Color(0xFF1D4ED8)
-            lineWidth = 6.0
-            lineOpacity = 0.8
-        }
+  // Route Line
+  if (polylinePoints.isNotEmpty()) {
+    PolylineAnnotation(
+        points = polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) }
+    ) {
+      lineColor = Color(0xFF1D4ED8)
+      lineWidth = 6.0
+      lineOpacity = 0.8
     }
+  }
 
-
-    // Stops
-    if (stops.isNotEmpty()){
-        stops.forEach { stop ->
-            ViewAnnotation(
-                options = ViewAnnotationOptions.Builder()
-                    .geometry(Point.fromLngLat(stop.longitude, stop.latitude))
-                    .allowOverlap(true)
-                    .build()
-            ) {
-                StopIcon()
-            }
-        }
+  // Stops
+  if (stops.isNotEmpty()) {
+    stops.forEach { stop ->
+      ViewAnnotation(
+          options =
+              ViewAnnotationOptions.Builder()
+                  .geometry(Point.fromLngLat(stop.longitude, stop.latitude))
+                  .allowOverlap(true)
+                  .build()
+      ) {
+        StopIcon()
+      }
     }
+  }
 
-
-    // Bus
-    if (busLocation != null) {
-        ViewAnnotation(
-            options = ViewAnnotationOptions.Builder()
+  // Bus
+  if (busLocation != null) {
+    ViewAnnotation(
+        options =
+            ViewAnnotationOptions.Builder()
                 .geometry(Point.fromLngLat(busLocation.longitude, busLocation.latitude))
                 .allowOverlap(true)
                 .build()
-        ) {
-            BusIcon()
-        }
+    ) {
+      BusIcon()
     }
+  }
 }
