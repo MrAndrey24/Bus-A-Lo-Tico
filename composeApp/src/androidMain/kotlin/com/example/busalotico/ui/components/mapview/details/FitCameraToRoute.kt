@@ -16,7 +16,7 @@ fun FitCameraToRoute(
     stops: List<RouteStop>,
 ) {
     MapEffect(polylinePoints, stops, recenterTrigger) { mapView ->
-        // Recolectamos los puntos que queremos encuadrar
+        // We list the points we want to address
         val coordinatesToFrame = if (polylinePoints.isNotEmpty()) {
             polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) }
         } else if (stops.isNotEmpty()) {
@@ -26,10 +26,10 @@ fun FitCameraToRoute(
         }
 
         if (coordinatesToFrame.isNotEmpty()) {
-            // Centro y el zoom para que todos los puntos quepan en pantalla
+            // Center and zoom so that all points fit on the screen
             val cameraOptions = mapView.mapboxMap.cameraForCoordinates(
                 coordinatesToFrame,
-                EdgeInsets(100.0, 100.0, 100.0, 100.0) // Los márgenes
+                EdgeInsets(100.0, 100.0, 100.0, 100.0) // Margins
             )
 
             // Center
