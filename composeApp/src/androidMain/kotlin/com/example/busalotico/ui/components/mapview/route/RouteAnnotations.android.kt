@@ -1,13 +1,9 @@
 package com.example.busalotico.ui.components.mapview.route
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import com.example.busalotico.library.R
+import com.example.busalotico.ui.components.mapview.icon.BusIcon
+import com.example.busalotico.ui.components.mapview.icon.StopIcon
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
 import com.mapbox.geojson.Point
@@ -43,11 +39,7 @@ actual fun RouteAnnotations(
                     .allowOverlap(true)
                     .build()
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.stops),
-                    contentDescription = "Parada: ${stop.name}",
-                    modifier = Modifier.size(36.dp)
-                )
+                StopIcon()
             }
         }
     }
@@ -61,11 +53,7 @@ actual fun RouteAnnotations(
                 .allowOverlap(true)
                 .build()
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.bus),
-                contentDescription = "Bus",
-                modifier = Modifier.size(36.dp)
-            )
+            BusIcon()
         }
     }
 }
