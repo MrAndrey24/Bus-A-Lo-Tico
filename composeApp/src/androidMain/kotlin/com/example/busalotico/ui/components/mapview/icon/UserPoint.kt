@@ -7,10 +7,10 @@ import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 
 @Composable
 fun UserPoint(currentPoint: Point) {
-    CircleAnnotation(point = currentPoint) {
-        circleRadius = 10.0
-        circleColor = Color.Blue
-        circleStrokeWidth = 3.0
-        circleStrokeColor = Color.White
-    }
+  CircleAnnotation(point = currentPoint) {
+    circleRadius = 10.0
+    circleColor = Color.Blue
+    circleStrokeWidth = 3.0
+    circleStrokeColor = Color.White
+  }
 }

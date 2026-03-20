@@ -35,94 +35,87 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
-    AppTheme {
-        val viewModel = koinViewModel<LocationViewModel>()
-        val authViewModel = koinViewModel<AuthViewModel>()
-        AppContent(
-            viewModel = viewModel,
-            authViewModel = authViewModel
-        )
-    }
+  AppTheme {
+    val viewModel = koinViewModel<LocationViewModel>()
+    val authViewModel = koinViewModel<AuthViewModel>()
+    AppContent(viewModel = viewModel, authViewModel = authViewModel)
+  }
 }
 
 @Composable
-fun AppContent(
-    viewModel: LocationViewModel,
-    authViewModel: AuthViewModel
-) {
-    val coordinate by viewModel.coordinate.collectAsState()
-    val authUiState by authViewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showSplash by remember { mutableStateOf(true) }
-    val currentUser = if (DevSessionConfig.BYPASS_AUTH) {
+fun AppContent(viewModel: LocationViewModel, authViewModel: AuthViewModel) {
+  val coordinate by viewModel.coordinate.collectAsState()
+  val authUiState by authViewModel.uiState.collectAsState()
+  val snackbarHostState = remember { SnackbarHostState() }
+  var showSplash by remember { mutableStateOf(true) }
+  val currentUser =
+      if (DevSessionConfig.BYPASS_AUTH) {
         DevSessionConfig.devUser
-    } else {
+      } else {
         authUiState.currentUser
+      }
+  val isAuthenticated = DevSessionConfig.BYPASS_AUTH || authUiState.isAuthenticated
+
+  LaunchedEffect(Unit) {
+    delay(1300)
+    showSplash = false
+  }
+
+  MaterialTheme {
+    if (showSplash) {
+      SplashScreen()
+      return@MaterialTheme
     }
-    val isAuthenticated = DevSessionConfig.BYPASS_AUTH || authUiState.isAuthenticated
 
-    LaunchedEffect(Unit) {
-        delay(1300)
-        showSplash = false
+    if (!isAuthenticated) {
+      AuthScreen(
+          uiState = authUiState,
+          onSignIn = authViewModel::signIn,
+          onSignUp = authViewModel::signUp,
+      )
+      return@MaterialTheme
     }
 
-    MaterialTheme {
-        if (showSplash) {
-            SplashScreen()
-            return@MaterialTheme
-        }
-
-        if (!isAuthenticated) {
-            AuthScreen(
-                uiState = authUiState,
-                onSignIn = authViewModel::signIn,
-                onSignUp = authViewModel::signUp
-            )
-            return@MaterialTheme
-        }
-
-        PermissionsRequesterScreen(
-            permissions = listOf(
+    PermissionsRequesterScreen(
+        permissions =
+            listOf(
                 PermissionRequest(
                     permission = Permission.LOCATION,
                     title = stringResource(Res.string.permission_location_title),
                     description = stringResource(Res.string.permission_location_description),
-                    icon = Icons.Default.LocationOn
+                    icon = Icons.Default.LocationOn,
                 )
             ),
-            snackBarHostState = snackbarHostState
-        ) { controller, _ ->
-            val locationTracker = remember { getLocationTracker(controller) }
-            BindLocationTrackerEffect(locationTracker = locationTracker)
+        snackBarHostState = snackbarHostState,
+    ) { controller, _ ->
+      val locationTracker = remember { getLocationTracker(controller) }
+      BindLocationTrackerEffect(locationTracker = locationTracker)
 
-            LaunchedEffect(Unit) {
-                viewModel.startTracking(locationTracker)
-            }
+      LaunchedEffect(Unit) { viewModel.startTracking(locationTracker) }
 
-            DisposableEffect(Unit) {
-                onDispose { viewModel.stopTracking() }
-            }
+      DisposableEffect(Unit) { onDispose { viewModel.stopTracking() } }
 
-            BusAppNavigation(
-                coordinate = coordinate,
-                userId = currentUser?.id.orEmpty(),
-                userName = currentUser?.name.orEmpty(),
-                userEmail = currentUser?.email.orEmpty(),
-                userRole = currentUser?.role?.toDisplayName().orEmpty(),
-                onSignOut = if (DevSessionConfig.BYPASS_AUTH) {
-                    {}
-                } else {
-                    authViewModel::signOut
-                }
-            )
-        }
+      BusAppNavigation(
+          coordinate = coordinate,
+          userId = currentUser?.id.orEmpty(),
+          userName = currentUser?.name.orEmpty(),
+          userEmail = currentUser?.email.orEmpty(),
+          userRole = currentUser?.role?.toDisplayName().orEmpty(),
+          onSignOut =
+              if (DevSessionConfig.BYPASS_AUTH) {
+                {}
+              } else {
+                authViewModel::signOut
+              },
+      )
     }
+  }
 }
 
 private fun UserRole.toDisplayName(): String {
-    return when (this) {
-        UserRole.PASSENGER -> "Pasajero"
-        UserRole.DRIVER -> "Conductor"
-        UserRole.ADMIN -> "Administrador"
-    }
+  return when (this) {
+    UserRole.PASSENGER -> "Pasajero"
+    UserRole.DRIVER -> "Conductor"
+    UserRole.ADMIN -> "Administrador"
+  }
 }

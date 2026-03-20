@@ -10,9 +10,9 @@ import com.example.busalotico.library.R
 
 @Composable
 fun StopIcon() {
-    Image(
-        painter = painterResource(id = R.drawable.stops),
-        contentDescription = "Parada",
-        modifier = Modifier.size(36.dp)
-    )
+  Image(
+      painter = painterResource(id = R.drawable.stops),
+      contentDescription = "Parada",
+      modifier = Modifier.size(36.dp),
+  )
 }
