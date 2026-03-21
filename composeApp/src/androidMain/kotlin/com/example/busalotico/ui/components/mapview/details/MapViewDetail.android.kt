@@ -21,47 +21,39 @@ actual fun MapViewDetail(
     zoomOutTrigger: Int,
     stops: List<RouteStop>,
     polylinePoints: List<Coordinate>,
-    busLocation: Coordinate?
+    busLocation: Coordinate?,
 ) {
-    val mapViewportState = rememberMapViewportState()
+  val mapViewportState = rememberMapViewportState()
 
-    // Zoom In (+)
-    LaunchedEffect(zoomInTrigger) {
-        if (zoomInTrigger > 0) {
-            val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
-            mapViewportState.easeTo(
-                cameraOptions { zoom(currentZoom + 1.0) },
-                MapAnimationOptions.mapAnimationOptions { duration(300) }
-            )
-        }
+  // Zoom In (+)
+  LaunchedEffect(zoomInTrigger) {
+    if (zoomInTrigger > 0) {
+      val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
+      mapViewportState.easeTo(
+          cameraOptions { zoom(currentZoom + 1.0) },
+          MapAnimationOptions.mapAnimationOptions { duration(300) },
+      )
     }
+  }
 
-    // Zoom Out (-)
-    LaunchedEffect(zoomOutTrigger) {
-        if (zoomOutTrigger > 0) {
-            val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
-            mapViewportState.easeTo(
-                cameraOptions { zoom(currentZoom - 1.0) },
-                MapAnimationOptions.mapAnimationOptions { duration(300) }
-            )
-        }
+  // Zoom Out (-)
+  LaunchedEffect(zoomOutTrigger) {
+    if (zoomOutTrigger > 0) {
+      val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
+      mapViewportState.easeTo(
+          cameraOptions { zoom(currentZoom - 1.0) },
+          MapAnimationOptions.mapAnimationOptions { duration(300) },
+      )
     }
+  }
 
-    MapboxMap(
-        modifier = modifier,
-        mapViewportState = mapViewportState,
-        style = {
-            MapStyle(style = Style.MAPBOX_STREETS)
-        }
-    ) {
+  MapboxMap(
+      modifier = modifier,
+      mapViewportState = mapViewportState,
+      style = { MapStyle(style = Style.MAPBOX_STREETS) },
+  ) {
+    FitCameraToRoute(recenterTrigger, polylinePoints, stops)
 
-        FitCameraToRoute(recenterTrigger, polylinePoints, stops)
-
-        RouteAnnotations(
-            polylinePoints = polylinePoints,
-            stops = stops,
-            busLocation = busLocation
-        )
-
-    }
+    RouteAnnotations(polylinePoints = polylinePoints, stops = stops, busLocation = busLocation)
+  }
 }
