@@ -19,6 +19,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -29,6 +31,7 @@ import com.example.busalotico.ui.screen.RouteDetailScreen
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
+import com.example.busalotico.ui.screen.routes.RouteAdministrativeDetailScreen
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
 import com.example.shared.presentation.route.RouteDetailViewModel
@@ -155,6 +158,9 @@ fun BusAppNavigation(
               detailViewModel.loadStops(routeItem.id)
               navController.navigate(BusAppScreen.Detail.name)
             },
+            onAdministrativeDetailClick = { routeItem ->
+              navController.navigate("$AdministrativeRouteDestination/${routeItem.id}")
+            },
             onToggleFavorite = routeViewModel::toggleFavorite,
         )
       }
@@ -181,9 +187,21 @@ fun BusAppNavigation(
             onSignOut = onSignOut,
         )
       }
+
+      composable(
+          route = "$AdministrativeRouteDestination/{routeId}",
+          arguments = listOf(navArgument("routeId") { type = NavType.StringType }),
+      ) { backStackEntry ->
+        RouteAdministrativeDetailScreen(
+            routeId = backStackEntry.arguments?.getString("routeId").orEmpty(),
+            onBackClick = { navController.popBackStack() },
+        )
+      }
     }
   }
 }
+
+private const val AdministrativeRouteDestination = "administrative_route_detail"
 
 private fun RouteUiState.toRouteSelectionUiState(): RouteSelectionUiState {
   return RouteSelectionUiState(
@@ -199,6 +217,7 @@ private fun Route.toRouteListItemUi(favoriteRouteIds: Set<String>): RouteListIte
       code = code,
       title = name.toDisplayRouteName(),
       companyName = operator.toDisplayRouteName(),
+      fareCrc = fareCrc,
       statusText = statusText,
       etaText = etaText,
       frequencyText = frequencyText,
