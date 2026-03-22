@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -92,6 +91,7 @@ fun RouteAdministrativeDetailScreen(
         uiState.route != null -> {
           AdministrativeDetailContent(
               route = uiState.route!!,
+              driverNamesById = uiState.driverNamesById,
               modifier = Modifier.weight(1f),
           )
         }
@@ -101,7 +101,11 @@ fun RouteAdministrativeDetailScreen(
 }
 
 @Composable
-private fun AdministrativeDetailContent(route: Route, modifier: Modifier = Modifier) {
+private fun AdministrativeDetailContent(
+    route: Route,
+    driverNamesById: Map<String, String>,
+    modifier: Modifier = Modifier,
+) {
   LazyColumn(
       modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -109,7 +113,7 @@ private fun AdministrativeDetailContent(route: Route, modifier: Modifier = Modif
     item { AdministrativeHeroCard(route) }
     item { AdministrativeMetricsCard(route) }
     item { AdministrativeLocationCard(route) }
-    item { AdministrativeScheduleCard(route.schedules) }
+    item { AdministrativeScheduleCard(route.schedules, driverNamesById) }
     item { AdministrativeFooter(route) }
     item { Spacer(modifier = Modifier.height(12.dp)) }
   }
@@ -273,7 +277,10 @@ private fun AdministrativeLocationCard(route: Route) {
 }
 
 @Composable
-private fun AdministrativeScheduleCard(schedules: List<RouteSchedule>) {
+private fun AdministrativeScheduleCard(
+    schedules: List<RouteSchedule>,
+    driverNamesById: Map<String, String>,
+) {
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(20.dp),
@@ -298,15 +305,11 @@ private fun AdministrativeScheduleCard(schedules: List<RouteSchedule>) {
             color = Color(0xFF7B7D84),
         )
       } else {
-        schedules.sortedBy { it.departureTime }.forEachIndexed { index, schedule ->
+        schedules.sortedBy { it.departureTime }.forEachIndexed { _, schedule ->
           AdministrativeScheduleItem(
               schedule = schedule,
-              supportingText =
-                  when (index) {
-                    0 -> "Primera salida del día"
-                    schedules.lastIndex -> "Última salida programada"
-                    else -> "Servicio regular"
-                  },
+              supportingText = "Llegada ${schedule.arrivalTime.ifBlank { "No disponible" }}",
+              driverName = driverNamesById[schedule.driverId],
           )
         }
       }
@@ -315,7 +318,11 @@ private fun AdministrativeScheduleCard(schedules: List<RouteSchedule>) {
 }
 
 @Composable
-private fun AdministrativeScheduleItem(schedule: RouteSchedule, supportingText: String) {
+private fun AdministrativeScheduleItem(
+    schedule: RouteSchedule,
+    supportingText: String,
+    driverName: String?,
+) {
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(16.dp),
@@ -325,7 +332,7 @@ private fun AdministrativeScheduleItem(schedule: RouteSchedule, supportingText: 
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Start,
     ) {
       Row(
           modifier = Modifier.weight(1f),
@@ -361,14 +368,15 @@ private fun AdministrativeScheduleItem(schedule: RouteSchedule, supportingText: 
               style = MaterialTheme.typography.bodyMedium,
               color = Color(0xFF7B7D84),
           )
+          (driverName ?: schedule.driverId.takeIf { it.isNotBlank() })?.let { driverLabel ->
+            Text(
+                text = "Conductor $driverLabel",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF9AA0A8),
+            )
+          }
         }
       }
-
-      Icon(
-          imageVector = Icons.Filled.Notifications,
-          contentDescription = null,
-          tint = Color(0xFFB5B7BE),
-      )
     }
   }
 }
