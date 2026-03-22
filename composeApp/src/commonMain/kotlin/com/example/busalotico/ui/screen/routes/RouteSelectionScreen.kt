@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -265,7 +266,7 @@ private fun RouteSelectionTopBar(onBackClick: () -> Unit) {
       leadingContent = {
         IconButton(onClick = onBackClick) {
           Icon(
-              imageVector = Icons.Filled.ArrowBack,
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
               contentDescription = "Back",
               tint = Color(0xFF1E1F24),
           )
