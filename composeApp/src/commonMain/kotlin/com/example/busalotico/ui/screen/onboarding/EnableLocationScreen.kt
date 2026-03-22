@@ -25,13 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import busalotico.composeapp.generated.resources.Res
-import busalotico.composeapp.generated.resources.allow_access
-import busalotico.composeapp.generated.resources.compose_multiplatform
-import busalotico.composeapp.generated.resources.enable_location_description
-import busalotico.composeapp.generated.resources.enable_location_title
-import busalotico.composeapp.generated.resources.not_now
+import busalotico.composeapp.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun EnableLocationScreen(
@@ -49,7 +44,7 @@ fun EnableLocationScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Image(
-            painter = painterResource(Res.drawable.compose_multiplatform),
+            painter = painterResource(Res.drawable.logo),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth(0.6f)
@@ -60,7 +55,7 @@ fun EnableLocationScreen(
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = stringResource(Res.string.enable_location_title),
+            text = "Activar ubicación",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF1E293B)
@@ -69,7 +64,7 @@ fun EnableLocationScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = stringResource(Res.string.enable_location_description),
+            text = "Para mostrarte los mejores servicios cerca de ti y mejorar tu experiencia, necesitamos acceso a tu ubicación.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = Color(0xFF000000),
@@ -90,7 +85,7 @@ fun EnableLocationScreen(
             )
         ) {
             Text(
-                text = stringResource(Res.string.allow_access),
+                text = "Permitir acceso",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -106,7 +101,7 @@ fun EnableLocationScreen(
             shape = RoundedCornerShape(28.dp)
         ) {
             Text(
-                text = stringResource(Res.string.not_now),
+                text = "Ahora no",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Gray

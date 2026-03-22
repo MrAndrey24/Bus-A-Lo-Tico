@@ -12,9 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import busalotico.composeapp.generated.resources.Res
-import busalotico.composeapp.generated.resources.permission_location_description
-import busalotico.composeapp.generated.resources.permission_location_title
 import com.example.busalotico.config.DevSessionConfig
 import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
@@ -30,7 +27,6 @@ import dev.icerock.moko.geo.compose.BindLocationTrackerEffect
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.location.LOCATION
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -81,8 +77,8 @@ fun AppContent(viewModel: LocationViewModel, authViewModel: AuthViewModel) {
             listOf(
                 PermissionRequest(
                     permission = Permission.LOCATION,
-                    title = stringResource(Res.string.permission_location_title),
-                    description = stringResource(Res.string.permission_location_description),
+                    title = "Ubicación",
+                    description = "Para mostrar tu ubicación y paradas cercanas",
                     icon = Icons.Default.LocationOn,
                 )
             ),

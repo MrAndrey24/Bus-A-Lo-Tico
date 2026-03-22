@@ -284,7 +284,6 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, placehol
   SearchBar(
       query = value,
       onQueryChange = onValueChange,
-      placeholder = placeholder,
       modifier = Modifier.fillMaxWidth(),
   )
 }
