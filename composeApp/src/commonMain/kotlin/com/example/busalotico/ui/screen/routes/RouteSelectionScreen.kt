@@ -24,6 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -61,6 +63,7 @@ fun RouteSelectionScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     onRouteClick: (RouteListItemUi) -> Unit = {},
+    onAdministrativeDetailClick: (RouteListItemUi) -> Unit = {},
     onToggleFavorite: (routeId: String, isFavorite: Boolean) -> Unit = { _, _ -> },
 ) {
   val provinces = remember { demoCRGeoData() }
@@ -247,6 +250,7 @@ fun RouteSelectionScreen(
                           else favoriteRouteIds + route.id
                       onToggleFavorite(route.id, nextFavoriteState)
                     },
+                    onShowAdministrativeDetail = { onAdministrativeDetailClick(route) },
                 )
               }
               item { Spacer(modifier = Modifier.height(18.dp)) }
@@ -422,6 +426,7 @@ private fun RouteSelectionCard(
     route: RouteListItemUi,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onShowAdministrativeDetail: () -> Unit,
 ) {
   Card(
       modifier = Modifier.fillMaxWidth().clickable(enabled = route.isActive, onClick = onClick),
@@ -432,43 +437,69 @@ private fun RouteSelectionCard(
   ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-      RouteCodeTile(code = route.code, isActive = route.isActive)
+      RouteCodeTile(
+          code = route.code,
+          isActive = route.isActive,
+          modifier = Modifier.align(Alignment.CenterVertically),
+      )
 
       Spacer(modifier = Modifier.size(10.dp))
 
       Column(modifier = Modifier.weight(1f)) {
-        Text(
-            text = route.title,
-            style = MaterialTheme.typography.titleSmall,
-            color = Color(0xFF1F2126),
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-
-        val locationAndCompany =
-            listOfNotNull(
-                    route.province?.takeIf { it.isNotBlank() },
-                    route.companyName?.takeIf { it.isNotBlank() },
-                )
-                .joinToString(" • ")
-
-        if (locationAndCompany.isNotBlank()) {
-          Spacer(modifier = Modifier.height(4.dp))
-
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
           Text(
-              text = locationAndCompany,
-              style = MaterialTheme.typography.bodySmall,
-              color = Color(0xFF7E8189),
+              text = route.title,
+              modifier = Modifier.weight(1f),
+              style = MaterialTheme.typography.titleSmall,
+              color = Color(0xFF1F2126),
+              fontWeight = FontWeight.SemiBold,
               maxLines = 2,
               overflow = TextOverflow.Ellipsis,
           )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        val locationText =
+            listOfNotNull(
+                    route.province?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                    route.canton?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                    route.district?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                )
+                .joinToString(", ")
+
+        if (locationText.isNotBlank()) {
+          Spacer(modifier = Modifier.height(4.dp))
+
+          Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFFF4F5F7)) {
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+              Icon(
+                  imageVector = Icons.Filled.LocationOn,
+                  contentDescription = null,
+                  tint = Color(0xFF6F737B),
+                  modifier = Modifier.size(14.dp),
+              )
+              Text(
+                  text = locationText,
+                  style = MaterialTheme.typography.bodySmall,
+                  color = Color(0xFF6F737B),
+                  maxLines = 1,
+                  overflow = TextOverflow.Ellipsis,
+              )
+            }
+          }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
           if (route.isLive) {
@@ -486,37 +517,83 @@ private fun RouteSelectionCard(
               style = MaterialTheme.typography.bodySmall,
               color = Color(0xFF6B6E75),
           )
+
+          route.fareCrc?.let { fareCrc ->
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Text(
+                text = "•",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFFB0B3B9),
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+              Text(
+                  text = "TARIFA",
+                  style = MaterialTheme.typography.labelSmall,
+                  color = Color(0xFF8B8E95),
+                  fontWeight = FontWeight.Medium,
+              )
+              Text(
+                  text = "₡$fareCrc",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = Color(0xFF1F2126),
+                  fontWeight = FontWeight.Bold,
+              )
+            }
+          }
         }
 
-        Spacer(modifier = Modifier.height(3.dp))
+        route.companyName?.takeIf { it.isNotBlank() }?.let { companyName ->
+          Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = route.frequencyText,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF8A8D94),
-        )
+          Text(
+              text = companyName,
+              style = MaterialTheme.typography.labelSmall,
+              color = Color(0xFFA0A3AA),
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+          )
+        }
       }
 
-      Row(verticalAlignment = Alignment.CenterVertically) {
+      Column(
+          modifier = Modifier.padding(top = 2.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.SpaceBetween,
+      ) {
+        Icon(
+            imageVector = Icons.Filled.Info,
+            contentDescription = "Ver ficha administrativa",
+            tint = Color(0xFF9CA0A8),
+            modifier = Modifier.size(16.dp).clickable { onShowAdministrativeDetail() },
+        )
+        Spacer(modifier = Modifier.height(12.dp))
         Icon(
             imageVector = Icons.Filled.Star,
             contentDescription = "Toggle favorite",
             tint = if (route.isFavorite) Color(0xFFF4C430) else Color(0xFFB5B7BE),
             modifier = Modifier.size(18.dp).clickable { onToggleFavorite() },
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(text = "›", style = MaterialTheme.typography.headlineSmall, color = Color(0xFFD0D2D7))
       }
     }
   }
 }
 
+
 @Composable
-private fun RouteCodeTile(code: String, isActive: Boolean) {
+private fun RouteCodeTile(code: String, isActive: Boolean, modifier: Modifier = Modifier) {
   val bg = if (isActive) Color(0xFF1B1D23) else Color(0xFFECECEF)
   val fg = if (isActive) Color.White else Color(0xFFA0A3AA)
 
-  Surface(modifier = Modifier.size(56.dp), shape = RoundedCornerShape(12.dp), color = bg) {
+  Surface(modifier = modifier.size(56.dp), shape = RoundedCornerShape(12.dp), color = bg) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -534,6 +611,12 @@ private fun RouteCodeTile(code: String, isActive: Boolean) {
           fontWeight = FontWeight.SemiBold,
       )
     }
+  }
+}
+
+private fun String.toDisplayLocationName(): String {
+  return trim().lowercase().split(Regex("\\s+")).joinToString(" ") { word ->
+    word.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() }
   }
 }
 
