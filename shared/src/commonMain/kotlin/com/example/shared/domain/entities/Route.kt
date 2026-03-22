@@ -13,6 +13,7 @@ data class Route(
     val pavedPercentage: Double?,
     val surveyYear: Int?,
     val fareCrc: Int?,
+    val acceptsCardPayment: Boolean,
     val statusText: String,
     val etaText: String,
     val frequencyText: String,

@@ -15,7 +15,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
@@ -112,6 +114,7 @@ private fun AdministrativeDetailContent(
   ) {
     item { AdministrativeHeroCard(route) }
     item { AdministrativeMetricsCard(route) }
+    item { AdministrativePaymentCard(route) }
     item { AdministrativeLocationCard(route) }
     item { AdministrativeScheduleCard(route.schedules, driverNamesById) }
     item { AdministrativeFooter(route) }
@@ -268,6 +271,64 @@ private fun AdministrativeLocationCard(route: Route) {
                     color = Color(0xFF4F535B),
                 )
               }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun AdministrativePaymentCard(route: Route) {
+  val paymentMethods =
+      if (route.acceptsCardPayment) listOf("Tarjeta", "Efectivo") else listOf("Efectivo")
+
+  Surface(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(20.dp),
+      color = Color.White,
+      border = BorderStroke(1.dp, Color(0xFFE5E6EB)),
+  ) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+      Text(
+          text = "Metodos de pago",
+          style = MaterialTheme.typography.titleMedium,
+          color = Color(0xFF1F2126),
+          fontWeight = FontWeight.SemiBold,
+      )
+
+      FlowRow(
+          horizontalArrangement = Arrangement.spacedBy(10.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp),
+      ) {
+        paymentMethods.forEach { paymentMethod ->
+          val paymentIcon =
+              if (paymentMethod == "Tarjeta") Icons.Filled.CreditCard else Icons.Filled.AttachMoney
+
+          Surface(
+              shape = RoundedCornerShape(14.dp),
+              color = Color(0xFFF4F5F7),
+          ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+              Icon(
+                  imageVector = paymentIcon,
+                  contentDescription = null,
+                  tint = Color(0xFF4F535B),
+              )
+              Text(
+                  text = paymentMethod,
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = Color(0xFF1F2126),
+                  fontWeight = FontWeight.SemiBold,
+              )
             }
           }
         }
