@@ -15,10 +15,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -306,9 +306,6 @@ private fun AdministrativePaymentCard(route: Route) {
           verticalArrangement = Arrangement.spacedBy(10.dp),
       ) {
         paymentMethods.forEach { paymentMethod ->
-          val paymentIcon =
-              if (paymentMethod == "Tarjeta") Icons.Filled.CreditCard else Icons.Filled.AttachMoney
-
           Surface(
               shape = RoundedCornerShape(14.dp),
               color = Color(0xFFF4F5F7),
@@ -318,11 +315,19 @@ private fun AdministrativePaymentCard(route: Route) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-              Icon(
-                  imageVector = paymentIcon,
-                  contentDescription = null,
-                  tint = Color(0xFF4F535B),
-              )
+              if (paymentMethod == "Tarjeta") {
+                Icon(
+                    imageVector = Icons.Filled.CreditCard,
+                    contentDescription = null,
+                    tint = Color(0xFF4F535B),
+                )
+              } else {
+                Icon(
+                    imageVector = Icons.Filled.Payments,
+                    contentDescription = null,
+                    tint = Color(0xFF4F535B),
+                )
+              }
               Text(
                   text = paymentMethod,
                   style = MaterialTheme.typography.bodyMedium,
