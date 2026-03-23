@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
@@ -284,6 +283,7 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, placehol
   SearchBar(
       query = value,
       onQueryChange = onValueChange,
+      placeholder = placeholder,
       modifier = Modifier.fillMaxWidth(),
   )
 }

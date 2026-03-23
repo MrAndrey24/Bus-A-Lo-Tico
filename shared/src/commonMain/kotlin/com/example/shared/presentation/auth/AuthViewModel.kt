@@ -3,6 +3,7 @@ package com.example.shared.presentation.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shared.data.repository.auth.IAuthRepository
+import com.example.shared.data.repository.driver.IDriverRepository
 import com.example.shared.data.repository.user.IUserRepository
 import com.example.shared.domain.entities.UserRole
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     private val authRepository: IAuthRepository,
+    private val driverRepository: IDriverRepository,
     private val userRepository: IUserRepository,
 ) : ViewModel() {
 
@@ -68,12 +70,20 @@ class AuthViewModel(
       runCatching {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             val userId = authRepository.signUp(email, password)
-            userRepository.upsertUserProfile(
+            val profile = userRepository.upsertUserProfile(
                 userId = userId,
                 email = email,
                 name = name,
                 role = role,
             )
+            if (role == UserRole.DRIVER) {
+              driverRepository.upsertDriver(
+                  driverId = userId,
+                  name = name,
+                  companyId = null,
+              )
+            }
+            profile
           }
           .onSuccess { profile ->
             _uiState.value = AuthUiState(isLoading = false, currentUser = profile)
