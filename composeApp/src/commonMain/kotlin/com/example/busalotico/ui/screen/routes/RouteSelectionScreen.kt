@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
@@ -284,6 +283,10 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, placehol
   SearchBar(
       query = value,
       onQueryChange = onValueChange,
+      isSearching = false,
+      searchResults = emptyList(),
+      onRouteSelected = {},
+      placeholder = placeholder,
       modifier = Modifier.fillMaxWidth(),
   )
 }
@@ -765,7 +768,7 @@ private fun demoCRGeoData(): List<Province> =
                     ),
                     Canton(
                         "Turrubares",
-                        listOf("San Pablo", "San Pedro", "San Juan de Mata", "San Luis", "Carara"),
+                        listOf("San Pablo", "San Pedro", "San Juan de Mata", "San Juan", "Carara"),
                     ),
                     Canton("Dota", listOf("Santa María", "Jardín", "Copey")),
                     Canton("Curridabat", listOf("Curridabat", "Granadilla", "Sánchez", "Tirrases")),
@@ -1260,7 +1263,7 @@ private fun demoCRGeoData(): List<Province> =
                         ),
                     ),
                     Canton("Parrita", listOf("Parrita")),
-                    Canton("Corredores", listOf("Corredor", "La Cuesta", "Canoas", "Laurel")),
+                    Canton("Corredores", listOf("Corredor", "La cuesta", "Canoas", "Laurel")),
                     Canton("Garabito", listOf("Jacó", "Tárcoles", "Lagunillas")),
                     Canton("Monteverde", listOf("Monteverde")),
                     Canton("Puerto Jiménez", listOf("Puerto Jiménez")),
