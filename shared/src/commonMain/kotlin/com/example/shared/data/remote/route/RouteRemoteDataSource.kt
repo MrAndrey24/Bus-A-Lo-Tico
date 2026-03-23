@@ -6,6 +6,7 @@ import com.example.shared.data.remote.route.dto.RouteStopDto
 import com.example.shared.domain.entities.Route
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
+import dev.gitlive.firebase.firestore.where
 
 class RouteRemoteDataSource : IRouteRemoteDataSource {
 
@@ -58,6 +59,29 @@ class RouteRemoteDataSource : IRouteRemoteDataSource {
             stops = stops,
             schedules = schedules
         )
+    }
+
+    override suspend fun getRouteByDriverId(driverId: String): Route? {
+        val schedulesQuery = Firebase.firestore.collectionGroup(SCHEDULES_COLLECTION)
+
+        val scheduleSnapshot = runCatching {
+            schedulesQuery
+                .where { "driverId" equalTo driverId }
+                .limit(1)
+                .get()
+                .documents
+                .firstOrNull()
+        }.getOrNull() ?: schedulesQuery
+            .get()
+            .documents
+            .firstOrNull { snapshot ->
+                val scheduleDto = snapshot.data(RouteScheduleDto.serializer())
+                scheduleDto.driverId == driverId
+            }
+            ?: return null
+
+        val routeId = scheduleSnapshot.reference.parent.parent?.id ?: return null
+        return getRoute(routeId)
     }
 
     private companion object {

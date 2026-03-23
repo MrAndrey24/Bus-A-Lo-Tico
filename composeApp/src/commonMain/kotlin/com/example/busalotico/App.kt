@@ -15,7 +15,7 @@ import androidx.compose.runtime.setValue
 import com.example.busalotico.config.DevSessionConfig
 import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.mapview.getLocationTracker
-import com.example.busalotico.ui.navigation.BusAppNavigation
+import com.example.busalotico.ui.navigation.RoleBasedNavigation
 import com.example.busalotico.ui.screen.auth.AuthScreen
 import com.example.busalotico.ui.screen.onboarding.PermissionsRequesterScreen
 import com.example.busalotico.ui.screen.splash.SplashScreen
@@ -91,12 +91,13 @@ fun AppContent(viewModel: LocationViewModel, authViewModel: AuthViewModel) {
 
       DisposableEffect(Unit) { onDispose { viewModel.stopTracking() } }
 
-      BusAppNavigation(
+      RoleBasedNavigation(
+          role = currentUser?.role ?: UserRole.PASSENGER,
           coordinate = coordinate,
           userId = currentUser?.id.orEmpty(),
           userName = currentUser?.name.orEmpty(),
           userEmail = currentUser?.email.orEmpty(),
-          userRole = currentUser?.role?.toDisplayName().orEmpty(),
+          userRoleLabel = currentUser?.role?.toDisplayName().orEmpty(),
           onSignOut =
               if (DevSessionConfig.BYPASS_AUTH) {
                 {}

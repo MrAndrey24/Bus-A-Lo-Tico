@@ -10,4 +10,8 @@ class DriverRepository(
     override suspend fun getDriver(driverId: String): Driver? {
         return remoteDataSource.getDriver(driverId)
     }
+
+    override suspend fun upsertDriver(driverId: String, name: String, companyId: String?): Driver {
+        return remoteDataSource.upsertDriver(driverId, name, companyId)
+    }
 }

@@ -19,6 +19,19 @@ class DriverRemoteDataSource : IDriverRemoteDataSource {
         return dto.toDomain(snapshot.id)
     }
 
+    override suspend fun upsertDriver(driverId: String, name: String, companyId: String?): Driver {
+        val driverRef = Firebase.firestore
+            .collection(DRIVERS_COLLECTION)
+            .document(driverId)
+
+        val dto = DriverDto(
+            name = name,
+            companyId = companyId,
+        )
+        driverRef.set(dto)
+        return dto.toDomain(driverId)
+    }
+
     private companion object {
         const val DRIVERS_COLLECTION = "drivers"
     }

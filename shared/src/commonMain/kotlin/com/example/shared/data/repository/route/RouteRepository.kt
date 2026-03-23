@@ -8,4 +8,6 @@ class RouteRepository(
 ) : IRouteRepository {
     override suspend fun getRoutes(): List<Route> = remoteDataSource.getRoutes()
     override suspend fun getRoute(routeId: String): Route? = remoteDataSource.getRoute(routeId)
+    override suspend fun getRouteByDriverId(driverId: String): Route? =
+        remoteDataSource.getRouteByDriverId(driverId)
 }

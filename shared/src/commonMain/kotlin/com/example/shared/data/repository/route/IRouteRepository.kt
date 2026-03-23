@@ -5,5 +5,6 @@ import com.example.shared.domain.entities.Route
 
 interface IRouteRepository {
     suspend fun getRoute(routeId: String): Route?
+    suspend fun getRouteByDriverId(driverId: String): Route?
     suspend fun getRoutes(): List<Route>
 }
