@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
@@ -57,8 +56,8 @@ fun DropdownSelectField(
                 }
                 .clickable(enabled = enabled) { expanded = true },
             shape = RoundedCornerShape(16.dp),
-            color = if (enabled) Color.White else Color(0xFFF8F8FA),
-            border = BorderStroke(1.dp, Color(0xFFE5E6EB))
+            color = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
             Row(
                 modifier = Modifier
@@ -69,13 +68,13 @@ fun DropdownSelectField(
             ) {
                 Text(
                     text = if (value.isBlank()) placeholder else value,
-                    color = if (value.isBlank()) Color(0xFF8A8D95) else Color(0xFF2A2C33),
+                    color = if (value.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                     fontSize = 15.sp
                 )
                 Icon(
                     imageVector = Icons.Filled.ArrowDropDown,
                     contentDescription = null,
-                    tint = Color(0xFF666A74)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -85,10 +84,10 @@ fun DropdownSelectField(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(14.dp),
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp,
             shadowElevation = 4.dp,
-            border = BorderStroke(1.dp, Color(0xFFE5E6EB))
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
@@ -96,11 +95,11 @@ fun DropdownSelectField(
                         Text(
                             text = option,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFF2A2C33)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     colors = MenuDefaults.itemColors(
-                        textColor = Color(0xFF2A2C33)
+                        textColor = MaterialTheme.colorScheme.onSurface
                     ),
                     onClick = {
                         onSelect(option)
