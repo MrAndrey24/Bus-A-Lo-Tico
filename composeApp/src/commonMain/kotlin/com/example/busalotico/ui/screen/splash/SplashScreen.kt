@@ -41,7 +41,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
 
   LaunchedEffect(Unit) { visible = true }
 
-  Box(modifier = modifier.fillMaxSize().background(Color(0xFFF7F7F4))) {
+  Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
     AnimatedVisibility(visible = visible, enter = fadeIn() + scaleIn(initialScale = 0.94f)) {
       Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -52,7 +52,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
           Icon(
               imageVector = Icons.Filled.DirectionsBus,
               contentDescription = "Bus",
-              tint = Color(0xFF101010),
+              tint = MaterialTheme.colorScheme.primary,
               modifier = Modifier.width(78.dp).height(78.dp),
           )
 
@@ -68,7 +68,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
                   },
               style =
                   MaterialTheme.typography.titleLarge.copy(
-                      color = Color(0xFF101010),
+                      color = MaterialTheme.colorScheme.onBackground,
                       fontSize = 28.sp,
                   ),
               textAlign = TextAlign.Center,
@@ -81,7 +81,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
               text = "TRANSITANDO COSTA RICA ",
               style =
                   MaterialTheme.typography.bodySmall.copy(
-                      color = Color(0xFFB9BFBC),
+                      color = MaterialTheme.colorScheme.secondary,
                       fontWeight = FontWeight.Medium,
                       letterSpacing = 4.sp,
                   ),
@@ -103,7 +103,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
           text = "PURA VIDA \u2022 2026",
           style =
               MaterialTheme.typography.bodySmall.copy(
-                  color = Color(0xFFC5CBC7),
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                   fontWeight = FontWeight.Medium,
                   letterSpacing = 3.sp,
               ),
@@ -116,8 +116,8 @@ fun SplashScreen(modifier: Modifier = Modifier) {
 @Composable
 private fun FooterFlagLine() {
   Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-    Box(modifier = Modifier.width(20.dp).height(2.dp).background(Color(0xFF123CA8)))
-    Box(modifier = Modifier.width(34.dp).height(2.dp).background(Color(0xFFE33A35)))
-    Box(modifier = Modifier.width(20.dp).height(2.dp).background(Color(0xFF123CA8)))
+    Box(modifier = Modifier.width(20.dp).height(2.dp).background(Color(0xFF2C63BA)))
+    Box(modifier = Modifier.width(34.dp).height(2.dp).background(Color(0xFFD85858)))
+    Box(modifier = Modifier.width(20.dp).height(2.dp).background(Color(0xFF2C63BA)))
   }
 }

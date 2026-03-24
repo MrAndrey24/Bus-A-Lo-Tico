@@ -21,6 +21,13 @@ val AppColorScheme =
         onSecondaryContainer = NearBlack,
         outline = PaleGray,
         tertiary = SuccessGreen,
+        onTertiary = White,
+        tertiaryContainer = SuccessGreenContainer,
+        onTertiaryContainer = OnSuccessGreenContainer,
+        error = ErrorRed,
+        onError = White,
+        errorContainer = ErrorRedContainer,
+        onErrorContainer = OnErrorRedContainer,
     )
 
 @Composable

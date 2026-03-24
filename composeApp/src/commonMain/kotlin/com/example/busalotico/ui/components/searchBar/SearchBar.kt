@@ -34,7 +34,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.shared.domain.entities.Route
 
@@ -57,7 +56,7 @@ fun SearchBar(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
         ) {
             Column {
@@ -71,7 +70,7 @@ fun SearchBar(
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = null,
-                        tint = Color.Gray,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                     BasicTextField(
@@ -82,14 +81,14 @@ fun SearchBar(
                             .padding(vertical = 12.dp),
                         singleLine = true,
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
-                            color = Color.DarkGray
+                            color = MaterialTheme.colorScheme.onSurface
                         ),
                         decorationBox = { innerTextField ->
                             Box {
                                 if (query.isEmpty()) {
                                     Text(
                                         text = placeholder ?: "¿Adonde vas?",
-                                        color = Color.Gray,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
@@ -108,7 +107,7 @@ fun SearchBar(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Limpiar",
-                            tint = Color.Gray,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .size(20.dp)
                                 .clickable { onQueryChange("") }
@@ -125,7 +124,7 @@ fun SearchBar(
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             thickness = 0.5.dp,
-                            color = Color.LightGray
+                            color = MaterialTheme.colorScheme.outline
                         )
                         LazyColumn(
                             modifier = Modifier
@@ -177,12 +176,12 @@ private fun SearchResultItem(
             Text(
                 text = route.name,
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "Código: ${route.code}",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
