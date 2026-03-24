@@ -51,15 +51,6 @@ import com.example.shared.presentation.route.RouteDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 // ---------------------------------------------------------------------------
-private val GreenActive = Color(0xFF2E7D32)
-private val GreenLight = Color(0xFFE8F5E9)
-private val GreenDot = Color(0xFF4CAF50)
-private val GreyText = Color(0xFF8B8E95)
-private val GreySurface = Color(0xFFF7F7F9)
-private val GreyLine = Color(0xFFE4E4E8)
-private val TextPrimary = Color(0xFF17181C)
-
-// ---------------------------------------------------------------------------
 // Screen
 // ---------------------------------------------------------------------------
 @Composable
@@ -82,7 +73,7 @@ fun RouteDetailScreen(
 
   LaunchedEffect(coordinate) { if (coordinate.latitude != 0.0) recenterTrigger++ }
 
-  Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+  Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
     RouteHeader(routeName = routeName, onBackClick = onBackClick)
 
     RouteStatusChips()
@@ -107,7 +98,7 @@ fun RouteDetailScreen(
         text = "Próximas paradas",
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold,
-        color = Color(0xFF7B7D84),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(horizontal = 20.dp),
     )
 
@@ -125,7 +116,7 @@ fun RouteDetailScreen(
         if (index < stops.lastIndex) {
           HorizontalDivider(
               modifier = Modifier.padding(start = 68.dp, end = 20.dp),
-              color = GreyLine,
+              color = MaterialTheme.colorScheme.outline,
               thickness = 0.5.dp,
           )
         }
@@ -148,7 +139,7 @@ private fun RouteHeader(routeName: String, onBackClick: () -> Unit) {
           Icon(
               imageVector = Icons.AutoMirrored.Filled.ArrowBack,
               contentDescription = "Volver",
-              tint = Color(0xFF555861),
+              tint = MaterialTheme.colorScheme.onSurface,
           )
         }
       },
@@ -161,27 +152,27 @@ private fun RouteStatusChips() {
       modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    Surface(color = GreenLight, shape = RoundedCornerShape(999.dp)) {
+    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = RoundedCornerShape(999.dp)) {
       Row(
           modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(6.dp),
       ) {
-        Box(modifier = Modifier.size(8.dp).background(GreenDot, CircleShape))
+        Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.tertiary, CircleShape))
         Text(
             text = "En transito",
             style = MaterialTheme.typography.labelSmall,
-            color = GreenActive,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
             fontWeight = FontWeight.SemiBold,
         )
       }
     }
 
-    Surface(color = Color(0xFFF3F4F6), shape = RoundedCornerShape(999.dp)) {
+    Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(999.dp)) {
       Text(
           text = "Actualizado ahora",
           style = MaterialTheme.typography.labelSmall,
-          color = GreyText,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
           fontWeight = FontWeight.Medium,
           modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
       )
@@ -207,8 +198,8 @@ private fun MapCard(
   Card(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(210.dp),
       shape = RoundedCornerShape(16.dp),
-      colors = CardDefaults.cardColors(containerColor = Color.White),
-      border = BorderStroke(1.dp, Color(0xFFE5E6EB)),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
       elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -256,11 +247,11 @@ private fun StopRow(
         else -> "En tránsito"
       }
 
-  val statusColor = if (isCurrent) GreenDot else GreyText
+  val statusColor = if (isCurrent) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
 
   val badgeText = eta
-  val badgeBg = if (isCurrent) GreenLight else GreySurface
-  val badgeColor = if (isCurrent) GreenActive else GreyText
+  val badgeBg = if (isCurrent) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant
+  val badgeColor = if (isCurrent) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
 
   Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp),
@@ -271,25 +262,25 @@ private fun StopRow(
       when {
         isCompleted -> {
           Box(
-              modifier = Modifier.size(32.dp).background(GreyLine, CircleShape),
+              modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.outline, CircleShape),
               contentAlignment = Alignment.Center,
           ) {
-            Text("✓", fontSize = 13.sp, color = GreyText, fontWeight = FontWeight.Bold)
+            Text("✓", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
           }
         }
         isCurrent -> {
           Box(
-              modifier = Modifier.size(32.dp).background(GreenLight, CircleShape),
+              modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.tertiaryContainer, CircleShape),
               contentAlignment = Alignment.Center,
           ) {
             Surface(
                 shape = CircleShape,
                 color = Color.Transparent,
-                border = androidx.compose.foundation.BorderStroke(2.dp, GreenDot),
+                border = BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary),
                 modifier = Modifier.size(24.dp),
             ) {
               Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.size(11.dp).background(GreenDot, CircleShape))
+                Box(modifier = Modifier.size(11.dp).background(MaterialTheme.colorScheme.tertiary, CircleShape))
               }
             }
           }
@@ -298,7 +289,7 @@ private fun StopRow(
           Surface(
               shape = CircleShape,
               color = Color.Transparent,
-              border = androidx.compose.foundation.BorderStroke(1.5.dp, GreyLine),
+              border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
               modifier = Modifier.size(32.dp),
           ) {}
         }
@@ -313,7 +304,7 @@ private fun StopRow(
           text = stop.name,
           style = MaterialTheme.typography.bodyLarge,
           fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
-          color = if (isCompleted) GreyText else TextPrimary,
+          color = if (isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
           textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
           fontSize = if (isCurrent) 18.sp else 16.sp,
       )
@@ -331,7 +322,7 @@ private fun StopRow(
       Surface(
           color = badgeBg,
           shape = RoundedCornerShape(12.dp),
-          border = if (isCurrent) null else BorderStroke(1.dp, Color(0xFFE7E8EC)),
+          border = if (isCurrent) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
       ) {
         Text(
             text = badgeText,
