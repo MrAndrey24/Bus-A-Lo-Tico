@@ -133,7 +133,7 @@ fun RouteDetailScreen(
 private fun RouteHeader(routeName: String, onBackClick: () -> Unit) {
   ScreenHeader(
       title = "Ruta activa",
-      subtitle = routeName.ifBlank { "Cargando ruta..." },
+      subtitle = routeName.takeIf { it.isNotBlank() }?.trim()?.uppercase() ?: "CARGANDO RUTA...",
       leadingContent = {
         IconButton(onClick = onBackClick) {
           Icon(

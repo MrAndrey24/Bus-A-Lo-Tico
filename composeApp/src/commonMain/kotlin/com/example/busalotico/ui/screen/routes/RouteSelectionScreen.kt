@@ -96,20 +96,40 @@ fun RouteSelectionScreen(
                 if (filters.query.isBlank()) {
                   true
                 } else {
-                  (route.title + " " + route.code).contains(filters.query, ignoreCase = true)
+                  buildString {
+                        append(route.title)
+                        append(" ")
+                        append(route.code)
+                        append(" ")
+                        append(route.province.orEmpty())
+                        append(" ")
+                        append(route.canton.orEmpty())
+                        append(" ")
+                        append(route.district.orEmpty())
+                        append(" ")
+                        append(route.endProvince.orEmpty())
+                        append(" ")
+                        append(route.endCanton.orEmpty())
+                        append(" ")
+                        append(route.endDistrict.orEmpty())
+                      }
+                      .contains(filters.query, ignoreCase = true)
                 }
 
             val nearMeMatches = !filters.nearMeOnly || route.isNearMe
             val favoritesMatch = !filters.favoritesOnly || route.isFavorite
             val provinceMatch =
                 filters.selectedProvince == null ||
-                    route.province.equals(filters.selectedProvince?.name, ignoreCase = true)
+                    route.province.equals(filters.selectedProvince?.name, ignoreCase = true) ||
+                    route.endProvince.equals(filters.selectedProvince?.name, ignoreCase = true)
             val cantonMatch =
                 filters.selectedCanton == null ||
-                    route.canton.equals(filters.selectedCanton?.name, ignoreCase = true)
+                    route.canton.equals(filters.selectedCanton?.name, ignoreCase = true) ||
+                    route.endCanton.equals(filters.selectedCanton?.name, ignoreCase = true)
             val districtMatch =
                 filters.selectedDistrict == null ||
-                    route.district.equals(filters.selectedDistrict, ignoreCase = true)
+                    route.district.equals(filters.selectedDistrict, ignoreCase = true) ||
+                    route.endDistrict.equals(filters.selectedDistrict, ignoreCase = true)
 
             queryMatches &&
                 nearMeMatches &&
@@ -265,7 +285,7 @@ fun RouteSelectionScreen(
 private fun RouteSelectionTopBar(onBackClick: () -> Unit) {
   ScreenHeader(
       title = "Rutas",
-      subtitle = "Seleccion de rutas",
+      subtitle = "Selección de rutas",
       leadingContent = {
         IconButton(onClick = onBackClick) {
           Icon(
@@ -457,7 +477,7 @@ private fun RouteSelectionCard(
           Text(
               text = route.title,
               modifier = Modifier.weight(1f),
-              style = MaterialTheme.typography.titleSmall,
+              style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onSurface,
               fontWeight = FontWeight.SemiBold,
               maxLines = 2,
@@ -465,7 +485,7 @@ private fun RouteSelectionCard(
           )
         }
 
-        val locationText =
+        val startLocationText =
             listOfNotNull(
                     route.province?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
                     route.canton?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
@@ -473,28 +493,23 @@ private fun RouteSelectionCard(
                 )
                 .joinToString(", ")
 
-        if (locationText.isNotBlank()) {
+        val endLocationText =
+            listOfNotNull(
+                    route.endProvince?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                    route.endCanton?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                    route.endDistrict?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                )
+                .joinToString(", ")
+
+        if (startLocationText.isNotBlank() || endLocationText.isNotBlank()) {
           Spacer(modifier = Modifier.height(4.dp))
 
-          Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-              Icon(
-                  imageVector = Icons.Filled.LocationOn,
-                  contentDescription = null,
-                  tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                  modifier = Modifier.size(14.dp),
-              )
-              Text(
-                  text = locationText,
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis,
-              )
+          Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (startLocationText.isNotBlank()) {
+              RouteLocationLine(label = "Inicio", value = startLocationText)
+            }
+            if (endLocationText.isNotBlank()) {
+              RouteLocationLine(label = "Final", value = endLocationText)
             }
           }
         }
@@ -584,6 +599,26 @@ private fun RouteSelectionCard(
         Text(text = "›", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.outline)
       }
     }
+  }
+}
+
+@Composable
+private fun RouteLocationLine(label: String, value: String) {
+  Row(
+      verticalAlignment = Alignment.Top,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+  ) {
+    Icon(
+        imageVector = Icons.Filled.LocationOn,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.size(14.dp),
+    )
+    Text(
+        text = "$label: $value",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
   }
 }
 

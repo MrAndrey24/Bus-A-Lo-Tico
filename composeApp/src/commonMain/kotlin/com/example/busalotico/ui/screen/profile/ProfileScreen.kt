@@ -38,12 +38,12 @@ fun ProfileScreen(
     Column(modifier = Modifier.fillMaxSize()) {
       ScreenHeader(
           title = "Perfil",
-          subtitle = "Informacion de la cuenta",
+          subtitle = "Información de la cuenta",
           trailingContent = {
             IconButton(onClick = onSignOut) {
               Icon(
                   imageVector = Icons.AutoMirrored.Filled.Logout,
-                  contentDescription = "Cerrar sesion",
+                  contentDescription = "Cerrar sesión",
                   tint = MaterialTheme.colorScheme.onSurfaceVariant,
               )
             }

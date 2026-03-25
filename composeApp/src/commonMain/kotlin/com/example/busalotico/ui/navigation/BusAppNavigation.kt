@@ -233,8 +233,8 @@ private fun Route.toRouteListItemUi(favoriteRouteIds: Set<String>): RouteListIte
   return RouteListItemUi(
       id = id,
       code = code,
-      title = name.toDisplayRouteName(),
-      companyName = operator.toDisplayRouteName(),
+      title = name.toRouteDisplayName(),
+      companyName = operator,
       fareCrc = fareCrc,
       statusText = statusText,
       etaText = etaText,
@@ -245,11 +245,10 @@ private fun Route.toRouteListItemUi(favoriteRouteIds: Set<String>): RouteListIte
       province = startLocation.province,
       canton = startLocation.canton,
       district = startLocation.district,
+      endProvince = endLocation.province,
+      endCanton = endLocation.canton,
+      endDistrict = endLocation.district,
   )
 }
 
-private fun String.toDisplayRouteName(): String {
-  return trim().lowercase().split(Regex("\\s+")).joinToString(" ") { word ->
-    word.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() }
-  }
-}
+private fun String.toRouteDisplayName(): String = trim().uppercase()
