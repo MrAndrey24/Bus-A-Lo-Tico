@@ -23,6 +23,9 @@ data class RouteListItemUi(
     val province: String? = null,
     val canton: String? = null,
     val district: String? = null,
+    val endProvince: String? = null,
+    val endCanton: String? = null,
+    val endDistrict: String? = null,
 )
 
 data class RouteSelectionUiState(

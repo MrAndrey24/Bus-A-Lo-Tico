@@ -55,7 +55,7 @@ fun RouteAdministrativeDetailScreen(
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.fillMaxSize()) {
       ScreenHeader(
-          title = "Informacion administrativa",
+          title = "Información administrativa",
           subtitle = "Detalle de ruta",
           leadingContent = {
             IconButton(onClick = onBackClick) {
@@ -144,10 +144,10 @@ private fun AdministrativeHeroCard(route: Route) {
       }
 
       Text(
-          text = route.name.toDisplayTitle(),
-          style = MaterialTheme.typography.headlineSmall,
+          text = route.name.trim().uppercase(),
+          style = MaterialTheme.typography.bodyLarge,
           color = MaterialTheme.colorScheme.onSurface,
-          fontWeight = FontWeight.SemiBold,
+          fontWeight = FontWeight.Medium,
       )
     }
   }
@@ -197,9 +197,9 @@ private fun AdministrativeMetricBlock(
     )
     Text(
         text = value,
-        style = MaterialTheme.typography.headlineSmall,
+        style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
     )
     Text(
         text = supporting,
@@ -211,12 +211,21 @@ private fun AdministrativeMetricBlock(
 
 @Composable
 private fun AdministrativeLocationCard(route: Route) {
-  val chips =
+  val startLocation =
       listOfNotNull(
-          route.startLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-          route.startLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-          route.startLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-      )
+              route.startLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+              route.startLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+              route.startLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+          )
+          .joinToString(", ")
+
+  val endLocation =
+      listOfNotNull(
+              route.endLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+              route.endLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+              route.endLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+          )
+          .joinToString(", ")
 
   Surface(
       modifier = Modifier.fillMaxWidth(),
@@ -230,50 +239,63 @@ private fun AdministrativeLocationCard(route: Route) {
     ) {
       Text(
           text = "Ubicación administrativa",
-          style = MaterialTheme.typography.titleMedium,
+          style = MaterialTheme.typography.titleSmall,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.SemiBold,
       )
 
-      if (chips.isEmpty()) {
+      if (startLocation.isBlank() && endLocation.isBlank()) {
         Text(
             text = "No disponible",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
       } else {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-          chips.forEachIndexed { index, value ->
-            Surface(
-                shape = RoundedCornerShape(999.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
-              Row(
-                  modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.spacedBy(6.dp),
-              ) {
-                if (index == 0) {
-                  Icon(
-                      imageVector = Icons.Filled.LocationOn,
-                      contentDescription = null,
-                      tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                      modifier = Modifier.height(14.dp),
-                  )
-                }
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-              }
-            }
+          if (startLocation.isNotBlank()) {
+            AdministrativeLocationLine(
+                label = "Inicio",
+                value = startLocation,
+            )
+          }
+          if (endLocation.isNotBlank()) {
+            AdministrativeLocationLine(
+                label = "Final",
+                value = endLocation,
+            )
           }
         }
       }
+    }
+  }
+}
+
+@Composable
+private fun AdministrativeLocationLine(label: String, value: String) {
+  Row(
+      verticalAlignment = Alignment.Top,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    Icon(
+        imageVector = Icons.Filled.LocationOn,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.height(16.dp),
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+      Text(
+          text = label.uppercase(),
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          fontWeight = FontWeight.Medium,
+      )
+      Text(
+          text = value,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurface,
+      )
     }
   }
 }
@@ -294,8 +316,8 @@ private fun AdministrativePaymentCard(route: Route) {
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
       Text(
-          text = "Metodos de pago",
-          style = MaterialTheme.typography.titleMedium,
+          text = "Métodos de pago",
+          style = MaterialTheme.typography.titleSmall,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.SemiBold,
       )
@@ -358,7 +380,7 @@ private fun AdministrativeScheduleCard(
     ) {
       Text(
           text = "Horarios de salida",
-          style = MaterialTheme.typography.titleMedium,
+          style = MaterialTheme.typography.titleSmall,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.SemiBold,
       )
@@ -424,9 +446,9 @@ private fun AdministrativeScheduleItem(
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
           Text(
               text = schedule.departureTime,
-              style = MaterialTheme.typography.headlineSmall,
+              style = MaterialTheme.typography.titleLarge,
               color = MaterialTheme.colorScheme.onSurface,
-              fontWeight = FontWeight.Bold,
+              fontWeight = FontWeight.SemiBold,
           )
           Text(
               text = supportingText,
@@ -462,9 +484,9 @@ private fun AdministrativeFooter(route: Route) {
     Text(
         text = route.operator.toDisplayTitle(),
         modifier = Modifier.fillMaxWidth(),
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Medium,
         textAlign = TextAlign.Center,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,

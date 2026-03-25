@@ -174,8 +174,8 @@ private fun SearchResultItem(
         }
         Column {
             Text(
-                text = route.name,
-                style = MaterialTheme.typography.bodyLarge,
+                text = route.name.trim().uppercase(),
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
