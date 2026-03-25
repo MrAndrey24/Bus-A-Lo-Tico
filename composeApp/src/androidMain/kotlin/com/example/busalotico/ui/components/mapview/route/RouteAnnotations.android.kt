@@ -31,7 +31,7 @@ actual fun RouteAnnotations(
 
   // Stops
   if (stops.isNotEmpty()) {
-    stops.forEach { stop ->
+    stops.forEachIndexed { index, stop ->
       ViewAnnotation(
           options =
               ViewAnnotationOptions.Builder()
@@ -39,7 +39,7 @@ actual fun RouteAnnotations(
                   .allowOverlap(true)
                   .build()
       ) {
-        StopIcon()
+        StopIcon(order = index + 1)
       }
     }
   }
