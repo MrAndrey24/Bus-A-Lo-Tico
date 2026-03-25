@@ -39,7 +39,7 @@ actual fun RouteAnnotations(
                   .allowOverlap(true)
                   .build()
       ) {
-        StopIcon()
+        StopIcon(order = stop.order)
       }
     }
   }

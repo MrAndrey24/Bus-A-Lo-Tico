@@ -179,7 +179,7 @@ private fun SearchResultItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Código: ${route.code}",
+                text = "Tarifa: ₡${route.fareCrc}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
