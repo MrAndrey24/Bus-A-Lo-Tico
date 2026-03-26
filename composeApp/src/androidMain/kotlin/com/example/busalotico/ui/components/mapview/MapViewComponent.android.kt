@@ -29,9 +29,8 @@ actual fun MapViewComponent(
     stops: List<RouteStop>,
     polylinePoints: List<Coordinate>,
     busLocation: Coordinate?,
+    flyToLocation: Coordinate?
 ) {
-
-  println(stops.size)
 
   val currentPoint = Point.fromLngLat(coordinate.longitude, coordinate.latitude)
   var locationUpdateCount by remember { mutableIntStateOf(0) }
@@ -43,7 +42,18 @@ actual fun MapViewComponent(
     }
   }
 
-  // (GPS)
+  LaunchedEffect(flyToLocation) {
+    flyToLocation?.let {
+      mapViewportState.easeTo(
+          cameraOptions {
+            center(Point.fromLngLat(it.longitude, it.latitude))
+            zoom(16.0)
+          },
+          MapAnimationOptions.mapAnimationOptions { duration(1500) },
+      )
+    }
+  }
+
   LaunchedEffect(coordinate) {
     if (locationUpdateCount < 2) {
       mapViewportState.easeTo(
@@ -57,7 +67,6 @@ actual fun MapViewComponent(
     }
   }
 
-  // (Green Point)
   LaunchedEffect(recenterTrigger) {
     if (recenterTrigger > 0) {
       mapViewportState.easeTo(
@@ -70,7 +79,6 @@ actual fun MapViewComponent(
     }
   }
 
-  // Zoom In (+)
   LaunchedEffect(zoomInTrigger) {
     if (zoomInTrigger > 0) {
       val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
@@ -81,7 +89,6 @@ actual fun MapViewComponent(
     }
   }
 
-  // Zoom Out (-)
   LaunchedEffect(zoomOutTrigger) {
     if (zoomOutTrigger > 0) {
       val currentZoom = mapViewportState.cameraState?.zoom ?: 15.0
@@ -92,17 +99,12 @@ actual fun MapViewComponent(
     }
   }
 
-  // --- VIEW MAP ---
   MapboxMap(
       modifier = modifier,
       mapViewportState = mapViewportState,
       style = { MapStyle(style = Style.MAPBOX_STREETS) },
   ) {
-
-    // User Position (Blue Point)
     UserPoint(currentPoint)
-
-    // Print Routes and Stops
     RouteAnnotations(polylinePoints = polylinePoints, stops = stops, busLocation = busLocation)
   }
 }

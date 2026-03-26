@@ -18,6 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -61,6 +64,8 @@ fun BusAppNavigation(
   val routeUiState by routeViewModel.uiState.collectAsState()
   val backStackEntry by navController.currentBackStackEntryAsState()
   val currentRoute = backStackEntry?.destination?.route ?: BusAppScreen.Home.name
+
+  var flyToLocation by remember { mutableStateOf<Coordinate?>(null) }
 
   LaunchedEffect(userId) { routeViewModel.onUserChanged(userId.ifBlank { null }) }
 
@@ -139,11 +144,24 @@ fun BusAppNavigation(
         if (coordinate != null) {
           HomeScreen(
               coordinate = coordinate,
+              uiState = routeUiState,
+              onSearchQueryChange = routeViewModel::onSearchQueryChanged,
+              onRouteSelected = { route ->
+                  routeViewModel.onClearSearch()
+                  detailViewModel.loadStops(route.id)
+                  
+                  val startLat = route.startLocation.latitude
+                  val startLng = route.startLocation.longitude
+                  if (startLat != null && startLng != null) {
+                      flyToLocation = Coordinate(startLat, startLng)
+                  }
+              },
               onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
               modifier = Modifier.fillMaxSize(),
               polylinePoints = polylinePoints,
               stops = stops,
               busLocation = busLocation,
+              flyToLocation = flyToLocation
           )
         } else {
           Text("Buscando señal GPS...")
@@ -215,8 +233,8 @@ private fun Route.toRouteListItemUi(favoriteRouteIds: Set<String>): RouteListIte
   return RouteListItemUi(
       id = id,
       code = code,
-      title = name.toDisplayRouteName(),
-      companyName = operator.toDisplayRouteName(),
+      title = name.toRouteDisplayName(),
+      companyName = operator,
       fareCrc = fareCrc,
       statusText = statusText,
       etaText = etaText,
@@ -227,11 +245,10 @@ private fun Route.toRouteListItemUi(favoriteRouteIds: Set<String>): RouteListIte
       province = startLocation.province,
       canton = startLocation.canton,
       district = startLocation.district,
+      endProvince = endLocation.province,
+      endCanton = endLocation.canton,
+      endDistrict = endLocation.district,
   )
 }
 
-private fun String.toDisplayRouteName(): String {
-  return trim().lowercase().split(Regex("\\s+")).joinToString(" ") { word ->
-    word.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() }
-  }
-}
+private fun String.toRouteDisplayName(): String = trim().uppercase()

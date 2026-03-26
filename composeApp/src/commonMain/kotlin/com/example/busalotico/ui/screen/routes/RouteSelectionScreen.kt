@@ -96,20 +96,40 @@ fun RouteSelectionScreen(
                 if (filters.query.isBlank()) {
                   true
                 } else {
-                  (route.title + " " + route.code).contains(filters.query, ignoreCase = true)
+                  buildString {
+                        append(route.title)
+                        append(" ")
+                        append(route.code)
+                        append(" ")
+                        append(route.province.orEmpty())
+                        append(" ")
+                        append(route.canton.orEmpty())
+                        append(" ")
+                        append(route.district.orEmpty())
+                        append(" ")
+                        append(route.endProvince.orEmpty())
+                        append(" ")
+                        append(route.endCanton.orEmpty())
+                        append(" ")
+                        append(route.endDistrict.orEmpty())
+                      }
+                      .contains(filters.query, ignoreCase = true)
                 }
 
             val nearMeMatches = !filters.nearMeOnly || route.isNearMe
             val favoritesMatch = !filters.favoritesOnly || route.isFavorite
             val provinceMatch =
                 filters.selectedProvince == null ||
-                    route.province.equals(filters.selectedProvince?.name, ignoreCase = true)
+                    route.province.equals(filters.selectedProvince?.name, ignoreCase = true) ||
+                    route.endProvince.equals(filters.selectedProvince?.name, ignoreCase = true)
             val cantonMatch =
                 filters.selectedCanton == null ||
-                    route.canton.equals(filters.selectedCanton?.name, ignoreCase = true)
+                    route.canton.equals(filters.selectedCanton?.name, ignoreCase = true) ||
+                    route.endCanton.equals(filters.selectedCanton?.name, ignoreCase = true)
             val districtMatch =
                 filters.selectedDistrict == null ||
-                    route.district.equals(filters.selectedDistrict, ignoreCase = true)
+                    route.district.equals(filters.selectedDistrict, ignoreCase = true) ||
+                    route.endDistrict.equals(filters.selectedDistrict, ignoreCase = true)
 
             queryMatches &&
                 nearMeMatches &&
@@ -121,7 +141,7 @@ fun RouteSelectionScreen(
         }
       }
 
-  Surface(modifier = modifier.fillMaxSize(), color = Color(0xFFF4F4F6)) {
+  Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.fillMaxSize()) {
       RouteSelectionTopBar(onBackClick = onBackClick)
 
@@ -195,7 +215,7 @@ fun RouteSelectionScreen(
               text = "RUTAS DISPONIBLES",
               style = MaterialTheme.typography.labelMedium,
               fontWeight = FontWeight.SemiBold,
-              color = Color(0xFF7B7D84),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
 
           ActiveCountPill(count = filteredRoutes.count { it.isActive })
@@ -207,21 +227,21 @@ fun RouteSelectionScreen(
           Text(
               text = "Cargando rutas...",
               style = MaterialTheme.typography.bodyMedium,
-              color = Color(0xFF6F7279),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
         } else {
           uiState.errorMessage?.let { message ->
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = Color(0xFFFFF3F3),
-                border = BorderStroke(1.dp, Color(0xFFF0C9C9)),
+                color = MaterialTheme.colorScheme.errorContainer,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
             ) {
               Text(
                   text = message,
                   modifier = Modifier.padding(12.dp),
                   style = MaterialTheme.typography.bodySmall,
-                  color = Color(0xFF9A2F2F),
+                  color = MaterialTheme.colorScheme.onErrorContainer,
               )
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -231,7 +251,7 @@ fun RouteSelectionScreen(
             Text(
                 text = "No hay rutas para los filtros seleccionados.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6F7279),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           } else {
             LazyColumn(
@@ -265,13 +285,13 @@ fun RouteSelectionScreen(
 private fun RouteSelectionTopBar(onBackClick: () -> Unit) {
   ScreenHeader(
       title = "Rutas",
-      subtitle = "Seleccion de rutas",
+      subtitle = "Selección de rutas",
       leadingContent = {
         IconButton(onClick = onBackClick) {
           Icon(
               imageVector = Icons.AutoMirrored.Filled.ArrowBack,
               contentDescription = "Back",
-              tint = Color(0xFF1E1F24),
+              tint = MaterialTheme.colorScheme.onSurface,
           )
         }
       },
@@ -283,6 +303,9 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, placehol
   SearchBar(
       query = value,
       onQueryChange = onValueChange,
+      isSearching = false,
+      searchResults = emptyList(),
+      onRouteSelected = {},
       placeholder = placeholder,
       modifier = Modifier.fillMaxWidth(),
   )
@@ -341,14 +364,14 @@ private fun LocationPanel(
   Surface(
       modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
       shape = RoundedCornerShape(16.dp),
-      border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E6EB)),
-      color = Color.White,
+      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      color = MaterialTheme.colorScheme.surface,
   ) {
     Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
       Text(
           text = "Ubicación",
           style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-          color = Color(0xFF2A2C33),
+          color = MaterialTheme.colorScheme.onSurface,
       )
 
       DropdownSelectField(
@@ -382,16 +405,14 @@ private fun LocationPanel(
             text = "Aplicar",
             onClick = onApply,
             modifier = Modifier.weight(1f),
-            containerColor = Color(0xFF1B1D23),
-            contentColor = Color.White,
         )
 
         PillActionButton(
             text = "Limpiar",
             onClick = onClear,
             modifier = Modifier.weight(1f),
-            containerColor = Color(0xFFE7E7EC),
-            contentColor = Color(0xFF66636F),
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         )
       }
     }
@@ -402,14 +423,14 @@ private fun LocationPanel(
 private fun ActiveCountPill(count: Int) {
   Surface(
       shape = RoundedCornerShape(999.dp),
-      border = BorderStroke(1.dp, Color(0xFFE0E1E6)),
-      color = Color(0xFFF9FAFB),
+      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      color = MaterialTheme.colorScheme.surfaceVariant,
   ) {
     Row(
         modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-      Box(modifier = Modifier.size(8.dp).background(Color(0xFF7A64FF), CircleShape))
+      Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.tertiary, CircleShape))
       Spacer(modifier = Modifier.size(7.dp))
       Text(
           text = "$count activas",
@@ -430,8 +451,8 @@ private fun RouteSelectionCard(
   Card(
       modifier = Modifier.fillMaxWidth().clickable(enabled = route.isActive, onClick = onClick),
       shape = RoundedCornerShape(16.dp),
-      colors = CardDefaults.cardColors(containerColor = Color.White),
-      border = BorderStroke(1.dp, Color(0xFFE5E6EB)),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
       elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
   ) {
     Row(
@@ -456,15 +477,15 @@ private fun RouteSelectionCard(
           Text(
               text = route.title,
               modifier = Modifier.weight(1f),
-              style = MaterialTheme.typography.titleSmall,
-              color = Color(0xFF1F2126),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurface,
               fontWeight = FontWeight.SemiBold,
               maxLines = 2,
               overflow = TextOverflow.Ellipsis,
           )
         }
 
-        val locationText =
+        val startLocationText =
             listOfNotNull(
                     route.province?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
                     route.canton?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
@@ -472,28 +493,23 @@ private fun RouteSelectionCard(
                 )
                 .joinToString(", ")
 
-        if (locationText.isNotBlank()) {
+        val endLocationText =
+            listOfNotNull(
+                    route.endProvince?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                    route.endCanton?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                    route.endDistrict?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
+                )
+                .joinToString(", ")
+
+        if (startLocationText.isNotBlank() || endLocationText.isNotBlank()) {
           Spacer(modifier = Modifier.height(4.dp))
 
-          Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFFF4F5F7)) {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-              Icon(
-                  imageVector = Icons.Filled.LocationOn,
-                  contentDescription = null,
-                  tint = Color(0xFF6F737B),
-                  modifier = Modifier.size(14.dp),
-              )
-              Text(
-                  text = locationText,
-                  style = MaterialTheme.typography.bodySmall,
-                  color = Color(0xFF6F737B),
-                  maxLines = 1,
-                  overflow = TextOverflow.Ellipsis,
-              )
+          Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (startLocationText.isNotBlank()) {
+              RouteLocationLine(label = "Inicio", value = startLocationText)
+            }
+            if (endLocationText.isNotBlank()) {
+              RouteLocationLine(label = "Final", value = endLocationText)
             }
           }
         }
@@ -505,7 +521,7 @@ private fun RouteSelectionCard(
             Text(
                 text = route.statusText,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFF1DB954),
+                color = MaterialTheme.colorScheme.tertiary,
                 fontWeight = FontWeight.SemiBold,
             )
             Spacer(modifier = Modifier.size(8.dp))
@@ -514,7 +530,7 @@ private fun RouteSelectionCard(
           Text(
               text = "⏱ ${route.etaText}",
               style = MaterialTheme.typography.bodySmall,
-              color = Color(0xFF6B6E75),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
 
           route.fareCrc?.let { fareCrc ->
@@ -523,7 +539,7 @@ private fun RouteSelectionCard(
             Text(
                 text = "•",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFFB0B3B9),
+                color = MaterialTheme.colorScheme.outline,
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -535,13 +551,13 @@ private fun RouteSelectionCard(
               Text(
                   text = "TARIFA",
                   style = MaterialTheme.typography.labelSmall,
-                  color = Color(0xFF8B8E95),
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                   fontWeight = FontWeight.Medium,
               )
               Text(
                   text = "₡$fareCrc",
                   style = MaterialTheme.typography.bodyMedium,
-                  color = Color(0xFF1F2126),
+                  color = MaterialTheme.colorScheme.onSurface,
                   fontWeight = FontWeight.Bold,
               )
             }
@@ -554,7 +570,7 @@ private fun RouteSelectionCard(
           Text(
               text = companyName,
               style = MaterialTheme.typography.labelSmall,
-              color = Color(0xFFA0A3AA),
+              color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
           )
@@ -569,28 +585,48 @@ private fun RouteSelectionCard(
         Icon(
             imageVector = Icons.Filled.Info,
             contentDescription = "Ver ficha administrativa",
-            tint = Color(0xFF9CA0A8),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(16.dp).clickable { onShowAdministrativeDetail() },
         )
         Spacer(modifier = Modifier.height(12.dp))
         Icon(
             imageVector = Icons.Filled.Star,
             contentDescription = "Toggle favorite",
-            tint = if (route.isFavorite) Color(0xFFF4C430) else Color(0xFFB5B7BE),
+            tint = if (route.isFavorite) Color(0xFFF4C430) else MaterialTheme.colorScheme.outline,
             modifier = Modifier.size(18.dp).clickable { onToggleFavorite() },
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "›", style = MaterialTheme.typography.headlineSmall, color = Color(0xFFD0D2D7))
+        Text(text = "›", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.outline)
       }
     }
+  }
+}
+
+@Composable
+private fun RouteLocationLine(label: String, value: String) {
+  Row(
+      verticalAlignment = Alignment.Top,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+  ) {
+    Icon(
+        imageVector = Icons.Filled.LocationOn,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.size(14.dp),
+    )
+    Text(
+        text = "$label: $value",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
   }
 }
 
 
 @Composable
 private fun RouteCodeTile(code: String, isActive: Boolean, modifier: Modifier = Modifier) {
-  val bg = if (isActive) Color(0xFF1B1D23) else Color(0xFFECECEF)
-  val fg = if (isActive) Color.White else Color(0xFFA0A3AA)
+  val bg = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+  val fg = if (isActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
 
   Surface(modifier = modifier.size(56.dp), shape = RoundedCornerShape(12.dp), color = bg) {
     Column(
@@ -1260,7 +1296,7 @@ private fun demoCRGeoData(): List<Province> =
                         ),
                     ),
                     Canton("Parrita", listOf("Parrita")),
-                    Canton("Corredores", listOf("Corredor", "La Cuesta", "Canoas", "Laurel")),
+                    Canton("Corredores", listOf("Corredor", "La cuesta", "Canoas", "Laurel")),
                     Canton("Garabito", listOf("Jacó", "Tárcoles", "Lagunillas")),
                     Canton("Monteverde", listOf("Monteverde")),
                     Canton("Puerto Jiménez", listOf("Puerto Jiménez")),

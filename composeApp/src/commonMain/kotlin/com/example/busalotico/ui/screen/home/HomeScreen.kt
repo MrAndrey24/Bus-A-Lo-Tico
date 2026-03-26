@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -22,18 +21,23 @@ import com.example.busalotico.ui.components.ZoomControls
 import com.example.busalotico.ui.components.mapview.MapViewComponent
 import com.example.busalotico.ui.components.searchBar.SearchBar
 import com.example.shared.domain.entities.Coordinate
+import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteStop
+import com.example.shared.presentation.route.RouteUiState
 
 @Composable
 fun HomeScreen(
     coordinate: Coordinate,
+    uiState: RouteUiState,
+    onSearchQueryChange: (String) -> Unit,
+    onRouteSelected: (Route) -> Unit,
     modifier: Modifier = Modifier,
     onSelectRouteClick: () -> Unit = {},
     polylinePoints: List<Coordinate> = emptyList(),
     stops: List<RouteStop> = emptyList(),
-    busLocation: Coordinate? = null
+    busLocation: Coordinate? = null,
+    flyToLocation: Coordinate? = null
 ) {
-    var searchQuery by remember { mutableStateOf("") }
     var recenterTrigger by remember { mutableIntStateOf(0) }
     var zoomInTrigger by remember { mutableIntStateOf(0) }
     var zoomOutTrigger by remember { mutableIntStateOf(0) }
@@ -48,23 +52,20 @@ fun HomeScreen(
             zoomOutTrigger = zoomOutTrigger,
             polylinePoints = polylinePoints,
             stops = stops,
-            busLocation = busLocation
+            busLocation = busLocation,
+            flyToLocation = flyToLocation
         )
 
-        Row(
+        SearchBar(
+            query = uiState.searchQuery,
+            onQueryChange = onSearchQueryChange,
+            isSearching = uiState.isSearching,
+            searchResults = uiState.searchResults,
+            onRouteSelected = onRouteSelected,
             modifier = Modifier
-                .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .padding(horizontal = 16.dp, vertical = 48.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-                modifier = Modifier.weight(1f)
-            )
-        }
+                .padding(top = 32.dp)
+        )
 
         Column(
             modifier = Modifier
