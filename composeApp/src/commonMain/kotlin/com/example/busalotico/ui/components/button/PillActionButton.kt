@@ -19,8 +19,8 @@ fun PillActionButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    containerColor: Color = Color(0xFF1B1D23),
-    contentColor: Color = Color.White,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
     border: BorderStroke? = null,
 ) {
   Surface(

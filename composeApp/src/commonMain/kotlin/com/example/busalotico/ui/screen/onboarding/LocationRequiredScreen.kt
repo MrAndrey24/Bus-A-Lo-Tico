@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,7 +38,7 @@ fun LocationRequiredScreen(
             imageVector = Icons.Default.Warning,
             contentDescription = "Advertencia",
             modifier = Modifier.size(72.dp),
-            tint = Color(0xFFEF4444)
+            tint = MaterialTheme.colorScheme.error
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -48,7 +47,7 @@ fun LocationRequiredScreen(
             text = "Ubicación obligatoria",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -57,7 +56,7 @@ fun LocationRequiredScreen(
             text = "Para poder mostrarte el mapa y las rutas de los buses, es estrictamente necesario que nos des acceso a tu ubicación.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = Color.DarkGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -65,7 +64,7 @@ fun LocationRequiredScreen(
         Button(
             onClick = onRetryClick,
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("Otorgar permiso", fontSize = 18.sp)
         }

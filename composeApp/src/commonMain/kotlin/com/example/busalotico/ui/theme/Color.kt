@@ -74,3 +74,9 @@ val MediumGray = Color(0xFF717171)
 val PaleGray = Color(0xFFDDDDDD)
 
 val SuccessGreen = Color(0xFF008A05)
+val SuccessGreenContainer = Color(0xFFD1FADF)
+val OnSuccessGreenContainer = Color(0xFF00391C)
+
+val ErrorRed = Color(0xFFBA1A1A)
+val ErrorRedContainer = Color(0xFFFFDAD6)
+val OnErrorRedContainer = Color(0xFF410002)

@@ -2,7 +2,6 @@ package com.example.busalotico
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -57,39 +56,38 @@ fun AppContent(viewModel: LocationViewModel, authViewModel: AuthViewModel) {
     showSplash = false
   }
 
-  MaterialTheme {
-    if (showSplash) {
-      SplashScreen()
-      return@MaterialTheme
-    }
+  if (showSplash) {
+    SplashScreen()
+    return
+  }
 
-    if (!isAuthenticated) {
-      AuthScreen(
-          uiState = authUiState,
-          onSignIn = authViewModel::signIn,
-          onSignUp = authViewModel::signUp,
-      )
-      return@MaterialTheme
-    }
+  if (!isAuthenticated) {
+    AuthScreen(
+        uiState = authUiState,
+        onSignIn = authViewModel::signIn,
+        onSignUp = authViewModel::signUp,
+    )
+    return
+  }
 
-    PermissionsRequesterScreen(
-        permissions =
-            listOf(
-                PermissionRequest(
-                    permission = Permission.LOCATION,
-                    title = "Ubicación",
-                    description = "Para mostrar tu ubicación y paradas cercanas",
-                    icon = Icons.Default.LocationOn,
-                )
-            ),
-        snackBarHostState = snackbarHostState,
-    ) { controller, _ ->
-      val locationTracker = remember { getLocationTracker(controller) }
-      BindLocationTrackerEffect(locationTracker = locationTracker)
+  PermissionsRequesterScreen(
+      permissions =
+          listOf(
+              PermissionRequest(
+                  permission = Permission.LOCATION,
+                  title = "Ubicación",
+                  description = "Para mostrar tu ubicación y paradas cercanas",
+                  icon = Icons.Default.LocationOn,
+              )
+          ),
+      snackBarHostState = snackbarHostState,
+  ) { controller, _ ->
+    val locationTracker = remember { getLocationTracker(controller) }
+    BindLocationTrackerEffect(locationTracker = locationTracker)
 
-      LaunchedEffect(Unit) { viewModel.startTracking(locationTracker) }
+    LaunchedEffect(Unit) { viewModel.startTracking(locationTracker) }
 
-      DisposableEffect(Unit) { onDispose { viewModel.stopTracking() } }
+    DisposableEffect(Unit) { onDispose { viewModel.stopTracking() } }
 
       RoleBasedNavigation(
           role = currentUser?.role ?: UserRole.PASSENGER,

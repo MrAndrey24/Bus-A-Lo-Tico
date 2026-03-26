@@ -60,20 +60,20 @@ fun AuthScreen(
   var passwordVisible by remember { mutableStateOf(false) }
   var selectedRole by remember { mutableStateOf(UserRole.PASSENGER) }
 
-  Surface(modifier = modifier.fillMaxSize(), color = Color(0xFFF6F6F3)) {
+  Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Box(modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
       Column(
           modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 72.dp),
           horizontalAlignment = Alignment.CenterHorizontally,
       ) {
         Box(
-            modifier = Modifier.size(64.dp).background(Color(0xFFEEEEEA), CircleShape),
+            modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.surface, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
           Icon(
               imageVector = Icons.Filled.DirectionsBus,
               contentDescription = "Bus",
-              tint = Color(0xFF1B1D23),
+              tint = MaterialTheme.colorScheme.primary,
               modifier = Modifier.size(28.dp),
           )
         }
@@ -84,7 +84,7 @@ fun AuthScreen(
             text = if (isRegisterMode) "Crea tu cuenta" else "Bus A Lo Tico",
             style =
                 MaterialTheme.typography.titleLarge.copy(
-                    color = Color(0xFF1B1D23),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
                 ),
@@ -102,7 +102,7 @@ fun AuthScreen(
                 },
             style =
                 MaterialTheme.typography.bodyMedium.copy(
-                    color = Color(0xFF7D7D7A),
+                    color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Medium,
                 ),
             textAlign = TextAlign.Center,
@@ -113,8 +113,8 @@ fun AuthScreen(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
-            color = Color.White,
-            border = BorderStroke(1.dp, Color(0xFFF0F0EC)),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             shadowElevation = 4.dp,
         ) {
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp)) {
@@ -163,7 +163,7 @@ fun AuthScreen(
               Spacer(modifier = Modifier.height(14.dp))
               Text(
                   text = errorMessage,
-                  color = Color(0xFF9A2F2F),
+                  color = MaterialTheme.colorScheme.error,
                   style = MaterialTheme.typography.bodySmall,
               )
             }
@@ -187,8 +187,6 @@ fun AuthScreen(
                   }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                containerColor = Color(0xFF1B1D23),
-                contentColor = Color.White,
             )
 
             if (!isRegisterMode) {
@@ -199,7 +197,7 @@ fun AuthScreen(
                   textAlign = TextAlign.Center,
                   style =
                       MaterialTheme.typography.bodySmall.copy(
-                          color = Color(0xFFA4A4A0),
+                          color = MaterialTheme.colorScheme.onSurfaceVariant,
                           fontWeight = FontWeight.Medium,
                       ),
               )
@@ -211,17 +209,17 @@ fun AuthScreen(
                   verticalAlignment = Alignment.CenterVertically,
                   horizontalArrangement = Arrangement.spacedBy(10.dp),
               ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFF0F0EC))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
                 Text(
                     text = "O CONTINUA CON",
                     style =
                         MaterialTheme.typography.labelSmall.copy(
-                            color = Color(0xFFD2D2CE),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 2.sp,
                             fontWeight = FontWeight.SemiBold,
                         ),
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFF0F0EC))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
               }
             }
 
@@ -231,9 +229,9 @@ fun AuthScreen(
                 text = if (isRegisterMode) "Ya tengo cuenta" else "Crear cuenta",
                 onClick = { isRegisterMode = !isRegisterMode },
                 modifier = Modifier.fillMaxWidth(),
-                containerColor = Color.White,
-                contentColor = Color(0xFF444443),
-                border = BorderStroke(1.dp, Color(0xFFEDEDE8)),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             )
           }
         }
@@ -250,7 +248,7 @@ private fun FieldLabel(text: String) {
       text = text,
       style =
           MaterialTheme.typography.labelSmall.copy(
-              color = Color(0xFF7F807E),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
               letterSpacing = 2.2.sp,
               fontWeight = FontWeight.SemiBold,
           ),
@@ -273,7 +271,7 @@ private fun AuthFooter(modifier: Modifier = Modifier) {
         text = "PURA VIDA • COSTA RICA",
         style =
             MaterialTheme.typography.labelSmall.copy(
-                color = Color(0xFFD2D2CE),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 letterSpacing = 2.2.sp,
                 fontWeight = FontWeight.Medium,
             ),
@@ -295,7 +293,7 @@ private fun AuthTextField(
       onValueChange = onValueChange,
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
-      placeholder = { Text(text = placeholder, color = Color(0xFFD2D2CE)) },
+      placeholder = { Text(text = placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
       shape = RoundedCornerShape(16.dp),
       visualTransformation =
           if (isPassword && !passwordVisible) {
@@ -311,7 +309,7 @@ private fun AuthTextField(
                       if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                   contentDescription =
                       if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
-                  tint = Color(0xFF6F7279),
+                  tint = MaterialTheme.colorScheme.onSurfaceVariant,
                   modifier =
                       Modifier.clickable { onPasswordVisibilityToggle() }.padding(end = 4.dp),
               )
@@ -321,12 +319,12 @@ private fun AuthTextField(
           },
       colors =
           OutlinedTextFieldDefaults.colors(
-              focusedContainerColor = Color.White,
-              unfocusedContainerColor = Color.White,
-              focusedBorderColor = Color(0xFFE2E3DF),
-              unfocusedBorderColor = Color(0xFFE9EAE6),
-              focusedTextColor = Color(0xFF2A2C33),
-              unfocusedTextColor = Color(0xFF2A2C33),
+              focusedContainerColor = MaterialTheme.colorScheme.surface,
+              unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+              focusedBorderColor = MaterialTheme.colorScheme.primary,
+              unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+              focusedTextColor = MaterialTheme.colorScheme.onSurface,
+              unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
           ),
   )
 }
