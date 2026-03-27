@@ -105,7 +105,7 @@ fun AppContent(viewModel: LocationViewModel, authViewModel: AuthViewModel) {
       )
     }
   }
-}
+
 
 private fun UserRole.toDisplayName(): String {
   return when (this) {
