@@ -3,13 +3,16 @@ package com.example.busalotico.ui.screen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -41,10 +45,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import busalotico.composeapp.generated.resources.logo
 import com.example.busalotico.ui.components.button.PillActionButton
 import com.example.busalotico.ui.components.chip.SelectableFilterChip
 import com.example.busalotico.ui.components.header.ScreenHeader
@@ -55,6 +62,7 @@ import com.example.busalotico.ui.model.Province
 import com.example.busalotico.ui.model.RouteFiltersState
 import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun RouteSelectionScreen(
@@ -65,250 +73,251 @@ fun RouteSelectionScreen(
     onAdministrativeDetailClick: (RouteListItemUi) -> Unit = {},
     onToggleFavorite: (routeId: String, isFavorite: Boolean) -> Unit = { _, _ -> },
 ) {
-  val provinces = remember { demoCRGeoData() }
-  var showLocationPanel by remember { mutableStateOf(false) }
+    val provinces = remember { demoCRGeoData() }
+    var showLocationPanel by remember { mutableStateOf(false) }
 
-  var filters by remember { mutableStateOf(RouteFiltersState()) }
-  var favoriteRouteIds by
-      remember(uiState.routes) {
+    var filters by remember { mutableStateOf(RouteFiltersState()) }
+    var favoriteRouteIds by
+    remember(uiState.routes) {
         mutableStateOf(uiState.routes.filter { it.isFavorite }.map { it.id }.toSet())
-      }
+    }
 
-  val availableCantons = filters.selectedProvince?.cantons ?: emptyList()
-  val availableDistricts = filters.selectedCanton?.districts ?: emptyList()
+    val availableCantons = filters.selectedProvince?.cantons ?: emptyList()
+    val availableDistricts = filters.selectedCanton?.districts ?: emptyList()
 
-  val routesWithFavorites by
-      remember(uiState.routes, favoriteRouteIds) {
+    val routesWithFavorites by
+    remember(uiState.routes, favoriteRouteIds) {
         derivedStateOf {
-          uiState.routes.map { route ->
-            route.copy(isFavorite = route.isFavorite || favoriteRouteIds.contains(route.id))
-          }
+            uiState.routes.map { route ->
+                route.copy(isFavorite = route.isFavorite || favoriteRouteIds.contains(route.id))
+            }
         }
-      }
+    }
 
-  val filteredRoutes by
-      remember(routesWithFavorites, filters) {
+    val filteredRoutes by
+    remember(routesWithFavorites, filters) {
         derivedStateOf {
-          routesWithFavorites.filter { route ->
-            if (!route.isActive) return@filter false
+            routesWithFavorites.filter { route ->
+                if (!route.isActive) return@filter false
 
-            val queryMatches =
-                if (filters.query.isBlank()) {
-                  true
-                } else {
-                  buildString {
-                        append(route.title)
-                        append(" ")
-                        append(route.code)
-                        append(" ")
-                        append(route.province.orEmpty())
-                        append(" ")
-                        append(route.canton.orEmpty())
-                        append(" ")
-                        append(route.district.orEmpty())
-                        append(" ")
-                        append(route.endProvince.orEmpty())
-                        append(" ")
-                        append(route.endCanton.orEmpty())
-                        append(" ")
-                        append(route.endDistrict.orEmpty())
-                      }
-                      .contains(filters.query, ignoreCase = true)
+                val queryMatches =
+                    if (filters.query.isBlank()) {
+                        true
+                    } else {
+                        buildString {
+                            append(route.title)
+                            append(" ")
+                            append(route.code)
+                            append(" ")
+                            append(route.province.orEmpty())
+                            append(" ")
+                            append(route.canton.orEmpty())
+                            append(" ")
+                            append(route.district.orEmpty())
+                            append(" ")
+                            append(route.endProvince.orEmpty())
+                            append(" ")
+                            append(route.endCanton.orEmpty())
+                            append(" ")
+                            append(route.endDistrict.orEmpty())
+                        }
+                            .contains(filters.query, ignoreCase = true)
+                    }
+
+                val nearMeMatches = !filters.nearMeOnly || route.isNearMe
+                val favoritesMatch = !filters.favoritesOnly || route.isFavorite
+                val provinceMatch =
+                    filters.selectedProvince == null ||
+                            route.province.equals(filters.selectedProvince?.name, ignoreCase = true) ||
+                            route.endProvince.equals(filters.selectedProvince?.name, ignoreCase = true)
+                val cantonMatch =
+                    filters.selectedCanton == null ||
+                            route.canton.equals(filters.selectedCanton?.name, ignoreCase = true) ||
+                            route.endCanton.equals(filters.selectedCanton?.name, ignoreCase = true)
+                val districtMatch =
+                    filters.selectedDistrict == null ||
+                            route.district.equals(filters.selectedDistrict, ignoreCase = true) ||
+                            route.endDistrict.equals(filters.selectedDistrict, ignoreCase = true)
+
+                queryMatches &&
+                        nearMeMatches &&
+                        favoritesMatch &&
+                        provinceMatch &&
+                        cantonMatch &&
+                        districtMatch
+            }
+        }
+    }
+
+    Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            RouteSelectionTopBar(onBackClick = onBackClick)
+
+            Column(modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp)) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SearchField(
+                    value = filters.query,
+                    onValueChange = { filters = filters.copy(query = it) },
+                    placeholder = "Buscar ruta, parada o lugar...",
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                FilterChipsRow(
+                    nearMe = filters.nearMeOnly,
+                    onNearMeToggle = { filters = filters.copy(nearMeOnly = !filters.nearMeOnly) },
+                    locationLabel =
+                    buildLocationLabel(
+                        filters.selectedProvince,
+                        filters.selectedCanton,
+                        filters.selectedDistrict,
+                    ),
+                    locationSelected = showLocationPanel,
+                    onLocationClick = { showLocationPanel = !showLocationPanel },
+                    favoriteCount = routesWithFavorites.count { it.isFavorite },
+                    favoritesOnly = filters.favoritesOnly,
+                    onFavoritesToggle = { filters = filters.copy(favoritesOnly = !filters.favoritesOnly) },
+                )
+
+                AnimatedVisibility(visible = showLocationPanel) {
+                    LocationPanel(
+                        provinces = provinces,
+                        selectedProvince = filters.selectedProvince,
+                        onProvinceSelected = { province ->
+                            filters =
+                                filters.copy(
+                                    selectedProvince = province,
+                                    selectedCanton = null,
+                                    selectedDistrict = null,
+                                )
+                        },
+                        cantons = availableCantons,
+                        selectedCanton = filters.selectedCanton,
+                        onCantonSelected = { canton ->
+                            filters = filters.copy(selectedCanton = canton, selectedDistrict = null)
+                        },
+                        districts = availableDistricts,
+                        selectedDistrict = filters.selectedDistrict,
+                        onDistrictSelected = { filters = filters.copy(selectedDistrict = it) },
+                        onClear = {
+                            filters =
+                                filters.copy(
+                                    selectedProvince = null,
+                                    selectedCanton = null,
+                                    selectedDistrict = null,
+                                )
+                        },
+                        onApply = { showLocationPanel = false },
+                    )
                 }
 
-            val nearMeMatches = !filters.nearMeOnly || route.isNearMe
-            val favoritesMatch = !filters.favoritesOnly || route.isFavorite
-            val provinceMatch =
-                filters.selectedProvince == null ||
-                    route.province.equals(filters.selectedProvince?.name, ignoreCase = true) ||
-                    route.endProvince.equals(filters.selectedProvince?.name, ignoreCase = true)
-            val cantonMatch =
-                filters.selectedCanton == null ||
-                    route.canton.equals(filters.selectedCanton?.name, ignoreCase = true) ||
-                    route.endCanton.equals(filters.selectedCanton?.name, ignoreCase = true)
-            val districtMatch =
-                filters.selectedDistrict == null ||
-                    route.district.equals(filters.selectedDistrict, ignoreCase = true) ||
-                    route.endDistrict.equals(filters.selectedDistrict, ignoreCase = true)
+                Spacer(modifier = Modifier.height(20.dp))
 
-            queryMatches &&
-                nearMeMatches &&
-                favoritesMatch &&
-                provinceMatch &&
-                cantonMatch &&
-                districtMatch
-          }
-        }
-      }
-
-  Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-    Column(modifier = Modifier.fillMaxSize()) {
-      RouteSelectionTopBar(onBackClick = onBackClick)
-
-      Column(modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp)) {
-        Spacer(modifier = Modifier.height(14.dp))
-
-        SearchField(
-            value = filters.query,
-            onValueChange = { filters = filters.copy(query = it) },
-            placeholder = "Buscar ruta, parada o lugar...",
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        FilterChipsRow(
-            nearMe = filters.nearMeOnly,
-            onNearMeToggle = { filters = filters.copy(nearMeOnly = !filters.nearMeOnly) },
-            locationLabel =
-                buildLocationLabel(
-                    filters.selectedProvince,
-                    filters.selectedCanton,
-                    filters.selectedDistrict,
-                ),
-            locationSelected = showLocationPanel,
-            onLocationClick = { showLocationPanel = !showLocationPanel },
-            favoriteCount = routesWithFavorites.count { it.isFavorite },
-            favoritesOnly = filters.favoritesOnly,
-            onFavoritesToggle = { filters = filters.copy(favoritesOnly = !filters.favoritesOnly) },
-        )
-
-        AnimatedVisibility(visible = showLocationPanel) {
-          LocationPanel(
-              provinces = provinces,
-              selectedProvince = filters.selectedProvince,
-              onProvinceSelected = { province ->
-                filters =
-                    filters.copy(
-                        selectedProvince = province,
-                        selectedCanton = null,
-                        selectedDistrict = null,
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "RUTAS DISPONIBLES",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.2.sp
                     )
-              },
-              cantons = availableCantons,
-              selectedCanton = filters.selectedCanton,
-              onCantonSelected = { canton ->
-                filters = filters.copy(selectedCanton = canton, selectedDistrict = null)
-              },
-              districts = availableDistricts,
-              selectedDistrict = filters.selectedDistrict,
-              onDistrictSelected = { filters = filters.copy(selectedDistrict = it) },
-              onClear = {
-                filters =
-                    filters.copy(
-                        selectedProvince = null,
-                        selectedCanton = null,
-                        selectedDistrict = null,
-                    )
-              },
-              onApply = { showLocationPanel = false },
-          )
-        }
 
-        Spacer(modifier = Modifier.height(14.dp))
+                    ActiveCountPill(count = filteredRoutes.count { it.isActive })
+                }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Text(
-              text = "RUTAS DISPONIBLES",
-              style = MaterialTheme.typography.labelMedium,
-              fontWeight = FontWeight.SemiBold,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
+                Spacer(modifier = Modifier.height(12.dp))
 
-          ActiveCountPill(count = filteredRoutes.count { it.isActive })
-        }
+                if (uiState.isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        androidx.compose.material3.CircularProgressIndicator()
+                    }
+                } else {
+                    uiState.errorMessage?.let { message ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+                        ) {
+                            Text(
+                                text = message,
+                                modifier = Modifier.padding(12.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        if (uiState.isLoading) {
-          Text(
-              text = "Cargando rutas...",
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        } else {
-          uiState.errorMessage?.let { message ->
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.errorContainer,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
-            ) {
-              Text(
-                  text = message,
-                  modifier = Modifier.padding(12.dp),
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onErrorContainer,
-              )
+                    if (filteredRoutes.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "No hay rutas para los filtros seleccionados.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            items(filteredRoutes, key = { it.id }) { route ->
+                                RouteSelectionCard(
+                                    route = route,
+                                    onClick = { onRouteClick(route) },
+                                    onToggleFavorite = {
+                                        val nextFavoriteState = !favoriteRouteIds.contains(route.id)
+                                        favoriteRouteIds =
+                                            if (favoriteRouteIds.contains(route.id)) favoriteRouteIds - route.id
+                                            else favoriteRouteIds + route.id
+                                        onToggleFavorite(route.id, nextFavoriteState)
+                                    },
+                                    onShowAdministrativeDetail = { onAdministrativeDetailClick(route) },
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(24.dp)) }
+                        }
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(10.dp))
-          }
-
-          if (filteredRoutes.isEmpty()) {
-            Text(
-                text = "No hay rutas para los filtros seleccionados.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-              items(filteredRoutes, key = { it.id }) { route ->
-                RouteSelectionCard(
-                    route = route,
-                    onClick = { onRouteClick(route) },
-                    onToggleFavorite = {
-                      val nextFavoriteState = !favoriteRouteIds.contains(route.id)
-                      favoriteRouteIds =
-                          if (favoriteRouteIds.contains(route.id)) favoriteRouteIds - route.id
-                          else favoriteRouteIds + route.id
-                      onToggleFavorite(route.id, nextFavoriteState)
-                    },
-                    onShowAdministrativeDetail = { onAdministrativeDetailClick(route) },
-                )
-              }
-              item { Spacer(modifier = Modifier.height(18.dp)) }
-            }
-          }
         }
-      }
     }
-  }
 }
 
 @Composable
 private fun RouteSelectionTopBar(onBackClick: () -> Unit) {
-  ScreenHeader(
-      title = "Rutas",
-      subtitle = "Selección de rutas",
-      leadingContent = {
-        IconButton(onClick = onBackClick) {
-          Icon(
-              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription = "Back",
-              tint = MaterialTheme.colorScheme.onSurface,
-          )
-        }
-      },
-  )
+    ScreenHeader(
+        title = "Rutas",
+        subtitle = "Selecciona tu destino",
+        leadingContent = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        },
+    )
 }
 
 @Composable
 private fun SearchField(value: String, onValueChange: (String) -> Unit, placeholder: String) {
-  SearchBar(
-      query = value,
-      onQueryChange = onValueChange,
-      isSearching = false,
-      searchResults = emptyList(),
-      onRouteSelected = {},
-      placeholder = placeholder,
-      modifier = Modifier.fillMaxWidth(),
-  )
+    SearchBar(
+        query = value,
+        onQueryChange = onValueChange,
+        isSearching = false,
+        searchResults = emptyList(),
+        onRouteSelected = {},
+        placeholder = placeholder,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable
@@ -322,29 +331,31 @@ private fun FilterChipsRow(
     favoritesOnly: Boolean,
     onFavoritesToggle: () -> Unit,
 ) {
-  Row(
-      modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-  ) {
-    SelectableFilterChip(
-        text = if (nearMe) "Cerca de mí ✓" else "Cerca de mí",
-        selected = nearMe,
-        onClick = onNearMeToggle,
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SelectableFilterChip(
+            text = if (nearMe) "Cerca de mí" else "Cerca de mí",
+            selected = nearMe,
+            onClick = onNearMeToggle,
+        )
 
-    SelectableFilterChip(
-        text = locationLabel,
-        selected = locationSelected,
-        onClick = onLocationClick,
-    )
+        SelectableFilterChip(
+            text = locationLabel,
+            selected = locationSelected,
+            onClick = onLocationClick,
+        )
 
-    SelectableFilterChip(
-        text = if (favoritesOnly) "Favoritas ($favoriteCount) ✓" else "Favoritas ($favoriteCount)",
-        selected = favoritesOnly,
-        onClick = onFavoritesToggle,
-    )
-  }
+        SelectableFilterChip(
+            text = "Favoritas ($favoriteCount)",
+            selected = favoritesOnly,
+            onClick = onFavoritesToggle,
+        )
+    }
 }
 
 @Composable
@@ -361,84 +372,89 @@ private fun LocationPanel(
     onClear: () -> Unit,
     onApply: () -> Unit,
 ) {
-  Surface(
-      modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-      shape = RoundedCornerShape(16.dp),
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-      color = MaterialTheme.colorScheme.surface,
-  ) {
-    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-      Text(
-          text = "Ubicación",
-          style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-          color = MaterialTheme.colorScheme.onSurface,
-      )
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp),
+        shape = RoundedCornerShape(20.dp),
+        tonalElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Filtrar por Ubicación",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                
+                TextButton(onClick = onClear) {
+                    Text("Limpiar", color = MaterialTheme.colorScheme.error)
+                }
+            }
 
-      DropdownSelectField(
-          value = selectedProvince?.name ?: "",
-          placeholder = "Selecciona una provincia",
-          enabled = true,
-          options = provinces.map { it.name },
-          onSelect = { name -> provinces.firstOrNull { it.name == name }?.let(onProvinceSelected) },
-      )
+            DropdownSelectField(
+                value = selectedProvince?.name ?: "",
+                placeholder = "Provincia",
+                enabled = true,
+                options = provinces.map { it.name },
+                onSelect = { name -> provinces.firstOrNull { it.name == name }?.let(onProvinceSelected) },
+            )
 
-      DropdownSelectField(
-          value = selectedCanton?.name ?: "",
-          placeholder =
-              if (selectedProvince == null) "Primero elige provincia" else "Selecciona un cantón",
-          enabled = selectedProvince != null,
-          options = cantons.map { it.name },
-          onSelect = { name -> cantons.firstOrNull { it.name == name }?.let(onCantonSelected) },
-      )
+            DropdownSelectField(
+                value = selectedCanton?.name ?: "",
+                placeholder = "Cantón",
+                enabled = selectedProvince != null,
+                options = cantons.map { it.name },
+                onSelect = { name -> cantons.firstOrNull { it.name == name }?.let(onCantonSelected) },
+            )
 
-      DropdownSelectField(
-          value = selectedDistrict ?: "",
-          placeholder =
-              if (selectedCanton == null) "Primero elige cantón" else "Selecciona un distrito",
-          enabled = selectedCanton != null,
-          options = districts,
-          onSelect = onDistrictSelected,
-      )
+            DropdownSelectField(
+                value = selectedDistrict ?: "",
+                placeholder = "Distrito",
+                enabled = selectedCanton != null,
+                options = districts,
+                onSelect = onDistrictSelected,
+            )
 
-      Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-        PillActionButton(
-            text = "Aplicar",
-            onClick = onApply,
-            modifier = Modifier.weight(1f),
-        )
-
-        PillActionButton(
-            text = "Limpiar",
-            onClick = onClear,
-            modifier = Modifier.weight(1f),
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
-      }
+            PillActionButton(
+                text = "Aplicar Filtros",
+                onClick = onApply,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
-  }
 }
 
 @Composable
 private fun ActiveCountPill(count: Int) {
-  Surface(
-      shape = RoundedCornerShape(999.dp),
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-      color = MaterialTheme.colorScheme.surfaceVariant,
-  ) {
-    Row(
-        modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
     ) {
-      Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.tertiary, CircleShape))
-      Spacer(modifier = Modifier.size(7.dp))
-      Text(
-          text = "$count activas",
-          style = MaterialTheme.typography.labelSmall,
-          color = Color(0xFF6F7279),
-      )
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .background(MaterialTheme.colorScheme.tertiary, CircleShape)
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = "$count activas",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+        }
     }
-  }
 }
 
 @Composable
@@ -448,158 +464,233 @@ private fun RouteSelectionCard(
     onToggleFavorite: () -> Unit,
     onShowAdministrativeDetail: () -> Unit,
 ) {
-  Card(
-      modifier = Modifier.fillMaxWidth().clickable(enabled = route.isActive, onClick = onClick),
-      shape = RoundedCornerShape(16.dp),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-  ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(12.dp),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.SpaceBetween,
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = route.isActive, onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-      RouteCodeTile(
-          code = route.code,
-          isActive = route.isActive,
-          modifier = Modifier.align(Alignment.CenterVertically),
-      )
-
-      Spacer(modifier = Modifier.size(10.dp))
-
-      Column(modifier = Modifier.weight(1f)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-          Text(
-              text = route.title,
-              modifier = Modifier.weight(1f),
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurface,
-              fontWeight = FontWeight.SemiBold,
-              maxLines = 2,
-              overflow = TextOverflow.Ellipsis,
-          )
-        }
-
-        val startLocationText =
-            listOfNotNull(
-                    route.province?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
-                    route.canton?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
-                    route.district?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
-                )
-                .joinToString(", ")
-
-        val endLocationText =
-            listOfNotNull(
-                    route.endProvince?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
-                    route.endCanton?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
-                    route.endDistrict?.takeIf { it.isNotBlank() }?.toDisplayLocationName(),
-                )
-                .joinToString(", ")
-
-        if (startLocationText.isNotBlank() || endLocationText.isNotBlank()) {
-          Spacer(modifier = Modifier.height(4.dp))
-
-          Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            if (startLocationText.isNotBlank()) {
-              RouteLocationLine(label = "Inicio", value = startLocationText)
-            }
-            if (endLocationText.isNotBlank()) {
-              RouteLocationLine(label = "Final", value = endLocationText)
-            }
-          }
-        }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          if (route.isLive) {
-            Text(
-                text = route.statusText,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.tertiary,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-          }
-
-          Text(
-              text = "⏱ ${route.etaText}",
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-
-          route.fareCrc?.let { fareCrc ->
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Text(
-                text = "•",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.outline,
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-              Text(
-                  text = "TARIFA",
-                  style = MaterialTheme.typography.labelSmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  fontWeight = FontWeight.Medium,
-              )
-              Text(
-                  text = "₡$fareCrc",
-                  style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.onSurface,
-                  fontWeight = FontWeight.Bold,
-              )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    RouteCodeBadge(code = route.code, isActive = route.isActive)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = route.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onShowAdministrativeDetail,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Info",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = onToggleFavorite,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Favorite",
+                            tint = if (route.isFavorite) Color(0xFFFFB300) else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
             }
-          }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val startLocation = listOfNotNull(
+                route.province?.takeIf { it.isNotBlank() },
+                route.canton?.takeIf { it.isNotBlank() },
+                route.district?.takeIf { it.isNotBlank() }
+            ).joinToString(", ")
+
+            val endLocation = listOfNotNull(
+                route.endProvince?.takeIf { it.isNotBlank() },
+                route.endCanton?.takeIf { it.isNotBlank() },
+                route.endDistrict?.takeIf { it.isNotBlank() }
+            ).joinToString(", ")
+
+            // Route Path (Timeline style)
+            RouteTimeline(
+                start = startLocation.ifBlank { "Origen" },
+                end = endLocation.ifBlank { "Destino" }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Bottom Info Bar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (route.isLive) {
+                        LiveBadge()
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    
+                    Icon(
+                        painter = painterResource(busalotico.composeapp.generated.resources.Res.drawable.logo), // Fallback if no specific icon
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp).alpha(0.0f) // Just for spacing or placeholder
+                    )
+                    
+                    Text(
+                        text = route.etaText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                route.fareCrc?.let { fare ->
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "₡$fare",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
         }
-
-        route.companyName?.takeIf { it.isNotBlank() }?.let { companyName ->
-          Spacer(modifier = Modifier.height(8.dp))
-
-          Text(
-              text = companyName,
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
-          )
-        }
-      }
-
-      Column(
-          modifier = Modifier.padding(top = 2.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.SpaceBetween,
-      ) {
-        Icon(
-            imageVector = Icons.Filled.Info,
-            contentDescription = "Ver ficha administrativa",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp).clickable { onShowAdministrativeDetail() },
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Icon(
-            imageVector = Icons.Filled.Star,
-            contentDescription = "Toggle favorite",
-            tint = if (route.isFavorite) Color(0xFFF4C430) else MaterialTheme.colorScheme.outline,
-            modifier = Modifier.size(18.dp).clickable { onToggleFavorite() },
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "›", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.outline)
-      }
     }
-  }
+}
+
+@Composable
+private fun RouteTimeline(start: String, end: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.width(20.dp).fillMaxHeight()
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .size(8.dp)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+            )
+            Box(
+                modifier = Modifier
+                    .width(2.dp)
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
+            )
+            Box(
+                modifier = Modifier
+                    .padding(bottom = 6.dp)
+                    .size(8.dp)
+                    .background(Color.Transparent, CircleShape)
+                    .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = start.toDisplayLocationName(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 16.sp
+            )
+            Text(
+                text = end.toDisplayLocationName(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 18.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun RouteCodeBadge(code: String, isActive: Boolean) {
+    val containerColor = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (isActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+
+    Surface(
+        color = containerColor,
+        shape = RoundedCornerShape(8.dp),
+    ) {
+        Text(
+            text = code,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = contentColor
+        )
+    }
+}
+
+@Composable
+private fun LiveBadge() {
+    Surface(
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        shape = RoundedCornerShape(6.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(MaterialTheme.colorScheme.tertiary, CircleShape)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "EN VIVO",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    }
 }
 
 @Composable
@@ -801,7 +892,7 @@ private fun demoCRGeoData(): List<Province> =
                     ),
                     Canton(
                         "Turrubares",
-                        listOf("San Pablo", "San Pedro", "San Juan de Mata", "San Luis", "Carara"),
+                        listOf("San Pablo", "San Pedro", "San Juan de Mata", "San Juan", "Carara"),
                     ),
                     Canton("Dota", listOf("Santa María", "Jardín", "Copey")),
                     Canton("Curridabat", listOf("Curridabat", "Granadilla", "Sánchez", "Tirrases")),

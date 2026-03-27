@@ -1,24 +1,33 @@
 package com.example.busalotico.ui.screen.routes
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.TripOrigin
+import androidx.compose.material.icons.outlined.AccountBalance
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteSchedule
@@ -48,57 +58,66 @@ fun RouteAdministrativeDetailScreen(
     onBackClick: () -> Unit = {},
     viewModel: RouteAdministrativeDetailViewModel = koinViewModel(),
 ) {
-  val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-  LaunchedEffect(routeId) { viewModel.loadRoute(routeId) }
+    LaunchedEffect(routeId) { viewModel.loadRoute(routeId) }
 
-  Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-    Column(modifier = Modifier.fillMaxSize()) {
-      ScreenHeader(
-          title = "Información administrativa",
-          subtitle = "Detalle de ruta",
-          leadingContent = {
-            IconButton(onClick = onBackClick) {
-              Icon(
-                  imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                  contentDescription = "Volver",
-                  tint = MaterialTheme.colorScheme.onSurface,
-              )
+    Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            AdministrativeTopBar(onBackClick = onBackClick)
+
+            when {
+                uiState.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+
+                uiState.errorMessage != null -> {
+                    Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+                        ) {
+                            Text(
+                                text = uiState.errorMessage ?: "Error desconocido",
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
+                uiState.route != null -> {
+                    AdministrativeDetailContent(
+                        route = uiState.route!!,
+                        driverNamesById = uiState.driverNamesById,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
-          },
-      )
-
-      when {
-        uiState.isLoading -> {
-          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                text = "Cargando ficha administrativa...",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
         }
-
-        uiState.errorMessage != null -> {
-          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                text = uiState.errorMessage ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
-          }
-        }
-
-        uiState.route != null -> {
-          AdministrativeDetailContent(
-              route = uiState.route!!,
-              driverNamesById = uiState.driverNamesById,
-              modifier = Modifier.weight(1f),
-          )
-        }
-      }
     }
-  }
+}
+
+@Composable
+private fun AdministrativeTopBar(onBackClick: () -> Unit) {
+    ScreenHeader(
+        title = "Ficha Técnica",
+        subtitle = "Información administrativa",
+        leadingContent = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        },
+    )
 }
 
 @Composable
@@ -107,260 +126,216 @@ private fun AdministrativeDetailContent(
     driverNamesById: Map<String, String>,
     modifier: Modifier = Modifier,
 ) {
-  LazyColumn(
-      modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
-  ) {
-    item { AdministrativeHeroCard(route) }
-    item { AdministrativeMetricsCard(route) }
-    item { AdministrativePaymentCard(route) }
-    item { AdministrativeLocationCard(route) }
-    item { AdministrativeScheduleCard(route.schedules, driverNamesById) }
-    item { AdministrativeFooter(route) }
-    item { Spacer(modifier = Modifier.height(12.dp)) }
-  }
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        item { AdministrativeHeroCard(route) }
+        item { AdministrativeMetricsSection(route) }
+        item { AdministrativeLocationCard(route) }
+        item { AdministrativePaymentCard(route) }
+        item { AdministrativeScheduleCard(route.schedules, driverNamesById) }
+        item { AdministrativeFooter(route) }
+        item { Spacer(modifier = Modifier.height(24.dp)) }
+    }
 }
 
 @Composable
 private fun AdministrativeHeroCard(route: Route) {
-  Surface(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(20.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-      Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primary) {
-        Text(
-            text = "RUTA ${route.code}",
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimary,
-            fontWeight = FontWeight.SemiBold,
-        )
-      }
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Text(
+                        text = route.code,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "RUTA OFICIAL",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+            }
 
-      Text(
-          text = route.name.trim().uppercase(),
-          style = MaterialTheme.typography.bodyLarge,
-          color = MaterialTheme.colorScheme.onSurface,
-          fontWeight = FontWeight.Medium,
-      )
+            Text(
+                text = route.name.trim().uppercase(),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.ExtraBold,
+            )
+        }
     }
-  }
 }
 
 @Composable
-private fun AdministrativeMetricsCard(route: Route) {
-  Surface(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(20.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-  ) {
+private fun AdministrativeMetricsSection(route: Route) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(18.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-      AdministrativeMetricBlock(
-          modifier = Modifier.weight(1f),
-          label = "Tarifa actual",
-          value = route.fareCrc?.let { "₡$it" } ?: "N/D",
-          supporting = "por viaje",
-      )
-      AdministrativeMetricBlock(
-          modifier = Modifier.weight(1f),
-          label = "Próximo bus",
-          value = route.etaText.ifBlank { "N/D" },
-          supporting = if (route.isLive) "en tiempo real" else "estimado",
-      )
+        MetricCard(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.Payments,
+            label = "Tarifa Regular",
+            value = route.fareCrc?.let { "₡$it" } ?: "N/D",
+            color = MaterialTheme.colorScheme.primary
+        )
+        MetricCard(
+            modifier = Modifier.weight(1f),
+            icon = if (route.isLive) Icons.Default.Bolt else Icons.Default.Schedule,
+            label = "Estado",
+            value = if (route.isLive) "En Vivo" else "Programado",
+            color = if (route.isLive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary
+        )
     }
-  }
 }
 
 @Composable
-private fun AdministrativeMetricBlock(
+private fun MetricCard(
     label: String,
     value: String,
-    supporting: String,
-    modifier: Modifier = Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
-  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-    Text(
-        text = label.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.Medium,
-    )
-    Text(
-        text = value,
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.onSurface,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Text(
-        text = supporting,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-  }
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(imageVector = icon, contentDescription = null, tint = color.copy(alpha = 0.8f), modifier = Modifier.size(20.dp))
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        }
+    }
 }
 
 @Composable
 private fun AdministrativeLocationCard(route: Route) {
-  val startLocation =
-      listOfNotNull(
-              route.startLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-              route.startLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-              route.startLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-          )
-          .joinToString(", ")
+    val startLocation = listOfNotNull(
+        route.startLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+        route.startLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle()
+    ).joinToString(", ")
 
-  val endLocation =
-      listOfNotNull(
-              route.endLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-              route.endLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-              route.endLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-          )
-          .joinToString(", ")
+    val endLocation = listOfNotNull(
+        route.endLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+        route.endLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle()
+    ).joinToString(", ")
 
-  Surface(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(20.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-      Text(
-          text = "Ubicación administrativa",
-          style = MaterialTheme.typography.titleSmall,
-          color = MaterialTheme.colorScheme.onSurface,
-          fontWeight = FontWeight.SemiBold,
-      )
+        Column(modifier = Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                text = "Recorrido",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+            )
 
-      if (startLocation.isBlank() && endLocation.isBlank()) {
-        Text(
-            text = "No disponible",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      } else {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-          if (startLocation.isNotBlank()) {
-            AdministrativeLocationLine(
-                label = "Inicio",
-                value = startLocation,
-            )
-          }
-          if (endLocation.isNotBlank()) {
-            AdministrativeLocationLine(
-                label = "Final",
-                value = endLocation,
-            )
-          }
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                AdministrativeLocationItem(
+                    label = "Origen",
+                    value = startLocation.ifBlank { "No disponible" },
+                    icon = Icons.Default.TripOrigin,
+                    iconColor = MaterialTheme.colorScheme.primary
+                )
+                
+                Box(modifier = Modifier.padding(start = 11.dp).width(2.dp).height(12.dp).background(MaterialTheme.colorScheme.outlineVariant))
+
+                AdministrativeLocationItem(
+                    label = "Destino",
+                    value = endLocation.ifBlank { "No disponible" },
+                    icon = Icons.Default.LocationOn,
+                    iconColor = MaterialTheme.colorScheme.error
+                )
+            }
         }
-      }
     }
-  }
 }
 
 @Composable
-private fun AdministrativeLocationLine(label: String, value: String) {
-  Row(
-      verticalAlignment = Alignment.Top,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    Icon(
-        imageVector = Icons.Filled.LocationOn,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.height(16.dp),
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-      Text(
-          text = label.uppercase(),
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          fontWeight = FontWeight.Medium,
-      )
-      Text(
-          text = value,
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurface,
-      )
+private fun AdministrativeLocationItem(
+    label: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconColor: Color
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
+        Column {
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        }
     }
-  }
 }
 
 @Composable
 private fun AdministrativePaymentCard(route: Route) {
-  val paymentMethods =
-      if (route.acceptsCardPayment) listOf("Tarjeta", "Efectivo") else listOf("Efectivo")
-
-  Surface(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(20.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-      Text(
-          text = "Métodos de pago",
-          style = MaterialTheme.typography.titleSmall,
-          color = MaterialTheme.colorScheme.onSurface,
-          fontWeight = FontWeight.SemiBold,
-      )
+        Column(modifier = Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(
+                text = "Medios de Pago",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+            )
 
-      FlowRow(
-          horizontalArrangement = Arrangement.spacedBy(10.dp),
-          verticalArrangement = Arrangement.spacedBy(10.dp),
-      ) {
-        paymentMethods.forEach { paymentMethod ->
-          Surface(
-              shape = RoundedCornerShape(14.dp),
-              color = MaterialTheme.colorScheme.surfaceVariant,
-          ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-              if (paymentMethod == "Tarjeta") {
-                Icon(
-                    imageVector = Icons.Filled.CreditCard,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-              } else {
-                Icon(
-                    imageVector = Icons.Filled.Payments,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-              }
-              Text(
-                  text = paymentMethod,
-                  style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.onSurface,
-                  fontWeight = FontWeight.SemiBold,
-              )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                PaymentChip(text = "Efectivo", icon = Icons.Default.Payments)
+                if (route.acceptsCardPayment) {
+                    PaymentChip(text = "Tarjeta", icon = Icons.Default.CreditCard)
+                }
             }
-          }
         }
-      }
     }
-  }
+}
+
+@Composable
+private fun PaymentChip(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            Text(text = text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
+        }
+    }
 }
 
 @Composable
@@ -368,134 +343,134 @@ private fun AdministrativeScheduleCard(
     schedules: List<RouteSchedule>,
     driverNamesById: Map<String, String>,
 ) {
-  Surface(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(20.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      Text(
-          text = "Horarios de salida",
-          style = MaterialTheme.typography.titleSmall,
-          color = MaterialTheme.colorScheme.onSurface,
-          fontWeight = FontWeight.SemiBold,
-      )
-
-      if (schedules.isEmpty()) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "No hay horarios registrados para esta ruta.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "HORARIOS DE SALIDA",
+            modifier = Modifier.padding(horizontal = 4.dp),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.1.sp
         )
-      } else {
-        schedules.sortedBy { it.departureTime }.forEachIndexed { _, schedule ->
-          AdministrativeScheduleItem(
-              schedule = schedule,
-              supportingText = "Llegada ${schedule.arrivalTime.ifBlank { "No disponible" }}",
-              driverName = driverNamesById[schedule.driverId],
-          )
+
+        if (schedules.isEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            ) {
+                Text(
+                    text = "No hay horarios registrados.",
+                    modifier = Modifier.padding(20.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            schedules.sortedBy { it.departureTime }.forEach { schedule ->
+                ScheduleListItem(
+                    schedule = schedule,
+                    driverName = driverNamesById[schedule.driverId],
+                )
+            }
         }
-      }
     }
-  }
 }
 
 @Composable
-private fun AdministrativeScheduleItem(
+private fun ScheduleListItem(
     schedule: RouteSchedule,
-    supportingText: String,
     driverName: String?,
 ) {
-  Surface(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(16.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-  ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start,
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
-      Row(
-          modifier = Modifier.weight(1f),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
-      ) {
-        Surface(
-            modifier = Modifier.height(56.dp),
-            shape = RoundedCornerShape(8.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          Box(
-              modifier = Modifier.padding(horizontal = 16.dp),
-              contentAlignment = Alignment.Center,
-          ) {
-            Icon(
-                imageVector = Icons.Filled.Schedule,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
-        }
+            Surface(
+                modifier = Modifier.size(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(imageVector = Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
+            }
 
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-          Text(
-              text = schedule.departureTime,
-              style = MaterialTheme.typography.titleLarge,
-              color = MaterialTheme.colorScheme.onSurface,
-              fontWeight = FontWeight.SemiBold,
-          )
-          Text(
-              text = supportingText,
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-          (driverName ?: schedule.driverId.takeIf { it.isNotBlank() })?.let { driverLabel ->
-            Text(
-                text = "Conductor $driverLabel",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            )
-          }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = schedule.departureTime,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Llegada: ${schedule.arrivalTime.ifBlank { "N/D" }}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            (driverName ?: schedule.driverId.takeIf { it.isNotBlank() })?.let { driverLabel ->
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Text(
+                        text = "Chofer: ${driverLabel.take(20)}",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
-      }
     }
-  }
 }
 
 @Composable
 private fun AdministrativeFooter(route: Route) {
-  Column(
-      modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(6.dp),
-  ) {
-    Text(
-        text = "OPERADO POR",
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.Medium,
-    )
-    Text(
-        text = route.operator.toDisplayTitle(),
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.Medium,
-        textAlign = TextAlign.Center,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-    )
-  }
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(imageVector = Icons.Outlined.AccountBalance, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+            Text(
+                text = "OPERADO POR",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+            Text(
+                text = route.operator.toDisplayTitle(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
 }
 
 private fun String.toDisplayTitle(): String {
-  return trim().lowercase().split(Regex("\\s+")).joinToString(" ") { word ->
-    word.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() }
-  }
+    return trim().lowercase().split(Regex("\\s+")).joinToString(" ") { word ->
+        word.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() }
+    }
 }
