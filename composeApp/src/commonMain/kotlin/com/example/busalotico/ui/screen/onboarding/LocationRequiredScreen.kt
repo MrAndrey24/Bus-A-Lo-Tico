@@ -1,6 +1,7 @@
 package com.example.busalotico.ui.screen.onboarding
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,10 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,43 +34,95 @@ fun LocationRequiredScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 32.dp, vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = Icons.Default.Warning,
-            contentDescription = "Advertencia",
-            modifier = Modifier.size(72.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
-
         Spacer(modifier = Modifier.height(24.dp))
 
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(32.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
         Text(
-            text = "Ubicación obligatoria",
-            style = MaterialTheme.typography.headlineSmall,
+            text = "Acceso Requerido",
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Para poder mostrarte el mapa y las rutas de los buses, es estrictamente necesario que nos des acceso a tu ubicación.",
+            text = "Para que Bus-A-Lo-Tico funcione correctamente, necesitamos saber tu ubicación.\n\nPor favor, ve a los ajustes de tu dispositivo y permite el acceso a la ubicación.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            lineHeight = 24.sp
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.weight(1f))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "¿Cómo activar?",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Ajustes > Aplicaciones > Bus-A-Lo-Tico > Permisos > Ubicación",
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = onRetryClick,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
         ) {
-            Text("Otorgar permiso", fontSize = 18.sp)
+            Text(
+                "Abrir Ajustes",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
