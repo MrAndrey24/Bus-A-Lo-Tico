@@ -399,7 +399,7 @@ private fun ScheduleListItem(
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Text(
-                        text = driverLabel.take(12),
+                        text = "Chofer: ${driverLabel.take(20)}",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

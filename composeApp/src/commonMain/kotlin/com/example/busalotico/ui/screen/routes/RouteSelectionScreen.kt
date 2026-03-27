@@ -9,8 +9,10 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -375,9 +377,9 @@ private fun LocationPanel(
             .fillMaxWidth()
             .padding(top = 12.dp),
         shape = RoundedCornerShape(20.dp),
-        tonalElevation = 2.dp,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
@@ -526,10 +528,22 @@ private fun RouteSelectionCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val startLocation = listOfNotNull(
+                route.province?.takeIf { it.isNotBlank() },
+                route.canton?.takeIf { it.isNotBlank() },
+                route.district?.takeIf { it.isNotBlank() }
+            ).joinToString(", ")
+
+            val endLocation = listOfNotNull(
+                route.endProvince?.takeIf { it.isNotBlank() },
+                route.endCanton?.takeIf { it.isNotBlank() },
+                route.endDistrict?.takeIf { it.isNotBlank() }
+            ).joinToString(", ")
+
             // Route Path (Timeline style)
             RouteTimeline(
-                start = route.district?.takeIf { it.isNotBlank() } ?: route.province ?: "Origen",
-                end = route.endDistrict?.takeIf { it.isNotBlank() } ?: route.endProvince ?: "Destino"
+                start = startLocation.ifBlank { "Origen" },
+                end = endLocation.ifBlank { "Destino" }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -582,49 +596,53 @@ private fun RouteSelectionCard(
 @Composable
 private fun RouteTimeline(start: String, end: String) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(20.dp)
+            modifier = Modifier.width(20.dp).fillMaxHeight()
         ) {
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .padding(top = 4.dp)
+                    .size(8.dp)
                     .background(MaterialTheme.colorScheme.primary, CircleShape)
             )
             Box(
                 modifier = Modifier
                     .width(2.dp)
-                    .height(16.dp)
+                    .weight(1f)
                     .background(MaterialTheme.colorScheme.outlineVariant)
             )
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .padding(bottom = 6.dp)
+                    .size(8.dp)
                     .background(Color.Transparent, CircleShape)
-                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
             )
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(14.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = start.toDisplayLocationName(),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 16.sp
             )
             Text(
                 text = end.toDisplayLocationName(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 18.sp
             )
         }
     }
