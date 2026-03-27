@@ -2,17 +2,17 @@ package com.example.busalotico.ui.model
 
 import androidx.compose.runtime.Immutable
 
-@Immutable
-data class Province(val name: String, val cantons: List<Canton>)
+@Immutable data class Province(val name: String, val cantons: List<Canton>)
 
-@Immutable
-data class Canton(val name: String, val districts: List<String>)
+@Immutable data class Canton(val name: String, val districts: List<String>)
 
 @Immutable
 data class RouteListItemUi(
     val id: String,
     val code: String,
     val title: String,
+    val companyName: String? = null,
+    val fareCrc: Int? = null,
     val statusText: String,
     val etaText: String,
     val frequencyText: String,
@@ -22,13 +22,16 @@ data class RouteListItemUi(
     val isNearMe: Boolean = true,
     val province: String? = null,
     val canton: String? = null,
-    val district: String? = null
+    val district: String? = null,
+    val endProvince: String? = null,
+    val endCanton: String? = null,
+    val endDistrict: String? = null,
 )
 
 data class RouteSelectionUiState(
     val routes: List<RouteListItemUi>,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
 )
 
 data class RouteFiltersState(
@@ -37,5 +40,5 @@ data class RouteFiltersState(
     val favoritesOnly: Boolean = false,
     val selectedProvince: Province? = null,
     val selectedCanton: Canton? = null,
-    val selectedDistrict: String? = null
+    val selectedDistrict: String? = null,
 )

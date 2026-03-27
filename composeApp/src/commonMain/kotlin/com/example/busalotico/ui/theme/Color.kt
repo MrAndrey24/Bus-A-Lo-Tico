@@ -63,6 +63,7 @@ val md_theme_dark_outlineVariant = Color(0xFF514347)
 val md_theme_dark_scrim = Color(0xFF000000)
 
 val DeepNavy = Color(0xFF0B2A4A)
+val LightNavy = Color(0xFFDDE3EA)
 
 val White = Color(0xFFFFFFFF)
 val LightGray = Color(0xFFF7F7F7)
@@ -73,3 +74,9 @@ val MediumGray = Color(0xFF717171)
 val PaleGray = Color(0xFFDDDDDD)
 
 val SuccessGreen = Color(0xFF008A05)
+val SuccessGreenContainer = Color(0xFFD1FADF)
+val OnSuccessGreenContainer = Color(0xFF00391C)
+
+val ErrorRed = Color(0xFFBA1A1A)
+val ErrorRedContainer = Color(0xFFFFDAD6)
+val OnErrorRedContainer = Color(0xFF410002)
