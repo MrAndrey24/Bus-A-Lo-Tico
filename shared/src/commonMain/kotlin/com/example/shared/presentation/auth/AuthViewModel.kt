@@ -12,146 +12,113 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     private val authRepository: IAuthRepository,
-    private val userRepository: IUserRepository
+    private val userRepository: IUserRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AuthUiState())
-    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(AuthUiState())
+  val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    init {
-        loadCurrentSession()
+  init {
+    loadCurrentSession()
+  }
+
+  fun loadCurrentSession() {
+    val currentUserId = authRepository.getCurrentUserId()
+    if (currentUserId == null) {
+      _uiState.value = AuthUiState()
+      return
     }
 
-    fun loadCurrentSession() {
-        val currentUserId = authRepository.getCurrentUserId()
-        if (currentUserId == null) {
-            _uiState.value = AuthUiState()
-            return
-        }
+    viewModelScope.launch {
+      _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+      val profile = userRepository.getUserProfile(currentUserId)
+      _uiState.value =
+          _uiState.value.copy(isLoading = false, currentUser = profile, errorMessage = null)
+    }
+  }
 
-        viewModelScope.launch {
+  fun signIn(email: String, password: String) {
+    viewModelScope.launch {
+      runCatching {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            val profile = userRepository.getUserProfile(currentUserId)
-            _uiState.value = _uiState.value.copy(
-                isLoading = false,
-                currentUser = profile,
-                errorMessage = null
-            )
-        }
-    }
-
-    fun signIn(email: String, password: String) {
-        viewModelScope.launch {
-            runCatching {
-                _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-                val userId = authRepository.signIn(email, password)
-                userRepository.getUserProfile(userId)
-                    ?: userRepository.upsertUserProfile(
-                        userId = userId,
-                        email = email,
-                        name = email.substringBefore("@"),
-                        role = UserRole.PASSENGER
-                    )
-            }.onSuccess { profile ->
-                _uiState.value = AuthUiState(
-                    isLoading = false,
-                    currentUser = profile
-                )
-            }.onFailure { error ->
-                _uiState.value = AuthUiState(
-                    isLoading = false,
-                    errorMessage = error.toSpanishAuthMessage("No se pudo iniciar sesion")
-                )
-            }
-        }
-    }
-
-    fun signUp(name: String, email: String, password: String, role: UserRole) {
-        viewModelScope.launch {
-            runCatching {
-                _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-                val userId = authRepository.signUp(email, password)
-                userRepository.upsertUserProfile(
+            val userId = authRepository.signIn(email, password)
+            userRepository.getUserProfile(userId)
+                ?: userRepository.upsertUserProfile(
                     userId = userId,
                     email = email,
-                    name = name,
-                    role = role
+                    name = email.substringBefore("@"),
+                    role = UserRole.PASSENGER,
                 )
-            }.onSuccess { profile ->
-                _uiState.value = AuthUiState(
+          }
+          .onSuccess { profile ->
+            _uiState.value = AuthUiState(isLoading = false, currentUser = profile)
+          }
+          .onFailure { error ->
+            _uiState.value =
+                AuthUiState(
                     isLoading = false,
-                    currentUser = profile
+                    errorMessage = error.toSpanishAuthMessage("No se pudo iniciar sesion"),
                 )
-            }.onFailure { error ->
-                _uiState.value = AuthUiState(
+          }
+    }
+  }
+
+  fun signUp(name: String, email: String, password: String, role: UserRole) {
+    viewModelScope.launch {
+      runCatching {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            val userId = authRepository.signUp(email, password)
+            userRepository.upsertUserProfile(
+                userId = userId,
+                email = email,
+                name = name,
+                role = role,
+            )
+          }
+          .onSuccess { profile ->
+            _uiState.value = AuthUiState(isLoading = false, currentUser = profile)
+          }
+          .onFailure { error ->
+            _uiState.value =
+                AuthUiState(
                     isLoading = false,
-                    errorMessage = error.toSpanishAuthMessage("No se pudo registrar el usuario")
+                    errorMessage = error.toSpanishAuthMessage("No se pudo registrar el usuario"),
                 )
-            }
-        }
+          }
     }
+  }
 
-    fun signOut() {
-        viewModelScope.launch {
-            authRepository.signOut()
-            _uiState.value = AuthUiState()
-        }
+  fun signOut() {
+    viewModelScope.launch {
+      authRepository.signOut()
+      _uiState.value = AuthUiState()
     }
-
-    fun toggleFavorite(routeId: String) {
-        val user = _uiState.value.currentUser ?: return
-        val isFavorite = user.favoriteRouteIds.contains(routeId)
-        val updatedFavoriteIds = if (isFavorite) {
-            user.favoriteRouteIds - routeId
-        } else {
-            user.favoriteRouteIds + routeId
-        }
-
-        viewModelScope.launch {
-            runCatching {
-                userRepository.setRouteFavorite(user.id, routeId, !isFavorite)
-            }.onSuccess {
-                _uiState.value = _uiState.value.copy(
-                    currentUser = user.copy(favoriteRouteIds = updatedFavoriteIds),
-                    errorMessage = null
-                )
-            }.onFailure { error ->
-                _uiState.value = _uiState.value.copy(
-                    errorMessage = error.toSpanishAuthMessage("No se pudo actualizar favorita")
-                )
-            }
-        }
-    }
+  }
 }
 
 private fun Throwable.toSpanishAuthMessage(defaultMessage: String): String {
-    val rawMessage = message.orEmpty()
-    val normalizedMessage = rawMessage.lowercase()
+  val rawMessage = message.orEmpty()
+  val normalizedMessage = rawMessage.lowercase()
 
-    return when {
-        "configuration_not_found" in normalizedMessage ->
-            "La autenticacion no esta configurada en Firebase. Activa Email/Password en Authentication."
-        "supplied auth credential is incorrect" in normalizedMessage ->
-            "El correo o la contrasena son incorrectos."
-        "wrong-password" in normalizedMessage ->
-            "La contrasena es incorrecta."
-        "user-not-found" in normalizedMessage ->
-            "No existe una cuenta con ese correo."
-        "email address is badly formatted" in normalizedMessage ->
-            "El correo tiene un formato invalido."
-        "invalid-email" in normalizedMessage ->
-            "El correo tiene un formato invalido."
-        "email-already-in-use" in normalizedMessage ->
-            "Ese correo ya esta registrado."
-        "password should be at least" in normalizedMessage ->
-            "La contrasena debe tener al menos 6 caracteres."
-        "weak-password" in normalizedMessage ->
-            "La contrasena es demasiado debil."
-        "network error" in normalizedMessage ->
-            "No se pudo conectar. Revisa tu conexion a internet."
-        rawMessage.isBlank() ->
-            defaultMessage
-        else ->
-            defaultMessage
-    }
+  return when {
+    "auth/invalid-email" in normalizedMessage || "invalid-email" in normalizedMessage ->
+        "El correo tiene un formato invalido."
+    "auth/user-disabled" in normalizedMessage || "user-disabled" in normalizedMessage ->
+        "Esta cuenta ha sido deshabilitada."
+    "auth/user-not-found" in normalizedMessage || "user-not-found" in normalizedMessage ->
+        "No existe una cuenta con ese correo."
+    "auth/wrong-password" in normalizedMessage || "wrong-password" in normalizedMessage ->
+        "La contrasena es incorrecta."
+    "auth/email-already-in-use" in normalizedMessage ||
+        "email-already-in-use" in normalizedMessage -> "Ese correo ya esta registrado."
+    "auth/operation-not-allowed" in normalizedMessage ||
+        "operation-not-allowed" in normalizedMessage ->
+        "El acceso con correo y contrasena no esta habilitado en Firebase."
+    "auth/weak-password" in normalizedMessage || "weak-password" in normalizedMessage ->
+        "La contrasena es demasiado debil."
+    "configuration_not_found" in normalizedMessage ->
+        "La autenticacion no esta configurada en Firebase. Activa Email/Password en Authentication."
+    rawMessage.isBlank() -> defaultMessage
+    else -> defaultMessage
+  }
 }
