@@ -29,6 +29,7 @@ googleServices = "4.4.4"
 firebaseKotlinSdk = "2.4.0"
 firebaseBom = "33.10.0"
 spotless = "8.3.0"
+rive-cmp = "0.4.0"
 
 
 [libraries]
@@ -82,6 +83,9 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 # MapBox
 mapbox-android = { module = "com.mapbox.maps:android-ndk27", version.ref = "mapbox-maps" }
 mapbox-compose-android = { module = "com.mapbox.extension:maps-compose-ndk27", version.ref = "mapbox-maps" }
+
+# Rive
+#rive-cmp = { module = "dev.muazkadan:rive-cmp", version.ref = "rive-cmp" }
 
 # Moko
 moko-permissions = { module = "dev.icerock.moko:permissions", version.ref = "moko" }
