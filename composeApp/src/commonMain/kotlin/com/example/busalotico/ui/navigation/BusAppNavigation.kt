@@ -146,7 +146,6 @@ fun BusAppNavigation(
               onRouteSelected = { route ->
                   routeViewModel.onClearSearch()
                   detailViewModel.loadStops(route.id)
-                  // flyToLocation will be handled by FitCameraToRoute when stops/polylinePoints load
               },
               onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
               onToggleFavorite = routeViewModel::toggleFavorite,
