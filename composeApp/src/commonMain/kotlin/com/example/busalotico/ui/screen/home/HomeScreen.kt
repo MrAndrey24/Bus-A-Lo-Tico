@@ -32,7 +32,7 @@ import com.example.busalotico.ui.components.ZoomControls
 import com.example.busalotico.ui.components.mapview.MapViewComponent
 import com.example.busalotico.ui.components.route.RouteSelectionCard
 import com.example.busalotico.ui.components.searchBar.SearchBar
-import com.example.busalotico.ui.mapper.toRouteListItemUi
+import com.example.busalotico.ui.model.mapper.toRouteListItemUi
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteStop

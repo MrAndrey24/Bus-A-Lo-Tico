@@ -1,4 +1,4 @@
-package com.example.busalotico.ui.mapper
+package com.example.busalotico.ui.model.mapper
 
 import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
