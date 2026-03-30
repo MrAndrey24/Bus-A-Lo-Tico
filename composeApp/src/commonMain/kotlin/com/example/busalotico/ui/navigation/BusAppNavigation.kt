@@ -28,7 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.busalotico.ui.mapper.toRouteSelectionUiState
+import com.example.busalotico.ui.model.mapper.toRouteSelectionUiState
 import com.example.busalotico.ui.screen.RouteDetailScreen
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
