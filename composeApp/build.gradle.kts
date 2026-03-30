@@ -60,6 +60,7 @@ kotlin {
 
       // Nav
       implementation(libs.navigation.compose)
+
     }
     commonTest.dependencies { implementation(libs.kotlin.test) }
   }

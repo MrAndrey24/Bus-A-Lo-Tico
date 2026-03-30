@@ -1,6 +1,10 @@
 package com.example.busalotico.ui.components.mapview.details
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
 import com.mapbox.geojson.Point
@@ -15,30 +19,34 @@ fun FitCameraToRoute(
     polylinePoints: List<Coordinate>,
     stops: List<RouteStop>,
 ) {
+  var lastFittedPointsHash by remember { mutableIntStateOf(0) }
+  var lastFittedRecenterTrigger by remember { mutableIntStateOf(0) }
+
   MapEffect(polylinePoints, stops, recenterTrigger) { mapView ->
-    // We list the points we want to address
-    val coordinatesToFrame =
-        if (polylinePoints.isNotEmpty()) {
-          polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) }
-        } else if (stops.isNotEmpty()) {
-          stops.map { Point.fromLngLat(it.longitude, it.latitude) }
-        } else {
-          emptyList()
-        }
+    val currentPointsHash = polylinePoints.hashCode() + stops.hashCode()
+    
+    val pointsChanged = currentPointsHash != lastFittedPointsHash
+    val recenterRequested = recenterTrigger > lastFittedRecenterTrigger
 
-    if (coordinatesToFrame.isNotEmpty()) {
-      // Center and zoom so that all points fit on the screen
-      val cameraOptions =
-          mapView.mapboxMap.cameraForCoordinates(
-              coordinatesToFrame,
-              EdgeInsets(100.0, 100.0, 100.0, 100.0), // Margins
-          )
+    if ((pointsChanged || recenterRequested) && (polylinePoints.isNotEmpty() || stops.isNotEmpty())) {
+      val coordinatesToFrame = if (polylinePoints.isNotEmpty()) {
+        polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) }
+      } else {
+        stops.map { Point.fromLngLat(it.longitude, it.latitude) }
+      }
 
-      // Center
-      mapView.mapboxMap.easeTo(
-          cameraOptions,
-          MapAnimationOptions.mapAnimationOptions { duration(800) },
+      val cameraOptions = mapView.mapboxMap.cameraForCoordinates(
+        coordinatesToFrame,
+        EdgeInsets(100.0, 100.0, 100.0, 100.0),
       )
+
+      mapView.mapboxMap.easeTo(
+        cameraOptions,
+        MapAnimationOptions.mapAnimationOptions { duration(800) },
+      )
+
+      lastFittedPointsHash = currentPointsHash
+      lastFittedRecenterTrigger = recenterTrigger
     }
   }
 }
