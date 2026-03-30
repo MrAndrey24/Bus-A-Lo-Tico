@@ -146,12 +146,7 @@ fun BusAppNavigation(
               onRouteSelected = { route ->
                   routeViewModel.onClearSearch()
                   detailViewModel.loadStops(route.id)
-                  
-                  val startLat = route.startLocation.latitude
-                  val startLng = route.startLocation.longitude
-                  if (startLat != null && startLng != null) {
-                      flyToLocation = Coordinate(startLat, startLng)
-                  }
+                  // flyToLocation will be handled by FitCameraToRoute when stops/polylinePoints load
               },
               onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
               onToggleFavorite = routeViewModel::toggleFavorite,
