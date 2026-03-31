@@ -29,6 +29,7 @@ googleServices = "4.4.4"
 firebaseKotlinSdk = "2.4.0"
 firebaseBom = "33.10.0"
 spotless = "8.3.0"
+rive-cmp = "0.4.0"
 
 
 [libraries]

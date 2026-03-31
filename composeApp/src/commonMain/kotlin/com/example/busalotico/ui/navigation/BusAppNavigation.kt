@@ -23,22 +23,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
-import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.busalotico.ui.model.RouteListItemUi
-import com.example.busalotico.ui.model.RouteSelectionUiState
+import androidx.navigation.navArgument
+import com.example.busalotico.ui.model.mapper.toRouteSelectionUiState
 import com.example.busalotico.ui.screen.RouteDetailScreen
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
 import com.example.busalotico.ui.screen.routes.RouteAdministrativeDetailScreen
 import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.entities.Route
 import com.example.shared.presentation.route.RouteDetailViewModel
-import com.example.shared.presentation.route.RouteUiState
 import com.example.shared.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -149,14 +146,12 @@ fun BusAppNavigation(
               onRouteSelected = { route ->
                   routeViewModel.onClearSearch()
                   detailViewModel.loadStops(route.id)
-                  
-                  val startLat = route.startLocation.latitude
-                  val startLng = route.startLocation.longitude
-                  if (startLat != null && startLng != null) {
-                      flyToLocation = Coordinate(startLat, startLng)
-                  }
               },
               onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },
+              onToggleFavorite = routeViewModel::toggleFavorite,
+              onAdministrativeDetailClick = { routeId ->
+                  navController.navigate("$AdministrativeRouteDestination/$routeId")
+              },
               modifier = Modifier.fillMaxSize(),
               polylinePoints = polylinePoints,
               stops = stops,
@@ -218,37 +213,5 @@ fun BusAppNavigation(
     }
   }
 }
-
 private const val AdministrativeRouteDestination = "administrative_route_detail"
 
-private fun RouteUiState.toRouteSelectionUiState(): RouteSelectionUiState {
-  return RouteSelectionUiState(
-      routes = routes.map { route -> route.toRouteListItemUi(favoriteRouteIds) },
-      isLoading = isLoading,
-      errorMessage = errorMessage,
-  )
-}
-
-private fun Route.toRouteListItemUi(favoriteRouteIds: Set<String>): RouteListItemUi {
-  return RouteListItemUi(
-      id = id,
-      code = code,
-      title = name.toRouteDisplayName(),
-      companyName = operator,
-      fareCrc = fareCrc,
-      statusText = statusText,
-      etaText = etaText,
-      frequencyText = frequencyText,
-      isActive = isActive,
-      isLive = isLive,
-      isFavorite = favoriteRouteIds.contains(id),
-      province = startLocation.province,
-      canton = startLocation.canton,
-      district = startLocation.district,
-      endProvince = endLocation.province,
-      endCanton = endLocation.canton,
-      endDistrict = endLocation.district,
-  )
-}
-
-private fun String.toRouteDisplayName(): String = trim().uppercase()
