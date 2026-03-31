@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,9 +23,13 @@ fun PillActionButton(
     containerColor: Color = MaterialTheme.colorScheme.primary,
     contentColor: Color = MaterialTheme.colorScheme.onPrimary,
     border: BorderStroke? = null,
+    enabled: Boolean = true,
 ) {
   Surface(
-      modifier = modifier.clickable { onClick() },
+      modifier =
+          modifier
+              .graphicsLayer(alpha = if (enabled) 1f else 0.7f)
+              .clickable(enabled = enabled) { onClick() },
       shape = RoundedCornerShape(16.dp),
       color = containerColor,
       border = border,

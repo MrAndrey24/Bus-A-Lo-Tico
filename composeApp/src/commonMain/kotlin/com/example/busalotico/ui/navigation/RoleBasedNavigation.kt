@@ -26,6 +26,7 @@ fun RoleBasedNavigation(
         )
     UserRole.DRIVER ->
         DriverNavigation(
+            coordinate = coordinate,
             userId = userId,
             userName = userName,
             userEmail = userEmail,

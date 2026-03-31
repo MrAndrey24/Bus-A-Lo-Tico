@@ -20,9 +20,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.busalotico.ui.screen.driver.DriverHomeScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
+import com.example.shared.domain.entities.Coordinate
 
 @Composable
 fun DriverNavigation(
+    coordinate: Coordinate?,
     userId: String,
     userName: String,
     userEmail: String,
@@ -63,6 +65,7 @@ fun DriverNavigation(
     ) {
       composable(DriverScreen.MyRoute.name) {
         DriverHomeScreen(
+            coordinate = coordinate,
             userId = userId,
             userName = userName,
         )
