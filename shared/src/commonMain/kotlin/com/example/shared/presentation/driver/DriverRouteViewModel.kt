@@ -1,0 +1,260 @@
+package com.example.shared.presentation.driver
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.shared.data.repository.route.IRouteRepository
+import com.example.shared.data.repository.trip.ITripExecutionRepository
+import com.example.shared.domain.entities.Coordinate
+import com.example.shared.domain.entities.Route
+import com.example.shared.domain.entities.TripExecution
+import com.example.shared.domain.entities.TripIncident
+import com.example.shared.domain.entities.TripIncidentType
+import com.example.shared.domain.entities.TripExecutionStatus
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+
+class DriverRouteViewModel(
+    private val routeRepository: IRouteRepository,
+    private val tripExecutionRepository: ITripExecutionRepository,
+) : ViewModel() {
+
+  private val _uiState = MutableStateFlow(DriverRouteUiState())
+  val uiState: StateFlow<DriverRouteUiState> = _uiState.asStateFlow()
+  private var currentDriverId: String = ""
+
+  fun loadRouteForDriver(driverId: String) {
+    if (driverId.isBlank()) {
+      _uiState.value = DriverRouteUiState(errorMessage = "No se encontró el conductor autenticado.")
+      return
+    }
+
+    currentDriverId = driverId
+    _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+
+    viewModelScope.launch {
+      runCatching { buildUiState(driverId) }
+          .onSuccess { newState -> _uiState.value = newState }
+          .onFailure {
+            _uiState.value =
+                DriverRouteUiState(
+                    errorMessage = "No se pudo cargar la ruta del conductor.",
+                )
+          }
+    }
+  }
+
+  fun startTrip(
+      routeId: String,
+      scheduleId: String,
+      driverId: String,
+      onSuccess: (TripExecution) -> Unit = {},
+      onFailure: (String) -> Unit = {},
+  ) {
+    if (routeId.isBlank() || scheduleId.isBlank() || driverId.isBlank()) {
+      onFailure("Faltan datos para iniciar el viaje.")
+      return
+    }
+
+    _uiState.value = _uiState.value.copy(isStartingTrip = true)
+
+    viewModelScope.launch {
+      runCatching {
+            tripExecutionRepository.createTripExecution(
+                TripExecution(
+                    routeId = routeId,
+                    scheduleId = scheduleId,
+                    driverId = driverId,
+                    startedAt = Clock.System.now().toEpochMilliseconds(),
+                )
+            )
+          }
+          .onSuccess { tripExecution ->
+            refreshDriverData()
+            _uiState.value = _uiState.value.copy(isStartingTrip = false, activeTripExecutionId = tripExecution.id)
+            onSuccess(tripExecution)
+          }
+          .onFailure {
+            _uiState.value = _uiState.value.copy(isStartingTrip = false)
+            onFailure("No se pudo iniciar el viaje.")
+          }
+    }
+  }
+
+  fun endTrip(
+      tripExecutionId: String,
+      onSuccess: (TripExecution) -> Unit = {},
+      onFailure: (String) -> Unit = {},
+  ) {
+    if (tripExecutionId.isBlank()) {
+      onFailure("No se encontró el viaje activo.")
+      return
+    }
+
+    _uiState.value = _uiState.value.copy(isEndingTrip = true)
+
+    viewModelScope.launch {
+      runCatching {
+            val existingTrip = tripExecutionRepository.getTripExecution(tripExecutionId)
+                ?: error("No se encontró el viaje activo.")
+            val endedAt = Clock.System.now().toEpochMilliseconds()
+            val durationSeconds = ((endedAt - existingTrip.startedAt).coerceAtLeast(0L) / 1000L).toInt()
+            tripExecutionRepository.updateTripExecution(
+                existingTrip.copy(
+                    endedAt = endedAt,
+                    durationSeconds = durationSeconds,
+                    status = TripExecutionStatus.COMPLETED,
+                )
+            )
+          }
+          .onSuccess { tripExecution ->
+            refreshDriverData()
+            _uiState.value = _uiState.value.copy(isEndingTrip = false, activeTripExecutionId = null)
+            onSuccess(tripExecution)
+          }
+          .onFailure {
+            _uiState.value = _uiState.value.copy(isEndingTrip = false)
+            onFailure("No se pudo finalizar el viaje.")
+          }
+    }
+  }
+
+  fun reportIncident(
+      tripExecutionId: String,
+      type: TripIncidentType,
+      detail: String,
+      location: Coordinate?,
+      onSuccess: (TripIncident) -> Unit = {},
+      onFailure: (String) -> Unit = {},
+  ) {
+    if (tripExecutionId.isBlank()) {
+      onFailure("No hay un viaje activo para reportar incidencias.")
+      return
+    }
+    if (detail.isBlank()) {
+      onFailure("Agrega un detalle para la incidencia.")
+      return
+    }
+
+    _uiState.value = _uiState.value.copy(isReportingIncident = true)
+
+    viewModelScope.launch {
+      runCatching {
+            tripExecutionRepository.addIncident(
+                tripExecutionId = tripExecutionId,
+                incident =
+                    TripIncident(
+                        type = type,
+                        detail = detail.trim(),
+                        createdAt = Clock.System.now().toEpochMilliseconds(),
+                        location = location,
+                    )
+            )
+          }
+          .onSuccess { incident ->
+            refreshDriverData()
+            _uiState.value = _uiState.value.copy(isReportingIncident = false)
+            onSuccess(incident)
+          }
+          .onFailure {
+            _uiState.value = _uiState.value.copy(isReportingIncident = false)
+            onFailure("No se pudo reportar la incidencia.")
+          }
+    }
+  }
+
+  private suspend fun refreshDriverData() {
+    if (currentDriverId.isBlank()) return
+    _uiState.value = buildUiState(currentDriverId)
+  }
+
+  private suspend fun buildUiState(driverId: String): DriverRouteUiState {
+    val route = routeRepository.getRouteByDriverId(driverId)
+        ?: return DriverRouteUiState(
+            errorMessage = "No hay una ruta asignada a este conductor.",
+        )
+
+    val tripExecutions = tripExecutionRepository.getTripExecutionsByDriver(driverId)
+    val currentTripExecution = tripExecutions
+        .filter { it.status == TripExecutionStatus.IN_PROGRESS }
+        .maxByOrNull { it.startedAt }
+    val todayKey = todayDateKey()
+    val completedTodayScheduleIds =
+        tripExecutions
+            .filter { it.status == TripExecutionStatus.COMPLETED && it.routeId == route.id }
+            .filter { execution -> dateKey(execution.startedAt) == todayKey }
+            .map { it.scheduleId }
+            .toSet()
+
+    val routeCache = mutableMapOf(route.id to route)
+    val history =
+        tripExecutions
+            .filter { it.status == TripExecutionStatus.COMPLETED && it.endedAt != null }
+            .sortedByDescending { it.startedAt }
+            .map { execution ->
+              val executionRoute = routeCache.getOrPut(execution.routeId) {
+                routeRepository.getRoute(execution.routeId) ?: route
+              }
+              val departureTime =
+                  executionRoute.schedules.firstOrNull { it.id == execution.scheduleId }?.departureTime ?: "--:--"
+              val latestIncident =
+                  if (execution.hadIncidents) {
+                    tripExecutionRepository.getIncidents(execution.id).firstOrNull()
+                  } else {
+                    null
+                  }
+              DriverTripHistoryRecord(
+                  tripExecutionId = execution.id,
+                  routeName = executionRoute.name,
+                  departureTime = departureTime,
+                  startedAtLabel = formatCostaRicaDateTimeLabel(execution.startedAt),
+                  endedAtLabel = execution.endedAt?.let(::formatCostaRicaDateTimeLabel) ?: "--",
+                  incidentTypeLabel = latestIncident?.type?.toDisplayLabel(),
+                  incidentDetail = latestIncident?.detail?.takeIf { it.isNotBlank() },
+              )
+            }
+
+    return DriverRouteUiState(
+        route = route,
+        isLoading = false,
+        errorMessage = null,
+        activeTripExecutionId = currentTripExecution?.id,
+        currentTripExecution = currentTripExecution,
+        completedTodayScheduleIds = completedTodayScheduleIds,
+        tripHistory = history,
+    )
+  }
+
+  private fun formatCostaRicaDateTimeLabel(epochMilliseconds: Long): String {
+    val instant = kotlin.time.Instant.fromEpochMilliseconds(epochMilliseconds)
+    val dateTime = instant.toLocalDateTime(TimeZone.of("America/Costa_Rica"))
+    val day = dateTime.dayOfMonth.toString().padStart(2, '0')
+    val month = dateTime.monthNumber.toString().padStart(2, '0')
+    val year = dateTime.year.toString()
+    val hour = dateTime.hour.toString().padStart(2, '0')
+    val minute = dateTime.minute.toString().padStart(2, '0')
+    val second = dateTime.second.toString().padStart(2, '0')
+    return "$day/$month/$year $hour:$minute:$second"
+  }
+
+  private fun dateKey(epochMilliseconds: Long): String {
+    val dateTime =
+        kotlin.time.Instant.fromEpochMilliseconds(epochMilliseconds)
+            .toLocalDateTime(TimeZone.of("America/Costa_Rica"))
+    return "${dateTime.year}-${dateTime.monthNumber}-${dateTime.dayOfMonth}"
+  }
+
+  private fun todayDateKey(): String = dateKey(Clock.System.now().toEpochMilliseconds())
+
+  private fun TripIncidentType.toDisplayLabel(): String {
+    return when (this) {
+      TripIncidentType.ACCIDENT -> "Accidente"
+      TripIncidentType.BREAKDOWN -> "Avería"
+      TripIncidentType.SECURITY -> "Seguridad"
+    }
+  }
+}

@@ -26,11 +26,15 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,9 +53,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.busalotico.ui.components.button.PillActionButton
 import com.example.busalotico.ui.components.header.ScreenHeader
+import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteSchedule
-import com.example.shared.presentation.route.DriverRouteViewModel
+import com.example.shared.domain.entities.TripIncidentType
+import com.example.shared.presentation.driver.DriverTripHistoryRecord
+import com.example.shared.presentation.driver.DriverRouteViewModel
 import com.example.shared.util.currentCostaRicaTimeMinutes
 import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDateTime
@@ -60,13 +67,6 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.toInstant
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Clock
-
-private data class DriverTripHistoryItem(
-    val routeName: String,
-    val departureTime: String,
-    val startedAt: String,
-    val endedAt: String,
-)
 
 private val DriverPageBackground = Color(0xFFF7F8FA)
 private val DriverCardBackground = Color.White
@@ -80,8 +80,20 @@ private enum class DriverPanelTab {
   TRAVEL_HISTORY,
 }
 
+private enum class DriverNoticeTone {
+  INFO,
+  WARNING,
+  ERROR,
+}
+
+private data class DriverNotice(
+    val message: String,
+    val tone: DriverNoticeTone,
+)
+
 @Composable
 fun DriverHomeScreen(
+    coordinate: Coordinate?,
     userId: String,
     userName: String,
     viewModel: DriverRouteViewModel = koinViewModel(),
@@ -113,6 +125,39 @@ fun DriverHomeScreen(
           uiState.route != null -> DriverDashboardContent(
               route = uiState.route!!,
               userId = userId,
+              activeTripExecutionId = uiState.activeTripExecutionId,
+              activeTripScheduleId = uiState.currentTripExecution?.scheduleId,
+              currentTripStartedAt = uiState.currentTripExecution?.startedAt,
+              completedTodayScheduleIds = uiState.completedTodayScheduleIds,
+              history = uiState.tripHistory,
+              isStartingTrip = uiState.isStartingTrip,
+              isEndingTrip = uiState.isEndingTrip,
+              isReportingIncident = uiState.isReportingIncident,
+              coordinate = coordinate,
+              onStartTrip = { routeId, scheduleId, driverId, onSuccess ->
+                viewModel.startTrip(
+                    routeId = routeId,
+                    scheduleId = scheduleId,
+                    driverId = driverId,
+                    onSuccess = { onSuccess() },
+                )
+              },
+              onEndTrip = { tripExecutionId, onSuccess ->
+                viewModel.endTrip(
+                    tripExecutionId = tripExecutionId,
+                    onSuccess = { onSuccess() },
+                )
+              },
+              onReportIncident = { tripExecutionId, type, detail, incidentLocation, onSuccess, onFailure ->
+                viewModel.reportIncident(
+                    tripExecutionId = tripExecutionId,
+                    type = type,
+                    detail = detail,
+                    location = incidentLocation,
+                    onSuccess = { onSuccess() },
+                    onFailure = onFailure,
+                )
+              },
           )
           else -> DriverEmptyState(
               userName = userName,
@@ -128,20 +173,34 @@ fun DriverHomeScreen(
 private fun DriverDashboardContent(
     route: Route,
     userId: String,
+    activeTripExecutionId: String?,
+    activeTripScheduleId: String?,
+    currentTripStartedAt: Long?,
+    completedTodayScheduleIds: Set<String>,
+    history: List<DriverTripHistoryRecord>,
+    isStartingTrip: Boolean,
+    isEndingTrip: Boolean,
+    isReportingIncident: Boolean,
+    coordinate: Coordinate?,
+    onStartTrip: (routeId: String, scheduleId: String, driverId: String, onSuccess: () -> Unit) -> Unit,
+    onEndTrip: (tripExecutionId: String, onSuccess: () -> Unit) -> Unit,
+    onReportIncident: (
+        tripExecutionId: String,
+        type: TripIncidentType,
+        detail: String,
+        location: Coordinate?,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit,
+    ) -> Unit,
 ) {
   val schedules = route.schedules.filter { it.driverId == userId }.sortedBy { parseTimeToMinutes(it.departureTime) }
   val currentMinutes = currentCostaRicaTimeMinutes()
-  var isTripRunning by remember(route.id) { mutableStateOf(false) }
-  var tripElapsedSeconds by remember(route.id) { mutableIntStateOf(0) }
-  var tripCompleted by remember(route.id) { mutableStateOf(false) }
-  var tripStartedAt by remember(route.id) { mutableStateOf<String?>(null) }
-  var tripEndedAt by remember(route.id) { mutableStateOf<String?>(null) }
-  var activeTripScheduleId by remember(route.id) { mutableStateOf<String?>(null) }
-  var completedScheduleIds by remember(route.id) { mutableStateOf(setOf<String>()) }
-  var tripHistory by remember(route.id) { mutableStateOf<List<DriverTripHistoryItem>>(emptyList()) }
   var selectedTab by remember(route.id) { mutableStateOf(DriverPanelTab.ACTIVE_ROUTE) }
+  var tripElapsedSeconds by remember(route.id, activeTripExecutionId) { mutableIntStateOf(initialElapsedSeconds(currentTripStartedAt)) }
+  var routeNotice by remember(route.id) { mutableStateOf<DriverNotice?>(null) }
 
-  val remainingSchedules = schedules.filterNot { completedScheduleIds.contains(it.id) }
+  val isTripRunning = activeTripExecutionId != null
+  val remainingSchedules = schedules.filterNot { completedTodayScheduleIds.contains(it.id) }
   val currentSchedule =
       activeTripScheduleId?.let { activeId ->
         remainingSchedules.firstOrNull { it.id == activeId }
@@ -158,11 +217,30 @@ private fun DriverDashboardContent(
   val nextShiftStatusLabel = if (nextSchedule != null) "Programada" else "Sin más"
   val nextShiftStatusColor = Color(0xFF8A6B2B)
   val nextShiftStatusContainer = Color(0xFFFFF4CC)
+  var pendingIncidentType by remember { mutableStateOf<TripIncidentType?>(null) }
+  var incidentError by remember { mutableStateOf<String?>(null) }
 
-  LaunchedEffect(isTripRunning) {
+  LaunchedEffect(activeTripExecutionId, currentTripStartedAt) {
+    tripElapsedSeconds = initialElapsedSeconds(currentTripStartedAt)
+  }
+
+  LaunchedEffect(activeTripExecutionId) {
+    if (activeTripExecutionId != null) {
+      incidentError = null
+    }
+  }
+
+  LaunchedEffect(isTripRunning, currentTripStartedAt) {
     while (isTripRunning) {
       delay(1000)
-      tripElapsedSeconds += 1
+      tripElapsedSeconds = initialElapsedSeconds(currentTripStartedAt)
+    }
+  }
+
+  LaunchedEffect(routeNotice) {
+    if (routeNotice != null) {
+      delay(2200)
+      routeNotice = null
     }
   }
 
@@ -173,6 +251,13 @@ private fun DriverDashboardContent(
 
   when (selectedTab) {
     DriverPanelTab.ACTIVE_ROUTE -> {
+      routeNotice?.let { notice ->
+        DriverStatusNotice(
+            message = notice.message,
+            tone = notice.tone,
+        )
+      }
+
       if (currentSchedule != null) {
         DriverCurrentRouteCard(
             route = route,
@@ -182,39 +267,32 @@ private fun DriverDashboardContent(
             statusContainer = routeStatusContainer,
             isTripRunning = isTripRunning,
             elapsedTime = formatElapsedTime(tripElapsedSeconds),
-            tripCompleted = tripCompleted,
-            startedAt = tripStartedAt,
-            endedAt = tripEndedAt,
+            tripCompleted = false,
+            startedAt = null,
+            endedAt = null,
+            isStartingTrip = isStartingTrip,
+            isEndingTrip = isEndingTrip,
             onPrimaryAction = {
               if (isTripRunning) {
-                isTripRunning = false
-                val endedTime = currentCostaRicaDateTimeLabel()
-                if (currentSchedule != null && tripStartedAt != null) {
-                  tripHistory =
-                      listOf(
-                          DriverTripHistoryItem(
-                              routeName = route.name.toDriverDisplayName(),
-                              departureTime = currentSchedule.departureTime,
-                              startedAt = tripStartedAt!!,
-                              endedAt = endedTime,
-                          )
-                      ) + tripHistory
+                activeTripExecutionId?.let { tripId ->
+                  onEndTrip(tripId) {
+                    tripElapsedSeconds = 0
+                    routeNotice =
+                        DriverNotice(
+                            message = "Ruta finalizada. Cargando próxima salida...",
+                            tone = DriverNoticeTone.WARNING,
+                        )
+                  }
                 }
-                currentSchedule.id.let { finishedId ->
-                  completedScheduleIds = completedScheduleIds + finishedId
-                }
-                activeTripScheduleId = null
-                tripElapsedSeconds = 0
-                tripCompleted = false
-                tripStartedAt = null
-                tripEndedAt = null
               } else {
-                activeTripScheduleId = currentSchedule.id
-                isTripRunning = true
-                tripElapsedSeconds = 0
-                tripCompleted = false
-                tripStartedAt = currentCostaRicaDateTimeLabel()
-                tripEndedAt = null
+                onStartTrip(route.id, currentSchedule.id, userId) {
+                  tripElapsedSeconds = 0
+                  routeNotice =
+                      DriverNotice(
+                          message = "Ruta iniciada. Seguimiento activo.",
+                          tone = DriverNoticeTone.INFO,
+                      )
+                }
               }
             },
         )
@@ -233,25 +311,78 @@ private fun DriverDashboardContent(
           statusContainer = nextShiftStatusContainer,
       )
 
-      DriverMetricCard(
-          title = "Tiempo turno",
-          value = currentSchedule?.let(::formatShiftDuration) ?: "--:--",
-          icon = {
-            Icon(
-                imageVector = Icons.Default.AccessTime,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          },
-          modifier = Modifier.fillMaxWidth(),
-      )
+      incidentError?.let { message ->
+        if (pendingIncidentType == null && activeTripExecutionId == null) {
+          DriverInlineAlert(
+              message = message,
+              tone = DriverNoticeTone.ERROR,
+          )
+        }
+      }
 
-      DriverIncidentCard()
+      DriverIncidentCard(
+          onAccidentClick = {
+            if (activeTripExecutionId == null) {
+              incidentError = "Inicia una ruta antes de reportar incidencias."
+            } else {
+              incidentError = null
+              pendingIncidentType = TripIncidentType.ACCIDENT
+            }
+          },
+          onBreakdownClick = {
+            if (activeTripExecutionId == null) {
+              incidentError = "Inicia una ruta antes de reportar incidencias."
+            } else {
+              incidentError = null
+              pendingIncidentType = TripIncidentType.BREAKDOWN
+            }
+          },
+          onSecurityClick = {
+            if (activeTripExecutionId == null) {
+              incidentError = "Inicia una ruta antes de reportar incidencias."
+            } else {
+              incidentError = null
+              pendingIncidentType = TripIncidentType.SECURITY
+            }
+          },
+      )
     }
 
     DriverPanelTab.TRAVEL_HISTORY -> {
-      DriverHistoryCard(history = tripHistory)
+      DriverHistoryCard(history = history)
     }
+  }
+
+  pendingIncidentType?.let { incidentType ->
+    IncidentReportDialog(
+        type = incidentType,
+        routeName = route.name.toDriverDisplayName(),
+        locationLabel = coordinate.toIncidentLocationLabel(),
+        reportedAtLabel = currentCostaRicaDateTimeLabel(),
+        isSubmitting = isReportingIncident,
+        onDismiss = {
+          if (!isReportingIncident) {
+            pendingIncidentType = null
+            incidentError = null
+          }
+        },
+        onSubmit = { detail ->
+          onReportIncident(
+              activeTripExecutionId.orEmpty(),
+              incidentType,
+              detail,
+              coordinate,
+              {
+                pendingIncidentType = null
+                incidentError = null
+              },
+              { message ->
+                incidentError = message
+              },
+          )
+        },
+        errorMessage = incidentError,
+    )
   }
 }
 
@@ -359,6 +490,8 @@ private fun DriverCurrentRouteCard(
     startedAt: String?,
     endedAt: String?,
     onPrimaryAction: () -> Unit,
+    isStartingTrip: Boolean = false,
+    isEndingTrip: Boolean = false,
 ) {
   Surface(
       modifier = Modifier.fillMaxWidth(),
@@ -441,10 +574,75 @@ private fun DriverCurrentRouteCard(
         )
       }
       PillActionButton(
-          text = if (isTripRunning) "FINALIZAR RUTA" else "INICIAR RUTA",
+          text =
+              when {
+                isStartingTrip -> "INICIANDO..."
+                isEndingTrip -> "FINALIZANDO..."
+                isTripRunning -> "FINALIZAR RUTA"
+                else -> "INICIAR RUTA"
+              },
           onClick = onPrimaryAction,
           modifier = Modifier.fillMaxWidth(),
           containerColor = MaterialTheme.colorScheme.primary,
+          enabled = !isStartingTrip && !isEndingTrip,
+      )
+    }
+  }
+}
+
+@Composable
+private fun DriverStatusNotice(
+    message: String,
+    tone: DriverNoticeTone,
+) {
+  DriverInlineAlert(
+      message = message,
+      tone = tone,
+  )
+}
+
+@Composable
+private fun DriverInlineAlert(
+    message: String,
+    tone: DriverNoticeTone,
+) {
+  val (tint, containerColor) =
+      when (tone) {
+        DriverNoticeTone.INFO -> Color(0xFF2A6F97) to Color(0xFFDDF1FF)
+        DriverNoticeTone.WARNING -> Color(0xFF8A6B2B) to Color(0xFFFFF4CC)
+        DriverNoticeTone.ERROR ->
+            MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f)
+      }
+  Surface(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(14.dp),
+      color = containerColor,
+      border = BorderStroke(DriverBorderWidth, tint.copy(alpha = 0.18f)),
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Surface(
+          modifier = Modifier.size(30.dp),
+          shape = CircleShape,
+          color = Color.White.copy(alpha = 0.7f),
+      ) {
+        Box(contentAlignment = Alignment.Center) {
+          Icon(
+              imageVector = Icons.Default.ReportProblem,
+              contentDescription = null,
+              tint = tint,
+              modifier = Modifier.size(16.dp),
+          )
+        }
+      }
+      Text(
+          text = message,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurface,
+          fontWeight = FontWeight.Medium,
       )
     }
   }
@@ -665,7 +863,11 @@ private fun StatusChip(
 }
 
 @Composable
-private fun DriverIncidentCard() {
+private fun DriverIncidentCard(
+    onAccidentClick: () -> Unit,
+    onBreakdownClick: () -> Unit,
+    onSecurityClick: () -> Unit,
+) {
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(18.dp),
@@ -691,18 +893,21 @@ private fun DriverIncidentCard() {
             icon = Icons.Default.ReportProblem,
             tint = Color(0xFFB14D4D),
             modifier = Modifier.weight(1f),
+            onClick = onAccidentClick,
         )
         IncidentAction(
             label = "Avería",
             icon = Icons.Default.Build,
             tint = Color(0xFF8A6B2B),
             modifier = Modifier.weight(1f),
+            onClick = onBreakdownClick,
         )
         IncidentAction(
             label = "Seguridad",
             icon = Icons.Default.Security,
             tint = Color(0xFF51677F),
             modifier = Modifier.weight(1f),
+            onClick = onSecurityClick,
         )
       }
     }
@@ -710,13 +915,142 @@ private fun DriverIncidentCard() {
 }
 
 @Composable
-private fun DriverHistoryCard(history: List<DriverTripHistoryItem>) {
+private fun IncidentReportDialog(
+    type: TripIncidentType,
+    routeName: String,
+    locationLabel: String,
+    reportedAtLabel: String,
+    isSubmitting: Boolean,
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit,
+    errorMessage: String?,
+) {
+  val defaultMessage = remember(type, routeName, locationLabel, reportedAtLabel) {
+    buildDefaultIncidentMessage(
+        type = type,
+        routeName = routeName,
+        locationLabel = locationLabel,
+        reportedAtLabel = reportedAtLabel,
+    )
+  }
+  var detail by remember(type, defaultMessage) { mutableStateOf(defaultMessage) }
+
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      shape = RoundedCornerShape(24.dp),
+      containerColor = DriverCardBackground,
+      tonalElevation = 0.dp,
+      title = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Surface(
+              shape = RoundedCornerShape(999.dp),
+              color = DriverSoftPanelBackground,
+              border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+          ) {
+            Text(
+                text = "INCIDENCIA",
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.SemiBold,
+            )
+          }
+          Text(
+              text = when (type) {
+                TripIncidentType.ACCIDENT -> "Reportar accidente"
+                TripIncidentType.BREAKDOWN -> "Reportar avería"
+                TripIncidentType.SECURITY -> "Reportar seguridad"
+              },
+              style = MaterialTheme.typography.titleMedium,
+              color = MaterialTheme.colorScheme.onSurface,
+              fontWeight = FontWeight.Bold,
+          )
+        }
+      },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          Surface(
+              modifier = Modifier.fillMaxWidth(),
+              shape = RoundedCornerShape(16.dp),
+              color = DriverSoftPanelBackground,
+              border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+          ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+              DriverIncidentContextRow(label = "Ruta", value = routeName)
+              DriverIncidentContextRow(label = "Hora", value = reportedAtLabel)
+              DriverIncidentContextRow(label = "Ubicación", value = locationLabel)
+            }
+          }
+          Text(
+              text = "Puedes ajustar el mensaje antes de enviarlo.",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          OutlinedTextField(
+              value = detail,
+              onValueChange = { detail = it },
+              modifier = Modifier.fillMaxWidth(),
+              minLines = 5,
+              enabled = !isSubmitting,
+              label = { Text("Mensaje de alerta") },
+              placeholder = { Text("Agrega detalles relevantes para el equipo de apoyo") },
+              shape = RoundedCornerShape(16.dp),
+              colors =
+                  OutlinedTextFieldDefaults.colors(
+                      focusedContainerColor = DriverSoftPanelBackground,
+                      unfocusedContainerColor = DriverSoftPanelBackground,
+                      disabledContainerColor = DriverSoftPanelBackground,
+                      focusedBorderColor = DriverSoftBorder,
+                      unfocusedBorderColor = DriverSoftBorder,
+                      disabledBorderColor = DriverSoftBorder,
+                  ),
+          )
+          errorMessage?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+          }
+          TextButton(
+              onClick = { detail = defaultMessage },
+              enabled = !isSubmitting,
+              modifier = Modifier.align(Alignment.End),
+          ) {
+            Text("Restaurar mensaje")
+          }
+        }
+      },
+      confirmButton = {
+        TextButton(
+            onClick = { onSubmit(detail) },
+            enabled = !isSubmitting,
+        ) {
+          Text(if (isSubmitting) "Enviando..." else "Enviar")
+        }
+      },
+      dismissButton = {
+        TextButton(
+            onClick = onDismiss,
+            enabled = !isSubmitting,
+        ) {
+          Text("Cancelar")
+        }
+      },
+  )
+}
+
+@Composable
+private fun DriverHistoryCard(history: List<DriverTripHistoryRecord>) {
   var historyQuery by remember { mutableStateOf("") }
   val filteredHistory =
       history.filter { item ->
         if (historyQuery.isBlank()) return@filter true
         val normalizedQuery = historyQuery.trim().lowercase()
-        listOf(item.routeName, item.departureTime, item.startedAt, item.endedAt)
+        listOf(item.routeName, item.departureTime, item.startedAtLabel, item.endedAtLabel)
             .joinToString(" ")
             .lowercase()
             .contains(normalizedQuery)
@@ -769,9 +1103,10 @@ private fun DriverHistoryCard(history: List<DriverTripHistoryItem>) {
       }
       else -> {
         filteredHistory.forEach { item ->
-          val startParts = splitCostaRicaDateTimeLabel(item.startedAt)
-          val endParts = splitCostaRicaDateTimeLabel(item.endedAt)
-          val compactDuration = formatTripDurationCompactFromLabels(item.startedAt, item.endedAt)
+          val startParts = splitCostaRicaDateTimeLabel(item.startedAtLabel)
+          val endParts = splitCostaRicaDateTimeLabel(item.endedAtLabel)
+          val compactDuration = formatTripDurationCompactFromLabels(item.startedAtLabel, item.endedAtLabel)
+          val incidentDetail = item.incidentDetail
 
           Surface(
               modifier = Modifier.fillMaxWidth(),
@@ -840,7 +1175,7 @@ private fun DriverHistoryCard(history: List<DriverTripHistoryItem>) {
                   DriverHistoryMetricColumn(
                       icon = Icons.Default.LocationOn,
                       label = "INICIO",
-                      primaryValue = startParts?.second ?: item.startedAt,
+                      primaryValue = startParts?.second ?: item.startedAtLabel,
                       secondaryValue = startParts?.first,
                       modifier = Modifier.weight(1f),
                   )
@@ -853,10 +1188,36 @@ private fun DriverHistoryCard(history: List<DriverTripHistoryItem>) {
                   DriverHistoryMetricColumn(
                       icon = Icons.Default.Flag,
                       label = "FINAL",
-                      primaryValue = endParts?.second ?: item.endedAt,
+                      primaryValue = endParts?.second ?: item.endedAtLabel,
                       secondaryValue = endParts?.first,
                       modifier = Modifier.weight(1f),
-                  )
+                    )
+                }
+              }
+
+              if (!incidentDetail.isNullOrBlank()) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    color = DriverSoftPanelBackground,
+                    border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+                ) {
+                  Column(
+                      modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                      verticalArrangement = Arrangement.spacedBy(6.dp),
+                  ) {
+                    Text(
+                        text = item.incidentTypeLabel?.uppercase() ?: "INCIDENCIA",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = incidentDetail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                  }
                 }
               }
             }
@@ -968,14 +1329,35 @@ private fun DriverHistoryMetricColumn(
 }
 
 @Composable
+private fun DriverIncidentContextRow(
+    label: String,
+    value: String,
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontWeight = FontWeight.SemiBold,
+    )
+    Text(
+        text = value,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface,
+    )
+  }
+}
+
+@Composable
 private fun IncidentAction(
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     tint: Color,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit,
 ) {
   Surface(
-      modifier = modifier.height(118.dp),
+      modifier = modifier.height(118.dp).clickable(onClick = onClick),
       shape = RoundedCornerShape(16.dp),
       color = DriverCardBackground,
       border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
@@ -1130,6 +1512,12 @@ private fun formatMinutes(totalMinutes: Int): String {
   return "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}"
 }
 
+private fun initialElapsedSeconds(startedAtEpoch: Long?): Int {
+  if (startedAtEpoch == null) return 0
+  val nowEpoch = Clock.System.now().toEpochMilliseconds()
+  return ((nowEpoch - startedAtEpoch).coerceAtLeast(0L) / 1000L).toInt()
+}
+
 private fun currentCostaRicaDateTimeLabel(): String {
   val now = Clock.System.now()
   val local = now.toLocalDateTime(TimeZone.of("America/Costa_Rica"))
@@ -1205,3 +1593,28 @@ private fun String.toDriverDisplayName(): String =
             if (char.isLowerCase()) char.titlecase() else char.toString()
           }
         }
+
+private fun buildDefaultIncidentMessage(
+    type: TripIncidentType,
+    routeName: String,
+    locationLabel: String,
+    reportedAtLabel: String,
+): String {
+  return when (type) {
+    TripIncidentType.ACCIDENT ->
+        "He tenido un accidente de tránsito en la ruta $routeName, a las $reportedAtLabel, en la ubicación $locationLabel. Necesito asistencia."
+    TripIncidentType.BREAKDOWN ->
+        "La unidad presenta una avería mecánica en la ruta $routeName, a las $reportedAtLabel, en la ubicación $locationLabel. Necesito apoyo."
+    TripIncidentType.SECURITY ->
+        "Tenemos una situación de seguridad en la ruta $routeName, a las $reportedAtLabel, en la ubicación $locationLabel. Necesitamos apoyo."
+  }
+}
+
+private fun Coordinate?.toIncidentLocationLabel(): String {
+  if (this == null) return "Ubicación actual no disponible"
+  val latitudeLabel = latitude.formatCoordinateValue()
+  val longitudeLabel = longitude.formatCoordinateValue()
+  return "$latitudeLabel, $longitudeLabel"
+}
+
+private fun Double.formatCoordinateValue(): String = "%,.6f".format(this).replace(",", "")
