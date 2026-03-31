@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,8 +54,10 @@ import com.example.shared.domain.entities.RouteSchedule
 import com.example.shared.presentation.route.DriverRouteViewModel
 import com.example.shared.util.currentCostaRicaTimeMinutes
 import kotlinx.coroutines.delay
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.toInstant
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Clock
 
@@ -64,6 +67,13 @@ private data class DriverTripHistoryItem(
     val startedAt: String,
     val endedAt: String,
 )
+
+private val DriverPageBackground = Color(0xFFF7F8FA)
+private val DriverCardBackground = Color.White
+private val DriverSoftPanelBackground = Color(0xFFFAFBFD)
+private val DriverSoftBorder = Color(0xFFE9EDF3)
+private val DriverBorderWidth = 0.75.dp
+private val DriverTabContainerBackground = Color(0xFFF1F3F6)
 
 private enum class DriverPanelTab {
   ACTIVE_ROUTE,
@@ -83,7 +93,7 @@ fun DriverHomeScreen(
     viewModel.loadRouteForDriver(userId)
   }
 
-  Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+  Surface(modifier = modifier.fillMaxSize(), color = DriverPageBackground) {
     Column(modifier = Modifier.fillMaxSize()) {
       ScreenHeader(
           title = "Panel de conductor",
@@ -213,9 +223,9 @@ private fun DriverDashboardContent(
       }
 
       DriverInfoStrip(
-          title = "Siguiente salida",
+          title = "Próxima salida",
           value =
-              nextSchedule?.let { "${it.departureTime} • ${route.name.toDriverDisplayName()}" }
+              nextSchedule?.let { "${it.departureTime}  →  ${route.name.toDriverDisplayName()}" }
                   ?: "No hay más rutas asignadas hoy",
           iconTint = nextShiftStatusColor,
           statusLabel = nextShiftStatusLabel,
@@ -252,12 +262,13 @@ private fun DriverPanelTabs(
 ) {
   Surface(
       modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(999.dp),
-      color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+      shape = RoundedCornerShape(18.dp),
+      color = DriverTabContainerBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(5.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxWidth().padding(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       DriverPanelTabButton(
           label = "Panel de trabajo",
@@ -284,11 +295,11 @@ private fun DriverPanelTabButton(
 ) {
   Surface(
       modifier = modifier.clickable(onClick = onClick),
-      shape = RoundedCornerShape(999.dp),
+      shape = RoundedCornerShape(12.dp),
       color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
   ) {
     Box(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 11.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
       Text(
@@ -307,9 +318,8 @@ private fun DriverNoMoreRoutesCard() {
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(28.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-      shadowElevation = 2.dp,
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 24.dp),
@@ -323,7 +333,7 @@ private fun DriverNoMoreRoutesCard() {
       )
       Text(
           text = "No hay más rutas asignadas hoy",
-          style = MaterialTheme.typography.headlineSmall,
+          style = MaterialTheme.typography.titleLarge,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.Bold,
       )
@@ -353,48 +363,83 @@ private fun DriverCurrentRouteCard(
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(24.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-      shadowElevation = 2.dp,
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
       Row(
           modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween,
       ) {
-        Text(
-            text = "RUTA ACTUAL",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.SemiBold,
-        )
+        Surface(
+            shape = RoundedCornerShape(999.dp),
+            color = DriverSoftPanelBackground,
+            border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+        ) {
+          Text(
+              text = "RUTA ACTUAL",
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              fontWeight = FontWeight.SemiBold,
+          )
+        }
         StatusChip(
             label = statusLabel,
             containerColor = statusContainer,
             contentColor = statusColor,
         )
       }
+
       Text(
           text = route.name.toDriverDisplayName(),
           style = MaterialTheme.typography.titleLarge,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.Bold,
       )
-      DriverQuickInfo(
-          label = "Hora de salida",
-          value = schedule?.departureTime ?: "No disponible",
-      )
-      DriverEmbeddedTripStatus(
-          elapsedTime = elapsedTime,
-          isTripRunning = isTripRunning,
-          tripCompleted = tripCompleted,
-          startedAt = startedAt,
-          endedAt = endedAt,
-      )
+
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          verticalAlignment = Alignment.Top,
+      ) {
+        Surface(
+            modifier = Modifier.weight(1f).height(108.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = DriverSoftPanelBackground,
+            border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+        ) {
+          Row(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.Top,
+          ) {
+            Icon(
+                imageVector = Icons.Default.AccessTime,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+            DriverQuickInfo(
+                label = "Hora de salida",
+                value = schedule?.departureTime ?: "No disponible",
+            )
+          }
+        }
+
+        DriverEmbeddedTripStatus(
+            elapsedTime = elapsedTime,
+            isTripRunning = isTripRunning,
+            tripCompleted = tripCompleted,
+            startedAt = startedAt,
+            endedAt = endedAt,
+            modifier = Modifier.weight(1f).height(108.dp),
+        )
+      }
       PillActionButton(
           text = if (isTripRunning) "FINALIZAR RUTA" else "INICIAR RUTA",
           onClick = onPrimaryAction,
@@ -412,16 +457,16 @@ private fun DriverQuickInfo(
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
     Text(
-        text = label.uppercase(),
+        text = label,
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontWeight = FontWeight.Medium,
     )
     Text(
         text = value,
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
     )
   }
 }
@@ -435,23 +480,24 @@ private fun DriverMetricCard(
 ) {
   Surface(
       modifier = modifier,
-      shape = RoundedCornerShape(20.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      shape = RoundedCornerShape(14.dp),
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
-          modifier = Modifier.size(38.dp),
+          modifier = Modifier.size(52.dp),
           contentAlignment = Alignment.Center,
       ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            color = DriverSoftPanelBackground,
+            border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
         ) {}
         icon()
       }
@@ -467,7 +513,7 @@ private fun DriverMetricCard(
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -485,75 +531,43 @@ private fun DriverEmbeddedTripStatus(
     tripCompleted: Boolean,
     startedAt: String?,
     endedAt: String?,
+    modifier: Modifier = Modifier,
 ) {
   Surface(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(18.dp),
-      color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      modifier = modifier,
+      shape = RoundedCornerShape(16.dp),
+      color = DriverSoftPanelBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-      Box(
-          modifier = Modifier.size(38.dp),
-          contentAlignment = Alignment.Center,
-      ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-        ) {}
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      }
-      Column(
-          modifier = Modifier.weight(1f),
-          verticalArrangement = Arrangement.spacedBy(4.dp),
-      ) {
-        Text(
-            text =
-                if (isTripRunning) "Recorrido en curso" else "Recorrido",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium,
-        )
-        Text(
-            text = elapsedTime,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text =
-                when {
-                  isTripRunning -> "Ruta en curso"
-                  tripCompleted -> "Ruta finalizada"
-                  else -> "Aun no ha iniciado"
-                },
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        if (startedAt != null || endedAt != null) {
-          Text(
-              text =
-                  when {
-                    startedAt != null && endedAt != null -> "$startedAt - $endedAt"
-                    startedAt != null -> "Inicio $startedAt"
-                    else -> "Fin $endedAt"
-                  },
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
-      }
+      Text(
+          text = "Recorrido",
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          fontWeight = FontWeight.Medium,
+      )
+      Text(
+          text = elapsedTime,
+          style = MaterialTheme.typography.titleLarge,
+          color = MaterialTheme.colorScheme.onSurface,
+          fontWeight = FontWeight.Bold,
+      )
+      Text(
+          text =
+              when {
+                isTripRunning -> "Ruta en curso"
+                tripCompleted -> "Ruta finalizada"
+                else -> "Aun no ha iniciado"
+              },
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+          fontStyle = FontStyle.Italic,
+      )
     }
   }
 }
@@ -569,18 +583,18 @@ private fun DriverInfoStrip(
 ) {
   Surface(
       modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(18.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      shape = RoundedCornerShape(16.dp),
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 18.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
       Column(
           modifier = Modifier.weight(1f),
-          verticalArrangement = Arrangement.spacedBy(4.dp),
+          verticalArrangement = Arrangement.spacedBy(6.dp),
       ) {
         Text(
             text = title.uppercase(),
@@ -588,39 +602,36 @@ private fun DriverInfoStrip(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Icon(
+              imageVector = Icons.Default.AccessTime,
+              contentDescription = null,
+              tint = iconTint,
+              modifier = Modifier.size(15.dp),
+          )
+          Text(
+              text = value,
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurface,
+              fontWeight = FontWeight.SemiBold,
+              maxLines = 2,
+              overflow = TextOverflow.Ellipsis,
+          )
+        }
       }
       Row(
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          horizontalArrangement = Arrangement.spacedBy(10.dp),
           verticalAlignment = Alignment.CenterVertically,
       ) {
         StatusChip(
             label = statusLabel,
             containerColor = statusContainer,
             contentColor = statusColor,
+            compact = true,
         )
-        Surface(
-            modifier = Modifier.size(28.dp),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-        ) {
-          Box(contentAlignment = Alignment.Center) {
-            Icon(
-                imageVector = Icons.Default.AccessTime,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(16.dp),
-            )
-          }
-        }
       }
     }
   }
@@ -631,6 +642,7 @@ private fun StatusChip(
     label: String,
     containerColor: Color,
     contentColor: Color,
+    compact: Boolean = false,
 ) {
   Surface(
       shape = RoundedCornerShape(999.dp),
@@ -638,8 +650,14 @@ private fun StatusChip(
   ) {
     Text(
         text = label.uppercase(),
-        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-        style = MaterialTheme.typography.labelSmall,
+        modifier =
+            Modifier.padding(
+                horizontal = if (compact) 7.dp else 9.dp,
+                vertical = if (compact) 3.dp else 4.dp,
+            ),
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontSize = if (compact) MaterialTheme.typography.labelSmall.fontSize * 0.88f else MaterialTheme.typography.labelSmall.fontSize * 0.94f
+        ),
         color = contentColor,
         fontWeight = FontWeight.SemiBold,
     )
@@ -650,13 +668,13 @@ private fun StatusChip(
 private fun DriverIncidentCard() {
   Surface(
       modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(24.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      shape = RoundedCornerShape(18.dp),
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
       Text(
           text = "REPORTE DE INCIDENCIAS",
@@ -704,93 +722,79 @@ private fun DriverHistoryCard(history: List<DriverTripHistoryItem>) {
             .contains(normalizedQuery)
       }
 
-  Surface(
+  Column(
       modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(24.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      verticalArrangement = Arrangement.spacedBy(14.dp),
   ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+    DriverHistoryFilterField(
+        value = historyQuery,
+        onValueChange = { historyQuery = it },
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
       Text(
-          text = "HISTÓRICO",
+          text = "RUTAS RECIENTES",
           style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           fontWeight = FontWeight.SemiBold,
       )
-
-      DriverHistoryFilterField(
-          value = historyQuery,
-          onValueChange = { historyQuery = it },
-      )
-
-      if (history.isEmpty()) {
+      if (history.isNotEmpty()) {
         Text(
-            text = "Aún no hay recorridos finalizados en esta sesión.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "Ver todo",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold,
         )
-      } else if (filteredHistory.isEmpty()) {
-        Text(
-            text = "No hay recorridos que coincidan con ese filtro.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+      }
+    }
+
+    when {
+      history.isEmpty() -> {
+        DriverInfoCard(
+            title = "Histórico",
+            body = "Sin recorridos recientes",
+            supporting = "Aún no hay recorridos finalizados en esta sesión.",
         )
-      } else {
+      }
+      filteredHistory.isEmpty() -> {
+        DriverInfoCard(
+            title = "Histórico",
+            body = "Sin coincidencias",
+            supporting = "No hay recorridos que coincidan con ese filtro.",
+        )
+      }
+      else -> {
         filteredHistory.forEach { item ->
+          val startParts = splitCostaRicaDateTimeLabel(item.startedAt)
+          val endParts = splitCostaRicaDateTimeLabel(item.endedAt)
+          val compactDuration = formatTripDurationCompactFromLabels(item.startedAt, item.endedAt)
+
           Surface(
               modifier = Modifier.fillMaxWidth(),
-              shape = RoundedCornerShape(18.dp),
-              color = MaterialTheme.colorScheme.surface,
-              border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+              shape = RoundedCornerShape(20.dp),
+              color = DriverCardBackground,
+              border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
           ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
               Row(
                   modifier = Modifier.fillMaxWidth(),
                   horizontalArrangement = Arrangement.SpaceBetween,
                   verticalAlignment = Alignment.Top,
               ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                  Text(
-                      text = item.routeName,
-                      style = MaterialTheme.typography.titleSmall,
-                      color = MaterialTheme.colorScheme.onSurface,
-                      fontWeight = FontWeight.SemiBold,
-                  )
-                  Row(
-                      horizontalArrangement = Arrangement.spacedBy(8.dp),
-                      verticalAlignment = Alignment.Top,
-                  ) {
-                    Icon(
-                        imageVector = Icons.Default.AccessTime,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                      Text(
-                          text = "Salida programada:",
-                          style = MaterialTheme.typography.bodySmall,
-                          color = MaterialTheme.colorScheme.onSurfaceVariant,
-                          fontWeight = FontWeight.Medium,
-                      )
-                      Text(
-                          text = item.departureTime,
-                          style = MaterialTheme.typography.bodySmall,
-                          color = MaterialTheme.colorScheme.onSurface,
-                      )
-                    }
-                  }
-                }
-
+                Text(
+                    text = item.routeName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f).padding(top = 4.dp),
+                )
                 Surface(
                     shape = RoundedCornerShape(999.dp),
                     color = Color(0xFFDDF1FF),
@@ -805,64 +809,54 @@ private fun DriverHistoryCard(history: List<DriverTripHistoryItem>) {
                 }
               }
 
+              Row(
+                  horizontalArrangement = Arrangement.spacedBy(8.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Icon(
+                    imageVector = Icons.Default.AccessTime,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = "Salida programada: ${item.departureTime}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
+                )
+              }
+
               Surface(
                   modifier = Modifier.fillMaxWidth(),
-                  shape = RoundedCornerShape(12.dp),
-                  color = MaterialTheme.colorScheme.surface,
-                  border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+                  shape = RoundedCornerShape(14.dp),
+                  color = DriverSoftPanelBackground,
+                  border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
               ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                  Row(
-                      horizontalArrangement = Arrangement.spacedBy(8.dp),
-                      verticalAlignment = Alignment.Top,
-                  ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                      Text(
-                          text = "HORA INICIO",
-                          style = MaterialTheme.typography.labelSmall,
-                          color = MaterialTheme.colorScheme.onSurfaceVariant,
-                          fontWeight = FontWeight.Medium,
-                      )
-                      Text(
-                          text = item.startedAt,
-                          style = MaterialTheme.typography.bodySmall,
-                          color = MaterialTheme.colorScheme.onSurface,
-                      )
-                    }
-                  }
-                  Row(
-                      horizontalArrangement = Arrangement.spacedBy(8.dp),
-                      verticalAlignment = Alignment.Top,
-                  ) {
-                    Icon(
-                        imageVector = Icons.Default.Flag,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                      Text(
-                          text = "HORA FINAL",
-                          style = MaterialTheme.typography.labelSmall,
-                          color = MaterialTheme.colorScheme.onSurfaceVariant,
-                          fontWeight = FontWeight.Medium,
-                      )
-                      Text(
-                          text = item.endedAt,
-                          style = MaterialTheme.typography.bodySmall,
-                          color = MaterialTheme.colorScheme.onSurface,
-                      )
-                    }
-                  }
+                  DriverHistoryMetricColumn(
+                      icon = Icons.Default.LocationOn,
+                      label = "INICIO",
+                      primaryValue = startParts?.second ?: item.startedAt,
+                      secondaryValue = startParts?.first,
+                      modifier = Modifier.weight(1f),
+                  )
+                  DriverHistoryMetricColumn(
+                      icon = Icons.Default.AccessTime,
+                      label = "DURACIÓN",
+                      primaryValue = compactDuration,
+                      modifier = Modifier.weight(1f),
+                  )
+                  DriverHistoryMetricColumn(
+                      icon = Icons.Default.Flag,
+                      label = "FINAL",
+                      primaryValue = endParts?.second ?: item.endedAt,
+                      secondaryValue = endParts?.first,
+                      modifier = Modifier.weight(1f),
+                  )
                 }
               }
             }
@@ -881,8 +875,8 @@ private fun DriverHistoryFilterField(
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(18.dp),
-      color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f),
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
@@ -901,13 +895,13 @@ private fun DriverHistoryFilterField(
           onValueChange = onValueChange,
           modifier = Modifier.weight(1f).padding(vertical = 12.dp),
           singleLine = true,
-          textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+          textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
           decorationBox = { innerTextField ->
             Box {
               if (value.isBlank()) {
                 Text(
                     text = "Buscar por ruta, salida, inicio o fin",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
               }
@@ -929,6 +923,51 @@ private fun DriverHistoryFilterField(
 }
 
 @Composable
+private fun DriverHistoryMetricColumn(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    primaryValue: String,
+    secondaryValue: String? = null,
+    modifier: Modifier = Modifier,
+) {
+  Column(
+      modifier = modifier,
+      verticalArrangement = Arrangement.spacedBy(6.dp),
+  ) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Icon(
+          imageVector = icon,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.size(12.dp),
+      )
+      Text(
+          text = label,
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          fontWeight = FontWeight.SemiBold,
+      )
+    }
+    Text(
+        text = primaryValue,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface,
+        fontWeight = FontWeight.Bold,
+    )
+    secondaryValue?.let {
+      Text(
+          text = it,
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+  }
+}
+
+@Composable
 private fun IncidentAction(
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -936,10 +975,10 @@ private fun IncidentAction(
     modifier: Modifier = Modifier,
 ) {
   Surface(
-      modifier = modifier.height(92.dp),
-      shape = RoundedCornerShape(22.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      modifier = modifier.height(118.dp),
+      shape = RoundedCornerShape(16.dp),
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(12.dp),
@@ -947,9 +986,10 @@ private fun IncidentAction(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
       Surface(
-          modifier = Modifier.size(44.dp),
+          modifier = Modifier.size(52.dp),
           shape = CircleShape,
-          color = MaterialTheme.colorScheme.surface,
+          color = DriverSoftPanelBackground,
+          border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
       ) {
         Box(contentAlignment = Alignment.Center) {
           Icon(
@@ -961,11 +1001,11 @@ private fun IncidentAction(
       }
       Text(
           text = label.uppercase(),
-          style = MaterialTheme.typography.labelSmall,
+          style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
-          fontWeight = FontWeight.Medium,
+          fontWeight = FontWeight.SemiBold,
           textAlign = TextAlign.Center,
-          modifier = Modifier.padding(top = 8.dp),
+          modifier = Modifier.padding(top = 10.dp),
       )
     }
   }
@@ -992,8 +1032,8 @@ private fun DriverInfoCard(
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(18.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(18.dp),
@@ -1027,8 +1067,8 @@ private fun DriverLoadingCard() {
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(18.dp),
-      color = MaterialTheme.colorScheme.surface,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(18.dp),
@@ -1101,6 +1141,60 @@ private fun currentCostaRicaDateTimeLabel(): String {
   val second = local.second.toString().padStart(2, '0')
   return "$day/$month/$year $hour:$minute:$second"
 }
+
+private fun formatTripDurationFromLabels(startedAt: String, endedAt: String): String {
+  val totalSeconds = tripDurationSecondsFromLabels(startedAt, endedAt)
+  val hours = totalSeconds / 3600
+  val minutes = (totalSeconds % 3600) / 60
+  val seconds = totalSeconds % 60
+  return "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"
+}
+
+private fun formatTripDurationCompactFromLabels(startedAt: String, endedAt: String): String =
+    formatCompactDuration(tripDurationSecondsFromLabels(startedAt, endedAt))
+
+private fun tripDurationSecondsFromLabels(startedAt: String, endedAt: String): Long {
+  val startInstant = parseCostaRicaDateTimeLabel(startedAt) ?: return 0L
+  val endInstant = parseCostaRicaDateTimeLabel(endedAt) ?: return 0L
+  return (endInstant.epochSeconds - startInstant.epochSeconds).coerceAtLeast(0)
+}
+
+private fun splitCostaRicaDateTimeLabel(value: String): Pair<String, String>? {
+  val parts = value.trim().split(" ")
+  if (parts.size != 2) return null
+  return parts[0] to parts[1]
+}
+
+private fun formatCompactDuration(totalSeconds: Long): String {
+  val seconds = totalSeconds.coerceAtLeast(0)
+  val hours = seconds / 3600
+  val minutes = (seconds % 3600) / 60
+  val remainingSeconds = seconds % 60
+
+  return when {
+    hours > 0 -> "${hours}h ${minutes}m"
+    minutes > 0 -> "${minutes} min"
+    else -> "${remainingSeconds} s"
+  }
+}
+
+private fun parseCostaRicaDateTimeLabel(value: String) =
+    runCatching {
+      val parts = value.trim().split(" ")
+      if (parts.size != 2) return null
+      val dateParts = parts[0].split("/")
+      val timeParts = parts[1].split(":")
+      if (dateParts.size != 3 || timeParts.size != 3) return null
+
+      val day = dateParts[0].toInt()
+      val month = dateParts[1].toInt()
+      val year = dateParts[2].toInt()
+      val hour = timeParts[0].toInt()
+      val minute = timeParts[1].toInt()
+      val second = timeParts[2].toInt()
+
+      LocalDateTime(year, month, day, hour, minute, second).toInstant(TimeZone.of("America/Costa_Rica"))
+    }.getOrNull()
 
 private fun String.toDriverDisplayName(): String =
     lowercase()
