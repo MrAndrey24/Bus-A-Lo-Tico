@@ -106,8 +106,8 @@ fun RouteAdministrativeDetailScreen(
 @Composable
 private fun AdministrativeTopBar(onBackClick: () -> Unit) {
     ScreenHeader(
-        title = "Ficha Técnica",
-        subtitle = "Información administrativa",
+        title = "Información administrativa",
+        subtitle = "Detalle",
         leadingContent = {
             IconButton(onClick = onBackClick) {
                 Icon(
@@ -235,12 +235,14 @@ private fun MetricCard(
 private fun AdministrativeLocationCard(route: Route) {
     val startLocation = listOfNotNull(
         route.startLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-        route.startLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle()
+        route.startLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+        route.startLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
     ).joinToString(", ")
 
     val endLocation = listOfNotNull(
         route.endLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-        route.endLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle()
+        route.endLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
+        route.endLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
     ).joinToString(", ")
 
     Card(
