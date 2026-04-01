@@ -144,7 +144,7 @@ fun BusAppNavigation(
               uiState = routeUiState,
               onSearchQueryChange = routeViewModel::onSearchQueryChanged,
               onRouteSelected = { route ->
-                  routeViewModel.onClearSearch()
+                  routeViewModel.onRouteSelected(route)
                   detailViewModel.loadStops(route.id)
               },
               onSelectRouteClick = { navController.navigate(BusAppScreen.Routes.name) },

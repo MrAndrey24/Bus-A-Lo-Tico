@@ -14,7 +14,6 @@ import com.example.shared.data.remote.trip.ITripExecutionRemoteDataSource
 import com.example.shared.data.remote.trip.TripExecutionRemoteDataSource
 import com.example.shared.data.remote.user.IUserRemoteDataSource
 import com.example.shared.data.remote.user.UserRemoteDataSource
-import com.example.shared.data.repositor.MapboxRepository
 import com.example.shared.data.repository.auth.AuthRepository
 import com.example.shared.data.repository.auth.IAuthRepository
 import com.example.shared.data.repository.company.CompanyRepository
@@ -24,6 +23,7 @@ import com.example.shared.data.repository.driver.IDriverRepository
 import com.example.shared.data.repository.location.ILocationRepository
 import com.example.shared.data.repository.location.LocationRepository
 import com.example.shared.data.repository.mapbox.IMapboxRepository
+import com.example.shared.data.repository.mapbox.MapboxRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.route.RouteRepository
 import com.example.shared.data.repository.trip.ITripExecutionRepository
