@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.shared.data.repository.auth.IAuthRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.user.IUserRepository
+import com.example.shared.domain.entities.Route
 import com.example.shared.domain.usecases.route.SearchRoutesByLocationUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -86,10 +87,10 @@ class RouteViewModel(
         }
     }
 
-    fun onClearSearch() {
+    fun onRouteSelected(route: Route) {
         searchJob?.cancel()
         _uiState.value = _uiState.value.copy(
-            searchQuery = "",
+            searchQuery = route.name,
             searchResults = emptyList(),
             isSearching = false
         )
