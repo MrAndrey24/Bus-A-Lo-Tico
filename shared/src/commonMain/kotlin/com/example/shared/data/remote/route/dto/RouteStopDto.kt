@@ -19,4 +19,15 @@ data class RouteStopDto(
             order = order
         )
     }
+
+    companion object {
+        fun fromDomain(stop: RouteStop): RouteStopDto {
+            return RouteStopDto(
+                name = stop.name,
+                latitude = stop.latitude,
+                longitude = stop.longitude,
+                order = stop.order,
+            )
+        }
+    }
 }

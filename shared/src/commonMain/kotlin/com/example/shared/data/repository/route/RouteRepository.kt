@@ -2,6 +2,8 @@ package com.example.shared.data.repository.route
 
 import com.example.shared.data.remote.route.IRouteRemoteDataSource
 import com.example.shared.domain.entities.Route
+import com.example.shared.domain.entities.RouteSchedule
+import com.example.shared.domain.entities.RouteStop
 
 class RouteRepository(
     private val remoteDataSource: IRouteRemoteDataSource
@@ -10,4 +12,10 @@ class RouteRepository(
     override suspend fun getRoute(routeId: String): Route? = remoteDataSource.getRoute(routeId)
     override suspend fun getRouteByDriverId(driverId: String): Route? =
         remoteDataSource.getRouteByDriverId(driverId)
+    override suspend fun upsertRouteStop(routeId: String, stop: RouteStop): RouteStop =
+        remoteDataSource.upsertRouteStop(routeId, stop)
+    override suspend fun deleteRouteStop(routeId: String, stopId: String) =
+        remoteDataSource.deleteRouteStop(routeId, stopId)
+    override suspend fun upsertRouteSchedule(routeId: String, schedule: RouteSchedule): RouteSchedule =
+        remoteDataSource.upsertRouteSchedule(routeId, schedule)
 }

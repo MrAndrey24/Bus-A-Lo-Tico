@@ -10,10 +10,15 @@ data class TripExecution(
     val durationSeconds: Int? = null,
     val status: TripExecutionStatus = TripExecutionStatus.IN_PROGRESS,
     val hadIncidents: Boolean = false,
+    val transferredToDriverId: String? = null,
+    val transferredAt: Long? = null,
 )
 
 enum class TripExecutionStatus {
+    PENDING,
     IN_PROGRESS,
+    DELAYED,
+    TRANSFERRED,
     COMPLETED,
     CANCELLED,
 }

@@ -14,6 +14,8 @@ data class TripExecutionDto(
     val durationSeconds: Int? = null,
     val status: String = TripExecutionStatus.IN_PROGRESS.name,
     val hadIncidents: Boolean = false,
+    val transferredToDriverId: String? = null,
+    val transferredAt: Long? = null,
 ) {
     fun toDomain(documentId: String): TripExecution {
         return TripExecution(
@@ -26,6 +28,8 @@ data class TripExecutionDto(
             durationSeconds = durationSeconds,
             status = TripExecutionStatus.entries.firstOrNull { it.name == status } ?: TripExecutionStatus.IN_PROGRESS,
             hadIncidents = hadIncidents,
+            transferredToDriverId = transferredToDriverId,
+            transferredAt = transferredAt,
         )
     }
 
@@ -40,6 +44,8 @@ data class TripExecutionDto(
                 durationSeconds = tripExecution.durationSeconds,
                 status = tripExecution.status.name,
                 hadIncidents = tripExecution.hadIncidents,
+                transferredToDriverId = tripExecution.transferredToDriverId,
+                transferredAt = tripExecution.transferredAt,
             )
         }
     }
