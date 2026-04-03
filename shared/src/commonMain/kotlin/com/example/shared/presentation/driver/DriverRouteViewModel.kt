@@ -2,10 +2,13 @@ package com.example.shared.presentation.driver
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.shared.data.repository.driver.IDriverRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.trip.ITripExecutionRepository
 import com.example.shared.domain.entities.Coordinate
+import com.example.shared.domain.entities.Driver
 import com.example.shared.domain.entities.Route
+import com.example.shared.domain.entities.RouteSchedule
 import com.example.shared.domain.entities.TripExecution
 import com.example.shared.domain.entities.TripIncident
 import com.example.shared.domain.entities.TripIncidentType
@@ -19,6 +22,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 class DriverRouteViewModel(
+    private val driverRepository: IDriverRepository,
     private val routeRepository: IRouteRepository,
     private val tripExecutionRepository: ITripExecutionRepository,
 ) : ViewModel() {
@@ -123,6 +127,41 @@ class DriverRouteViewModel(
     }
   }
 
+  fun resumeTrip(
+      tripExecutionId: String,
+      onSuccess: (TripExecution) -> Unit = {},
+      onFailure: (String) -> Unit = {},
+  ) {
+    if (tripExecutionId.isBlank()) {
+      onFailure("No se encontró el viaje detenido.")
+      return
+    }
+
+    _uiState.value = _uiState.value.copy(isResumingTrip = true)
+
+    viewModelScope.launch {
+      runCatching {
+            val existingTrip =
+                tripExecutionRepository.getTripExecution(tripExecutionId)
+                    ?: error("No se encontró el viaje detenido.")
+            tripExecutionRepository.updateTripExecution(
+                existingTrip.copy(
+                    status = TripExecutionStatus.IN_PROGRESS,
+                )
+            )
+          }
+          .onSuccess { tripExecution ->
+            refreshDriverData()
+            _uiState.value = _uiState.value.copy(isResumingTrip = false)
+            onSuccess(tripExecution)
+          }
+          .onFailure {
+            _uiState.value = _uiState.value.copy(isResumingTrip = false)
+            onFailure("No se pudo reanudar el viaje.")
+          }
+    }
+  }
+
   fun reportIncident(
       tripExecutionId: String,
       type: TripIncidentType,
@@ -144,7 +183,8 @@ class DriverRouteViewModel(
 
     viewModelScope.launch {
       runCatching {
-            tripExecutionRepository.addIncident(
+            val incident =
+                tripExecutionRepository.addIncident(
                 tripExecutionId = tripExecutionId,
                 incident =
                     TripIncident(
@@ -154,6 +194,15 @@ class DriverRouteViewModel(
                         location = location,
                     )
             )
+            val existingTrip =
+                tripExecutionRepository.getTripExecution(tripExecutionId)
+                    ?: error("No se encontró el viaje activo.")
+            tripExecutionRepository.updateTripExecution(
+                existingTrip.copy(
+                    status = TripExecutionStatus.DELAYED,
+                )
+            )
+            incident
           }
           .onSuccess { incident ->
             refreshDriverData()
@@ -163,6 +212,62 @@ class DriverRouteViewModel(
           .onFailure {
             _uiState.value = _uiState.value.copy(isReportingIncident = false)
             onFailure("No se pudo reportar la incidencia.")
+          }
+    }
+  }
+
+  fun transferTrip(
+      tripExecutionId: String,
+      targetDriverId: String,
+      onSuccess: () -> Unit = {},
+      onFailure: (String) -> Unit = {},
+  ) {
+    if (tripExecutionId.isBlank() || targetDriverId.isBlank()) {
+      onFailure("Selecciona un chofer para trasladar la ruta.")
+      return
+    }
+
+    _uiState.value = _uiState.value.copy(isTransferringTrip = true)
+
+    viewModelScope.launch {
+      runCatching {
+            val existingTrip =
+                tripExecutionRepository.getTripExecution(tripExecutionId)
+                    ?: error("No se encontró el viaje a trasladar.")
+            val route =
+                routeRepository.getRoute(existingTrip.routeId)
+                    ?: error("No se encontró la ruta a trasladar.")
+            val sourceSchedule =
+                route.schedules.firstOrNull { it.id == existingTrip.scheduleId }
+                    ?: error("No se encontró el horario original.")
+            val transferTimestamp = Clock.System.now().toEpochMilliseconds()
+
+            routeRepository.upsertRouteSchedule(
+                routeId = route.id,
+                schedule =
+                    RouteSchedule(
+                        driverId = targetDriverId,
+                        departureTime = sourceSchedule.departureTime,
+                        arrivalTime = sourceSchedule.arrivalTime,
+                    ),
+            )
+
+            tripExecutionRepository.updateTripExecution(
+                existingTrip.copy(
+                    status = TripExecutionStatus.TRANSFERRED,
+                    transferredToDriverId = targetDriverId,
+                    transferredAt = transferTimestamp,
+                ),
+            )
+          }
+          .onSuccess {
+            refreshDriverData()
+            _uiState.value = _uiState.value.copy(isTransferringTrip = false, activeTripExecutionId = null)
+            onSuccess()
+          }
+          .onFailure {
+            _uiState.value = _uiState.value.copy(isTransferringTrip = false)
+            onFailure("No se pudo trasladar la ruta.")
           }
     }
   }
@@ -178,22 +283,38 @@ class DriverRouteViewModel(
             errorMessage = "No hay una ruta asignada a este conductor.",
         )
 
+    val currentDriver = driverRepository.getDriver(driverId)
     val tripExecutions = tripExecutionRepository.getTripExecutionsByDriver(driverId)
     val currentTripExecution = tripExecutions
-        .filter { it.status == TripExecutionStatus.IN_PROGRESS }
+        .filter {
+          it.status == TripExecutionStatus.IN_PROGRESS || it.status == TripExecutionStatus.DELAYED
+        }
         .maxByOrNull { it.startedAt }
     val todayKey = todayDateKey()
     val completedTodayScheduleIds =
         tripExecutions
-            .filter { it.status == TripExecutionStatus.COMPLETED && it.routeId == route.id }
+            .filter {
+              (it.status == TripExecutionStatus.COMPLETED || it.status == TripExecutionStatus.TRANSFERRED) &&
+                  it.routeId == route.id
+            }
             .filter { execution -> dateKey(execution.startedAt) == todayKey }
             .map { it.scheduleId }
             .toSet()
 
+    val transferDrivers =
+        currentDriver?.companyId
+            ?.let { companyId -> driverRepository.getDriversByCompany(companyId) }
+            .orEmpty()
+            .filter { it.id != driverId }
+            .sortedBy { it.name }
+
     val routeCache = mutableMapOf(route.id to route)
     val history =
         tripExecutions
-            .filter { it.status == TripExecutionStatus.COMPLETED && it.endedAt != null }
+            .filter {
+              (it.status == TripExecutionStatus.COMPLETED && it.endedAt != null) ||
+                  it.status == TripExecutionStatus.TRANSFERRED
+            }
             .sortedByDescending { it.startedAt }
             .map { execution ->
               val executionRoute = routeCache.getOrPut(execution.routeId) {
@@ -212,7 +333,13 @@ class DriverRouteViewModel(
                   routeName = executionRoute.name,
                   departureTime = departureTime,
                   startedAtLabel = formatCostaRicaDateTimeLabel(execution.startedAt),
-                  endedAtLabel = execution.endedAt?.let(::formatCostaRicaDateTimeLabel) ?: "--",
+                  endedAtLabel =
+                      when {
+                        execution.endedAt != null -> formatCostaRicaDateTimeLabel(execution.endedAt)
+                        execution.transferredAt != null -> formatCostaRicaDateTimeLabel(execution.transferredAt)
+                        else -> "--"
+                      },
+                  statusLabel = execution.status.toHistoryStatusLabel(),
                   incidentTypeLabel = latestIncident?.type?.toDisplayLabel(),
                   incidentDetail = latestIncident?.detail?.takeIf { it.isNotBlank() },
               )
@@ -226,6 +353,7 @@ class DriverRouteViewModel(
         currentTripExecution = currentTripExecution,
         completedTodayScheduleIds = completedTodayScheduleIds,
         tripHistory = history,
+        transferDrivers = transferDrivers,
     )
   }
 
@@ -255,6 +383,17 @@ class DriverRouteViewModel(
       TripIncidentType.ACCIDENT -> "Accidente"
       TripIncidentType.BREAKDOWN -> "Avería"
       TripIncidentType.SECURITY -> "Seguridad"
+    }
+  }
+
+  private fun TripExecutionStatus.toHistoryStatusLabel(): String {
+    return when (this) {
+      TripExecutionStatus.TRANSFERRED -> "TRASLADADO"
+      TripExecutionStatus.COMPLETED -> "COMPLETADO"
+      TripExecutionStatus.DELAYED -> "DETENIDO"
+      TripExecutionStatus.IN_PROGRESS -> "EN CURSO"
+      TripExecutionStatus.PENDING -> "PENDIENTE"
+      TripExecutionStatus.CANCELLED -> "CANCELADO"
     }
   }
 }

@@ -17,4 +17,14 @@ data class RouteScheduleDto(
             arrivalTime = arrivalTime
         )
     }
+
+    companion object {
+        fun fromDomain(schedule: RouteSchedule): RouteScheduleDto {
+            return RouteScheduleDto(
+                driverId = schedule.driverId,
+                departureTime = schedule.departureTime,
+                arrivalTime = schedule.arrivalTime,
+            )
+        }
+    }
 }
