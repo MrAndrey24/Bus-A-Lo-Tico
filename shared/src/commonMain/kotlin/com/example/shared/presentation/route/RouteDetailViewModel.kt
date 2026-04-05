@@ -6,13 +6,6 @@ import com.example.shared.data.repository.mapbox.IMapboxRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
-import kotlin.math.PI
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlin.time.Clock
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +15,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.time.Clock
 
 class RouteDetailViewModel(
     private val mapboxRepository: IMapboxRepository,
@@ -67,8 +67,6 @@ class RouteDetailViewModel(
 
           val coordinates =
               route.stops.map { Coordinate(it.latitude, it.longitude) }.toMutableList()
-
-          coordinates.add(coordinates.first())
 
           loadMapboxLine(coordinates)
 
