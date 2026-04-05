@@ -153,7 +153,7 @@ class RouteDetailViewModel(
               nextStop.latitude,
               nextStop.longitude,
           )
-      if (distanceToNext < 500) {
+      if (distanceToNext < 300) {
         _currentStopIndex.value = nextIndex
       }
     }
