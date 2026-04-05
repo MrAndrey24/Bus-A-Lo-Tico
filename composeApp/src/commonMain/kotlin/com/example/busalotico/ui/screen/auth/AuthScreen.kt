@@ -49,8 +49,10 @@ import com.example.shared.presentation.auth.AuthUiState
 @Composable
 fun AuthScreen(
     uiState: AuthUiState,
+    companies: List<com.example.shared.domain.entities.Company>,
+    companiesLoading: Boolean,
     onSignIn: (email: String, password: String) -> Unit,
-    onSignUp: (name: String, email: String, password: String, role: UserRole) -> Unit,
+    onSignUp: (name: String, email: String, password: String, role: UserRole, companyId: String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
   var isRegisterMode by remember { mutableStateOf(false) }
@@ -59,6 +61,8 @@ fun AuthScreen(
   var password by remember { mutableStateOf("") }
   var passwordVisible by remember { mutableStateOf(false) }
   var selectedRole by remember { mutableStateOf(UserRole.PASSENGER) }
+
+  val canSubmit = email.isNotBlank() && password.isNotBlank()
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Box(modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
@@ -152,7 +156,9 @@ fun AuthScreen(
                   SelectableFilterChip(
                       text = role.toDisplayName(),
                       selected = selectedRole == role,
-                      onClick = { selectedRole = role },
+                      onClick = {
+                        selectedRole = role
+                      },
                       showChevron = false,
                   )
                 }
@@ -174,6 +180,7 @@ fun AuthScreen(
                 text =
                     if (uiState.isLoading) "Procesando..."
                     else if (isRegisterMode) "Crear cuenta" else "Iniciar Sesión",
+                enabled = !uiState.isLoading && canSubmit,
                 onClick = {
                   if (isRegisterMode) {
                     onSignUp(
@@ -181,6 +188,7 @@ fun AuthScreen(
                         email,
                         password,
                         selectedRole,
+                        null,
                     )
                   } else {
                     onSignIn(email, password)

@@ -20,9 +20,10 @@ class UserRepository(
         userId: String,
         email: String,
         name: String,
-        role: UserRole
+        role: UserRole,
+        companyId: String?,
     ): UserProfile {
-        return remoteDataSource.upsertUserProfile(userId, email, name, role)
+        return remoteDataSource.upsertUserProfile(userId, email, name, role, companyId)
     }
 
     override suspend fun setRouteFavorite(userId: String, routeId: String, isFavorite: Boolean) {

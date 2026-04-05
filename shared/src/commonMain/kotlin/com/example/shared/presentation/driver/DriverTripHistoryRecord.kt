@@ -6,6 +6,7 @@ data class DriverTripHistoryRecord(
     val departureTime: String,
     val startedAtLabel: String,
     val endedAtLabel: String,
+    val statusLabel: String = "COMPLETADO",
     val incidentTypeLabel: String? = null,
     val incidentDetail: String? = null,
 )

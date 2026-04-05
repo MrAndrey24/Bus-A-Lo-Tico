@@ -5,6 +5,7 @@ data class UserProfile(
     val email: String,
     val name: String,
     val role: UserRole,
+    val companyId: String? = null,
     val favoriteRouteIds: Set<String> = emptySet()
 )
 

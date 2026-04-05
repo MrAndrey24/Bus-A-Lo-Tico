@@ -20,12 +20,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.busalotico.ui.screen.profile.ProfileScreen
+import com.example.shared.domain.entities.Company
 
 @Composable
 fun AdminNavigation(
     userName: String,
     userEmail: String,
     userRole: String,
+    companyId: String?,
+    companies: List<Company>,
+    companiesLoading: Boolean,
+    companyLoadError: String?,
+    onUpdateCompany: (String) -> Unit,
     onSignOut: () -> Unit,
 ) {
   val navController = rememberNavController()
@@ -83,6 +89,11 @@ fun AdminNavigation(
             userName = userName,
             userEmail = userEmail,
             userRole = userRole,
+            currentCompanyId = companyId,
+            companies = companies,
+            companiesLoading = companiesLoading,
+            companyLoadError = companyLoadError,
+            onUpdateCompany = onUpdateCompany,
             onSignOut = onSignOut,
         )
       }
