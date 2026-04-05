@@ -1,6 +1,7 @@
 package com.example.busalotico.ui.screen.profile
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,20 +21,38 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.busalotico.ui.components.button.PillActionButton
 import com.example.busalotico.ui.components.header.ScreenHeader
+import com.example.busalotico.ui.components.input.DropdownSelectField
+import com.example.shared.domain.entities.Company
 
 @Composable
 fun ProfileScreen(
     userName: String,
     userEmail: String,
     userRole: String,
+    currentCompanyId: String? = null,
+    companies: List<Company> = emptyList(),
+    companiesLoading: Boolean = false,
+    companyLoadError: String? = null,
+    onUpdateCompany: ((String) -> Unit)? = null,
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+  var selectedCompanyId by remember(currentCompanyId, companies) {
+    mutableStateOf(currentCompanyId.orEmpty())
+  }
+  val selectedCompanyName = companies.firstOrNull { it.id == selectedCompanyId }?.name.orEmpty()
+  val showCompanyEditor = onUpdateCompany != null
+
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.fillMaxSize()) {
       ScreenHeader(
@@ -111,6 +130,67 @@ fun ProfileScreen(
             ProfileInfoRow(label = "Correo", value = userEmail.ifBlank { "-" })
             Spacer(modifier = Modifier.height(12.dp))
             ProfileInfoRow(label = "Rol", value = userRole.ifBlank { "-" })
+
+            if (showCompanyEditor) {
+              Spacer(modifier = Modifier.height(12.dp))
+              ProfileInfoRow(
+                  label = "Empresa actual",
+                  value =
+                      companies.firstOrNull { it.id == currentCompanyId }?.name
+                          ?: currentCompanyId.orEmpty().ifBlank { "Sin empresa vinculada" },
+              )
+
+              Spacer(modifier = Modifier.height(20.dp))
+
+              Surface(
+                  modifier = Modifier.fillMaxWidth(),
+                  shape = RoundedCornerShape(20.dp),
+                  color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                  border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+              ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                  Text(
+                      text = "Empresa administrada",
+                      style = MaterialTheme.typography.titleSmall,
+                      color = MaterialTheme.colorScheme.onSurface,
+                      fontWeight = FontWeight.SemiBold,
+                  )
+
+                  DropdownSelectField(
+                      value = selectedCompanyName,
+                      placeholder =
+                          if (companiesLoading) "Cargando empresas..." else "Selecciona una empresa",
+                      enabled = companies.isNotEmpty() && !companiesLoading,
+                      options = companies.map { it.name },
+                      onSelect = { selectedName ->
+                        selectedCompanyId =
+                            companies.firstOrNull { it.name == selectedName }?.id.orEmpty()
+                      },
+                  )
+
+                  companyLoadError?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                  }
+
+                  PillActionButton(
+                      text = "Actualizar empresa",
+                      enabled =
+                          selectedCompanyId.isNotBlank() &&
+                              selectedCompanyId != currentCompanyId &&
+                              !companiesLoading,
+                      onClick = { onUpdateCompany?.invoke(selectedCompanyId) },
+                      modifier = Modifier.fillMaxWidth(),
+                  )
+                }
+              }
+            }
           }
         }
       }
