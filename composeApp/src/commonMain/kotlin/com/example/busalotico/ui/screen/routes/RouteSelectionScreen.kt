@@ -33,6 +33,8 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,9 +63,36 @@ fun RouteSelectionScreen (
     onToggleFavorite: (routeId: String, isFavorite: Boolean) -> Unit = { _, _ -> },
 ) {
     val provinces = remember { demoCRGeoData() }
-    var showLocationPanel by remember { mutableStateOf(false) }
+    val filtersSaver =
+        remember(provinces) {
+            listSaver<RouteFiltersState, String?>(
+                save = { state ->
+                    listOf(
+                        state.query,
+                        state.nearMeOnly.toString(),
+                        state.favoritesOnly.toString(),
+                        state.selectedProvince?.name,
+                        state.selectedCanton?.name,
+                        state.selectedDistrict,
+                    )
+                },
+                restore = { saved ->
+                    val province = provinces.firstOrNull { it.name == saved.getOrNull(3) }
+                    val canton = province?.cantons?.firstOrNull { it.name == saved.getOrNull(4) }
+                    RouteFiltersState(
+                        query = saved.getOrNull(0).orEmpty(),
+                        nearMeOnly = saved.getOrNull(1).toBoolean(),
+                        favoritesOnly = saved.getOrNull(2).toBoolean(),
+                        selectedProvince = province,
+                        selectedCanton = canton,
+                        selectedDistrict = saved.getOrNull(5),
+                    )
+                },
+            )
+        }
+    var showLocationPanel by rememberSaveable { mutableStateOf(false) }
 
-    var filters by remember { mutableStateOf(RouteFiltersState()) }
+    var filters by rememberSaveable(stateSaver = filtersSaver) { mutableStateOf(RouteFiltersState()) }
     var favoriteRouteIds by
     remember(uiState.routes) {
         mutableStateOf(uiState.routes.filter { it.isFavorite }.map { it.id }.toSet())

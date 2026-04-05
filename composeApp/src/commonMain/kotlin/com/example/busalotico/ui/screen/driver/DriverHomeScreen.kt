@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,8 +55,10 @@ import androidx.compose.ui.unit.dp
 import com.example.busalotico.ui.components.button.PillActionButton
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.shared.domain.entities.Coordinate
+import com.example.shared.domain.entities.Driver
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteSchedule
+import com.example.shared.domain.entities.TripExecutionStatus
 import com.example.shared.domain.entities.TripIncidentType
 import com.example.shared.presentation.driver.DriverTripHistoryRecord
 import com.example.shared.presentation.driver.DriverRouteViewModel
@@ -130,9 +133,13 @@ fun DriverHomeScreen(
               currentTripStartedAt = uiState.currentTripExecution?.startedAt,
               completedTodayScheduleIds = uiState.completedTodayScheduleIds,
               history = uiState.tripHistory,
+              transferDrivers = uiState.transferDrivers,
               isStartingTrip = uiState.isStartingTrip,
               isEndingTrip = uiState.isEndingTrip,
+              isResumingTrip = uiState.isResumingTrip,
+              isTransferringTrip = uiState.isTransferringTrip,
               isReportingIncident = uiState.isReportingIncident,
+              currentTripStatus = uiState.currentTripExecution?.status,
               coordinate = coordinate,
               onStartTrip = { routeId, scheduleId, driverId, onSuccess ->
                 viewModel.startTrip(
@@ -146,6 +153,20 @@ fun DriverHomeScreen(
                 viewModel.endTrip(
                     tripExecutionId = tripExecutionId,
                     onSuccess = { onSuccess() },
+                )
+              },
+              onResumeTrip = { tripExecutionId, onSuccess ->
+                viewModel.resumeTrip(
+                    tripExecutionId = tripExecutionId,
+                    onSuccess = { onSuccess() },
+                )
+              },
+              onTransferTrip = { tripExecutionId, targetDriverId, onSuccess, onFailure ->
+                viewModel.transferTrip(
+                    tripExecutionId = tripExecutionId,
+                    targetDriverId = targetDriverId,
+                    onSuccess = onSuccess,
+                    onFailure = onFailure,
                 )
               },
               onReportIncident = { tripExecutionId, type, detail, incidentLocation, onSuccess, onFailure ->
@@ -178,12 +199,23 @@ private fun DriverDashboardContent(
     currentTripStartedAt: Long?,
     completedTodayScheduleIds: Set<String>,
     history: List<DriverTripHistoryRecord>,
+    transferDrivers: List<Driver>,
     isStartingTrip: Boolean,
     isEndingTrip: Boolean,
+    isResumingTrip: Boolean,
+    isTransferringTrip: Boolean,
     isReportingIncident: Boolean,
+    currentTripStatus: TripExecutionStatus?,
     coordinate: Coordinate?,
     onStartTrip: (routeId: String, scheduleId: String, driverId: String, onSuccess: () -> Unit) -> Unit,
     onEndTrip: (tripExecutionId: String, onSuccess: () -> Unit) -> Unit,
+    onResumeTrip: (tripExecutionId: String, onSuccess: () -> Unit) -> Unit,
+    onTransferTrip: (
+        tripExecutionId: String,
+        targetDriverId: String,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit,
+    ) -> Unit,
     onReportIncident: (
         tripExecutionId: String,
         type: TripIncidentType,
@@ -200,6 +232,7 @@ private fun DriverDashboardContent(
   var routeNotice by remember(route.id) { mutableStateOf<DriverNotice?>(null) }
 
   val isTripRunning = activeTripExecutionId != null
+  val isTripDelayed = currentTripStatus == TripExecutionStatus.DELAYED
   val remainingSchedules = schedules.filterNot { completedTodayScheduleIds.contains(it.id) }
   val currentSchedule =
       activeTripScheduleId?.let { activeId ->
@@ -211,13 +244,14 @@ private fun DriverDashboardContent(
       currentSchedule?.let { current ->
         remainingSchedules.dropWhile { it.id != current.id }.drop(1).firstOrNull()
       }
-  val routeStatusLabel = "Activa"
-  val routeStatusColor = MaterialTheme.colorScheme.tertiary
-  val routeStatusContainer = MaterialTheme.colorScheme.tertiaryContainer
+  val routeStatusLabel = if (isTripDelayed) "Detenida" else "Activa"
+  val routeStatusColor = if (isTripDelayed) Color(0xFF8A6B2B) else MaterialTheme.colorScheme.tertiary
+  val routeStatusContainer = if (isTripDelayed) Color(0xFFFFF4CC) else MaterialTheme.colorScheme.tertiaryContainer
   val nextShiftStatusLabel = if (nextSchedule != null) "Programada" else "Sin más"
   val nextShiftStatusColor = Color(0xFF8A6B2B)
   val nextShiftStatusContainer = Color(0xFFFFF4CC)
   var pendingIncidentType by remember { mutableStateOf<TripIncidentType?>(null) }
+  var showTransferDialog by remember { mutableStateOf(false) }
   var incidentError by remember { mutableStateOf<String?>(null) }
 
   LaunchedEffect(activeTripExecutionId, currentTripStartedAt) {
@@ -266,14 +300,27 @@ private fun DriverDashboardContent(
             statusColor = routeStatusColor,
             statusContainer = routeStatusContainer,
             isTripRunning = isTripRunning,
+            isTripDelayed = isTripDelayed,
             elapsedTime = formatElapsedTime(tripElapsedSeconds),
             tripCompleted = false,
             startedAt = null,
             endedAt = null,
             isStartingTrip = isStartingTrip,
             isEndingTrip = isEndingTrip,
+            isResumingTrip = isResumingTrip,
+            isTransferringTrip = isTransferringTrip,
             onPrimaryAction = {
-              if (isTripRunning) {
+              if (isTripDelayed) {
+                activeTripExecutionId?.let { tripId ->
+                  onResumeTrip(tripId) {
+                    routeNotice =
+                        DriverNotice(
+                            message = "Ruta reanudada. El recorrido continúa.",
+                            tone = DriverNoticeTone.INFO,
+                        )
+                  }
+                }
+              } else if (isTripRunning) {
                 activeTripExecutionId?.let { tripId ->
                   onEndTrip(tripId) {
                     tripElapsedSeconds = 0
@@ -293,6 +340,17 @@ private fun DriverDashboardContent(
                           tone = DriverNoticeTone.INFO,
                       )
                 }
+              }
+            },
+            onTransferClick = {
+              if (activeTripExecutionId == null) {
+                routeNotice =
+                    DriverNotice(
+                        message = "No hay una ruta detenida para trasladar.",
+                        tone = DriverNoticeTone.ERROR,
+                    )
+              } else {
+                showTransferDialog = true
               }
             },
         )
@@ -332,6 +390,8 @@ private fun DriverDashboardContent(
           onBreakdownClick = {
             if (activeTripExecutionId == null) {
               incidentError = "Inicia una ruta antes de reportar incidencias."
+            } else if (isTripDelayed) {
+              incidentError = "La ruta ya está detenida por una avería."
             } else {
               incidentError = null
               pendingIncidentType = TripIncidentType.BREAKDOWN
@@ -382,6 +442,39 @@ private fun DriverDashboardContent(
           )
         },
         errorMessage = incidentError,
+    )
+  }
+
+  if (showTransferDialog && activeTripExecutionId != null) {
+    TransferRouteDialog(
+        drivers = transferDrivers,
+        isSubmitting = isTransferringTrip,
+        onDismiss = {
+          if (!isTransferringTrip) {
+            showTransferDialog = false
+          }
+        },
+        onConfirm = { targetDriverId ->
+          onTransferTrip(
+              activeTripExecutionId,
+              targetDriverId,
+              {
+                showTransferDialog = false
+                routeNotice =
+                    DriverNotice(
+                        message = "Ruta trasladada correctamente.",
+                        tone = DriverNoticeTone.WARNING,
+                    )
+              },
+              { message ->
+                routeNotice =
+                    DriverNotice(
+                        message = message,
+                        tone = DriverNoticeTone.ERROR,
+                    )
+              },
+          )
+        },
     )
   }
 }
@@ -485,6 +578,7 @@ private fun DriverCurrentRouteCard(
     statusColor: Color,
     statusContainer: Color,
     isTripRunning: Boolean,
+    isTripDelayed: Boolean,
     elapsedTime: String,
     tripCompleted: Boolean,
     startedAt: String?,
@@ -492,6 +586,9 @@ private fun DriverCurrentRouteCard(
     onPrimaryAction: () -> Unit,
     isStartingTrip: Boolean = false,
     isEndingTrip: Boolean = false,
+    isResumingTrip: Boolean = false,
+    isTransferringTrip: Boolean = false,
+    onTransferClick: () -> Unit = {},
 ) {
   Surface(
       modifier = Modifier.fillMaxWidth(),
@@ -567,6 +664,7 @@ private fun DriverCurrentRouteCard(
         DriverEmbeddedTripStatus(
             elapsedTime = elapsedTime,
             isTripRunning = isTripRunning,
+            isTripDelayed = isTripDelayed,
             tripCompleted = tripCompleted,
             startedAt = startedAt,
             endedAt = endedAt,
@@ -577,15 +675,28 @@ private fun DriverCurrentRouteCard(
           text =
               when {
                 isStartingTrip -> "INICIANDO..."
+                isResumingTrip -> "REANUDANDO..."
                 isEndingTrip -> "FINALIZANDO..."
+                isTripDelayed -> "REANUDAR RUTA"
                 isTripRunning -> "FINALIZAR RUTA"
                 else -> "INICIAR RUTA"
               },
           onClick = onPrimaryAction,
           modifier = Modifier.fillMaxWidth(),
           containerColor = MaterialTheme.colorScheme.primary,
-          enabled = !isStartingTrip && !isEndingTrip,
+          enabled = !isStartingTrip && !isEndingTrip && !isResumingTrip,
       )
+      if (isTripDelayed) {
+        PillActionButton(
+            text = if (isTransferringTrip) "TRASLADANDO..." else "TRASLADAR RUTA",
+            onClick = onTransferClick,
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
+            enabled = !isTransferringTrip && !isResumingTrip && !isEndingTrip,
+        )
+      }
     }
   }
 }
@@ -726,6 +837,7 @@ private fun DriverMetricCard(
 private fun DriverEmbeddedTripStatus(
     elapsedTime: String,
     isTripRunning: Boolean,
+    isTripDelayed: Boolean,
     tripCompleted: Boolean,
     startedAt: String?,
     endedAt: String?,
@@ -756,6 +868,7 @@ private fun DriverEmbeddedTripStatus(
       Text(
           text =
               when {
+                isTripDelayed -> "Ruta detenida por avería"
                 isTripRunning -> "Ruta en curso"
                 tripCompleted -> "Ruta finalizada"
                 else -> "Aun no ha iniciado"
@@ -1044,6 +1157,89 @@ private fun IncidentReportDialog(
 }
 
 @Composable
+private fun TransferRouteDialog(
+    drivers: List<Driver>,
+    isSubmitting: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+  var selectedDriverId by remember(drivers) { mutableStateOf(drivers.firstOrNull()?.id) }
+
+  AlertDialog(
+      onDismissRequest = onDismiss,
+      shape = RoundedCornerShape(24.dp),
+      containerColor = DriverCardBackground,
+      tonalElevation = 0.dp,
+      title = {
+        Text(
+            text = "Trasladar ruta",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+        )
+      },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          Text(
+              text = "Selecciona otro chofer de la misma compañía para asignarle esta ruta.",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+
+          if (drivers.isEmpty()) {
+            DriverInlineAlert(
+                message = "No hay otros choferes disponibles en la misma compañía.",
+                tone = DriverNoticeTone.ERROR,
+            )
+          } else {
+            drivers.forEach { driver ->
+              Surface(
+                  modifier = Modifier.fillMaxWidth().clickable(enabled = !isSubmitting) { selectedDriverId = driver.id },
+                  shape = RoundedCornerShape(14.dp),
+                  color = DriverSoftPanelBackground,
+                  border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+              ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                  RadioButton(
+                      selected = selectedDriverId == driver.id,
+                      onClick = if (isSubmitting) null else ({ selectedDriverId = driver.id }),
+                  )
+                  Text(
+                      text = driver.name,
+                      style = MaterialTheme.typography.bodyMedium,
+                      color = MaterialTheme.colorScheme.onSurface,
+                      fontWeight = FontWeight.Medium,
+                  )
+                }
+              }
+            }
+          }
+        }
+      },
+      confirmButton = {
+        TextButton(
+            onClick = { selectedDriverId?.let(onConfirm) },
+            enabled = !isSubmitting && selectedDriverId != null && drivers.isNotEmpty(),
+        ) {
+          Text(if (isSubmitting) "Trasladando..." else "Confirmar")
+        }
+      },
+      dismissButton = {
+        TextButton(
+            onClick = onDismiss,
+            enabled = !isSubmitting,
+        ) {
+          Text("Cancelar")
+        }
+      },
+  )
+}
+
+@Composable
 private fun DriverHistoryCard(history: List<DriverTripHistoryRecord>) {
   var historyQuery by remember { mutableStateOf("") }
   val filteredHistory =
@@ -1132,13 +1328,17 @@ private fun DriverHistoryCard(history: List<DriverTripHistoryRecord>) {
                 )
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = Color(0xFFDDF1FF),
+                    color =
+                        if (item.statusLabel == "TRASLADADO") Color(0xFFFFF4CC)
+                        else Color(0xFFDDF1FF),
                 ) {
                   Text(
-                      text = "COMPLETADO",
+                      text = item.statusLabel,
                       modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                       style = MaterialTheme.typography.labelSmall,
-                      color = Color(0xFF2A6F97),
+                      color =
+                          if (item.statusLabel == "TRASLADADO") Color(0xFF8A6B2B)
+                          else Color(0xFF2A6F97),
                       fontWeight = FontWeight.SemiBold,
                   )
                 }

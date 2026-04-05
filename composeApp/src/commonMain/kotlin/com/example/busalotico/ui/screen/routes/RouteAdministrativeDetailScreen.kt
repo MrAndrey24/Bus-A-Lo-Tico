@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.EditLocationAlt
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Schedule
@@ -31,6 +32,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +59,7 @@ fun RouteAdministrativeDetailScreen(
     routeId: String,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
+    onStopMaintenanceClick: (String) -> Unit = {},
     viewModel: RouteAdministrativeDetailViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -95,6 +99,7 @@ fun RouteAdministrativeDetailScreen(
                     AdministrativeDetailContent(
                         route = uiState.route!!,
                         driverNamesById = uiState.driverNamesById,
+                        onStopMaintenanceClick = onStopMaintenanceClick,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -124,6 +129,7 @@ private fun AdministrativeTopBar(onBackClick: () -> Unit) {
 private fun AdministrativeDetailContent(
     route: Route,
     driverNamesById: Map<String, String>,
+    onStopMaintenanceClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -133,11 +139,38 @@ private fun AdministrativeDetailContent(
     ) {
         item { AdministrativeHeroCard(route) }
         item { AdministrativeMetricsSection(route) }
-        item { AdministrativeLocationCard(route) }
+        item {
+            AdministrativeLocationCard(
+                route = route,
+                onStopMaintenanceClick = { onStopMaintenanceClick(route.id) },
+            )
+        }
         item { AdministrativePaymentCard(route) }
         item { AdministrativeScheduleCard(route.schedules, driverNamesById) }
         item { AdministrativeFooter(route) }
         item { Spacer(modifier = Modifier.height(24.dp)) }
+    }
+}
+
+@Composable
+private fun StopMaintenanceButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+    ) {
+        Icon(
+            imageVector = Icons.Default.EditLocationAlt,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "Mantenimiento de paradas",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 
@@ -232,7 +265,10 @@ private fun MetricCard(
 }
 
 @Composable
-private fun AdministrativeLocationCard(route: Route) {
+private fun AdministrativeLocationCard(
+    route: Route,
+    onStopMaintenanceClick: () -> Unit,
+) {
     val startLocation = listOfNotNull(
         route.startLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
         route.startLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
@@ -276,6 +312,8 @@ private fun AdministrativeLocationCard(route: Route) {
                     iconColor = MaterialTheme.colorScheme.error
                 )
             }
+
+            StopMaintenanceButton(onClick = onStopMaintenanceClick)
         }
     }
 }

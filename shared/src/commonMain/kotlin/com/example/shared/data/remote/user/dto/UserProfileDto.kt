@@ -8,7 +8,8 @@ import kotlinx.serialization.Serializable
 data class UserProfileDto(
     val email: String = "",
     val name: String = "",
-    val role: String = UserRole.PASSENGER.name
+    val role: String = UserRole.PASSENGER.name,
+    val companyId: String? = null,
 ) {
     fun toDomain(userId: String, favoriteRouteIds: Set<String>): UserProfile {
         return UserProfile(
@@ -16,6 +17,7 @@ data class UserProfileDto(
             email = email,
             name = name,
             role = UserRole.entries.firstOrNull { it.name == role } ?: UserRole.PASSENGER,
+            companyId = companyId,
             favoriteRouteIds = favoriteRouteIds
         )
     }

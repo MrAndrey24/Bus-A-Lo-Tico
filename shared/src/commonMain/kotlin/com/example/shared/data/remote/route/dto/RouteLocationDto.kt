@@ -24,4 +24,18 @@ data class RouteLocationDto(
             longitude = longitude
         )
     }
+
+    companion object {
+        fun fromDomain(location: RouteLocation): RouteLocationDto {
+            return RouteLocationDto(
+                province = location.province,
+                cantonCode = location.cantonCode,
+                canton = location.canton,
+                districtCode = location.districtCode,
+                district = location.district,
+                latitude = location.latitude,
+                longitude = location.longitude
+            )
+        }
+    }
 }
