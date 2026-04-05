@@ -1,6 +1,7 @@
 package com.example.busalotico.ui.navigation
 
 import androidx.compose.runtime.Composable
+import com.example.shared.domain.entities.Company
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.UserRole
 
@@ -12,6 +13,11 @@ fun RoleBasedNavigation(
     userName: String,
     userEmail: String,
     userRoleLabel: String,
+    companyId: String?,
+    companies: List<Company>,
+    companiesLoading: Boolean,
+    companyLoadError: String?,
+    onUpdateCompany: (String) -> Unit,
     onSignOut: () -> Unit,
 ) {
   when (role) {
@@ -31,6 +37,11 @@ fun RoleBasedNavigation(
             userName = userName,
             userEmail = userEmail,
             userRole = userRoleLabel,
+            companyId = companyId,
+            companies = companies,
+            companiesLoading = companiesLoading,
+            companyLoadError = companyLoadError,
+            onUpdateCompany = onUpdateCompany,
             onSignOut = onSignOut,
         )
     UserRole.ADMIN ->
@@ -38,6 +49,11 @@ fun RoleBasedNavigation(
             userName = userName,
             userEmail = userEmail,
             userRole = userRoleLabel,
+            companyId = companyId,
+            companies = companies,
+            companiesLoading = companiesLoading,
+            companyLoadError = companyLoadError,
+            onUpdateCompany = onUpdateCompany,
             onSignOut = onSignOut,
         )
   }

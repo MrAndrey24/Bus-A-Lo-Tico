@@ -3,8 +3,8 @@ package com.example.shared.presentation.location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shared.domain.entities.Coordinate
+import com.example.shared.domain.location.PlatformLocationTracker
 import com.example.shared.domain.usecases.location.TrackUserLocationUseCase
-import dev.icerock.moko.geo.LocationTracker
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,7 @@ class LocationViewModel(
     val coordinate: StateFlow<Coordinate> = _coordinate.asStateFlow()
     private var trackingJob: Job? = null
 
-    fun startTracking(tracker: LocationTracker) {
+    fun startTracking(tracker: PlatformLocationTracker) {
         if (trackingJob?.isActive == true) return
 
         trackingJob = viewModelScope.launch {

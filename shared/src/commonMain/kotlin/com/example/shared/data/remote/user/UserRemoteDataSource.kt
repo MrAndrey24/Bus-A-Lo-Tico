@@ -29,13 +29,15 @@ class UserRemoteDataSource : IUserRemoteDataSource {
         userId: String,
         email: String,
         name: String,
-        role: UserRole
+        role: UserRole,
+        companyId: String?,
     ): UserProfile {
         val userRef = Firebase.firestore.collection(USERS_COLLECTION).document(userId)
         val dto = UserProfileDto(
             email = email,
             name = name,
-            role = role.name
+            role = role.name,
+            companyId = companyId,
         )
         userRef.set(dto)
         return dto.toDomain(userId, emptySet())

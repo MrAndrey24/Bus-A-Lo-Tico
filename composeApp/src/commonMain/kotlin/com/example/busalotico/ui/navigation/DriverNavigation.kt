@@ -20,6 +20,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.busalotico.ui.screen.driver.DriverHomeScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
+import com.example.shared.domain.entities.Company
 import com.example.shared.domain.entities.Coordinate
 
 @Composable
@@ -29,6 +30,11 @@ fun DriverNavigation(
     userName: String,
     userEmail: String,
     userRole: String,
+    companyId: String?,
+    companies: List<Company>,
+    companiesLoading: Boolean,
+    companyLoadError: String?,
+    onUpdateCompany: (String) -> Unit,
     onSignOut: () -> Unit,
 ) {
   val navController = rememberNavController()
@@ -75,6 +81,11 @@ fun DriverNavigation(
             userName = userName,
             userEmail = userEmail,
             userRole = userRole,
+            currentCompanyId = companyId,
+            companies = companies,
+            companiesLoading = companiesLoading,
+            companyLoadError = companyLoadError,
+            onUpdateCompany = onUpdateCompany,
             onSignOut = onSignOut,
         )
       }

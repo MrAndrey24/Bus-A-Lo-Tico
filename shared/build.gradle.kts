@@ -6,6 +6,7 @@ plugins {
 }
 
 kotlin {
+    jvm("desktop")
 
     // Target declarations
     androidLibrary {
@@ -65,11 +66,6 @@ kotlin {
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
 
-                // Moko
-                implementation(libs.moko.permissions)
-                implementation(libs.moko.permissions.compose)
-                implementation(libs.moko.permissions.geo)
-
                 // Firebase Kotlin SDK (GitLive)
                 implementation(libs.firebase.auth)
                 implementation(libs.firebase.firestore)
@@ -111,6 +107,13 @@ kotlin {
             dependencies {
                 // Motor de Ktor para iOS (Darwin)
                 implementation(libs.ktor.client.darwin)
+            }
+        }
+
+        val desktopMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.cio)
+                implementation(libs.kotlinx.coroutines.swing)
             }
         }
     }

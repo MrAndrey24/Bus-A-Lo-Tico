@@ -10,4 +10,8 @@ class CompanyRepository(
     override suspend fun getCompany(companyId: String): Company? {
         return remoteDataSource.getCompany(companyId)
     }
+
+    override suspend fun getCompanies(): List<Company> {
+        return remoteDataSource.getCompanies()
+    }
 }

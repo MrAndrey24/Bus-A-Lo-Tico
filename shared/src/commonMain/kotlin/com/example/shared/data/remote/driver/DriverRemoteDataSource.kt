@@ -51,6 +51,13 @@ class DriverRemoteDataSource : IDriverRemoteDataSource {
         return dto.toDomain(driverId)
     }
 
+    override suspend fun deleteDriver(driverId: String) {
+        Firebase.firestore
+            .collection(DRIVERS_COLLECTION)
+            .document(driverId)
+            .delete()
+    }
+
     private companion object {
         const val DRIVERS_COLLECTION = "drivers"
     }

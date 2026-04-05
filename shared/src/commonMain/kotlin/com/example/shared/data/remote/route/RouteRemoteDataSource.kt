@@ -88,6 +88,15 @@ class RouteRemoteDataSource : IRouteRemoteDataSource {
         return getRoute(routeId)
     }
 
+    override suspend fun upsertRoute(route: Route): Route {
+        val routeId = route.id.ifBlank { generateDocumentId("route") }
+        Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .document(routeId)
+            .set(RouteDto.fromDomain(route))
+        return route.copy(id = routeId)
+    }
+
     override suspend fun upsertRouteStop(routeId: String, stop: RouteStop): RouteStop {
         val stopsCollection = Firebase.firestore
             .collection(ROUTES_COLLECTION)
@@ -117,6 +126,15 @@ class RouteRemoteDataSource : IRouteRemoteDataSource {
         val scheduleId = schedule.id.ifBlank { generateDocumentId("schedule") }
         schedulesCollection.document(scheduleId).set(RouteScheduleDto.fromDomain(schedule))
         return schedule.copy(id = scheduleId)
+    }
+
+    override suspend fun deleteRouteSchedule(routeId: String, scheduleId: String) {
+        Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .document(routeId)
+            .collection(SCHEDULES_COLLECTION)
+            .document(scheduleId)
+            .delete()
     }
 
     private companion object {
