@@ -68,7 +68,7 @@ class RouteDetailViewModel(
           val coordinates =
               route.stops.map { Coordinate(it.latitude, it.longitude) }.toMutableList()
 
-          coordinates.add(coordinates.first())
+//          coordinates.add(coordinates.first())
 
           loadMapboxLine(coordinates)
 
