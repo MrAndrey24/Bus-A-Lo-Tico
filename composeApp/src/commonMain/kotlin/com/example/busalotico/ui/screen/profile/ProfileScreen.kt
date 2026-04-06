@@ -132,14 +132,6 @@ fun ProfileScreen(
             ProfileInfoRow(label = "Rol", value = userRole.ifBlank { "-" })
 
             if (showCompanyEditor) {
-              Spacer(modifier = Modifier.height(12.dp))
-              ProfileInfoRow(
-                  label = "Empresa actual",
-                  value =
-                      companies.firstOrNull { it.id == currentCompanyId }?.name
-                          ?: currentCompanyId.orEmpty().ifBlank { "Sin empresa vinculada" },
-              )
-
               Spacer(modifier = Modifier.height(20.dp))
 
               Surface(
@@ -152,17 +144,9 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                  Text(
-                      text = "Empresa administrada",
-                      style = MaterialTheme.typography.titleSmall,
-                      color = MaterialTheme.colorScheme.onSurface,
-                      fontWeight = FontWeight.SemiBold,
-                  )
-
                   DropdownSelectField(
                       value = selectedCompanyName,
-                      placeholder =
-                          if (companiesLoading) "Cargando empresas..." else "Selecciona una empresa",
+                      placeholder = if (companiesLoading) "Cargando empresas..." else "Empresa",
                       enabled = companies.isNotEmpty() && !companiesLoading,
                       options = companies.map { it.name },
                       onSelect = { selectedName ->
@@ -180,7 +164,7 @@ fun ProfileScreen(
                   }
 
                   PillActionButton(
-                      text = "Actualizar empresa",
+                      text = "Guardar empresa",
                       enabled =
                           selectedCompanyId.isNotBlank() &&
                               selectedCompanyId != currentCompanyId &&

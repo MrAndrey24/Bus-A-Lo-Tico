@@ -13,7 +13,7 @@ import com.example.shared.presentation.route.RouteViewModel
 import org.koin.dsl.module
 
 val presentationModule = module {
-    factory { AdminCompanyViewModel(get(), get(), get()) }
+    factory { AdminCompanyViewModel(get(), get(), get(), get()) }
     factory { AuthViewModel(get(), get(), get()) }
     factory { CompanyListViewModel(get()) }
     factory { LocationViewModel(get()) }

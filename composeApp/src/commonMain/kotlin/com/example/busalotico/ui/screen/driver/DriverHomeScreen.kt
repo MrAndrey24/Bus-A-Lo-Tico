@@ -94,6 +94,13 @@ private data class DriverNotice(
     val tone: DriverNoticeTone,
 )
 
+private data class IncidentDialogContext(
+    val type: TripIncidentType,
+    val routeName: String,
+    val locationLabel: String,
+    val reportedAtLabel: String,
+)
+
 @Composable
 fun DriverHomeScreen(
     coordinate: Coordinate?,
@@ -250,7 +257,7 @@ private fun DriverDashboardContent(
   val nextShiftStatusLabel = if (nextSchedule != null) "Programada" else "Sin más"
   val nextShiftStatusColor = Color(0xFF8A6B2B)
   val nextShiftStatusContainer = Color(0xFFFFF4CC)
-  var pendingIncidentType by remember { mutableStateOf<TripIncidentType?>(null) }
+  var incidentDialogContext by remember { mutableStateOf<IncidentDialogContext?>(null) }
   var showTransferDialog by remember { mutableStateOf(false) }
   var incidentError by remember { mutableStateOf<String?>(null) }
 
@@ -370,7 +377,7 @@ private fun DriverDashboardContent(
       )
 
       incidentError?.let { message ->
-        if (pendingIncidentType == null && activeTripExecutionId == null) {
+        if (incidentDialogContext == null && activeTripExecutionId == null) {
           DriverInlineAlert(
               message = message,
               tone = DriverNoticeTone.ERROR,
@@ -384,7 +391,13 @@ private fun DriverDashboardContent(
               incidentError = "Inicia una ruta antes de reportar incidencias."
             } else {
               incidentError = null
-              pendingIncidentType = TripIncidentType.ACCIDENT
+              incidentDialogContext =
+                  IncidentDialogContext(
+                      type = TripIncidentType.ACCIDENT,
+                      routeName = route.name.toDriverDisplayName(),
+                      locationLabel = coordinate.toIncidentLocationLabel(),
+                      reportedAtLabel = currentCostaRicaDateTimeLabel(),
+                  )
             }
           },
           onBreakdownClick = {
@@ -394,7 +407,13 @@ private fun DriverDashboardContent(
               incidentError = "La ruta ya está detenida por una avería."
             } else {
               incidentError = null
-              pendingIncidentType = TripIncidentType.BREAKDOWN
+              incidentDialogContext =
+                  IncidentDialogContext(
+                      type = TripIncidentType.BREAKDOWN,
+                      routeName = route.name.toDriverDisplayName(),
+                      locationLabel = coordinate.toIncidentLocationLabel(),
+                      reportedAtLabel = currentCostaRicaDateTimeLabel(),
+                  )
             }
           },
           onSecurityClick = {
@@ -402,7 +421,13 @@ private fun DriverDashboardContent(
               incidentError = "Inicia una ruta antes de reportar incidencias."
             } else {
               incidentError = null
-              pendingIncidentType = TripIncidentType.SECURITY
+              incidentDialogContext =
+                  IncidentDialogContext(
+                      type = TripIncidentType.SECURITY,
+                      routeName = route.name.toDriverDisplayName(),
+                      locationLabel = coordinate.toIncidentLocationLabel(),
+                      reportedAtLabel = currentCostaRicaDateTimeLabel(),
+                  )
             }
           },
       )
@@ -413,27 +438,27 @@ private fun DriverDashboardContent(
     }
   }
 
-  pendingIncidentType?.let { incidentType ->
+  incidentDialogContext?.let { context ->
     IncidentReportDialog(
-        type = incidentType,
-        routeName = route.name.toDriverDisplayName(),
-        locationLabel = coordinate.toIncidentLocationLabel(),
-        reportedAtLabel = currentCostaRicaDateTimeLabel(),
+        type = context.type,
+        routeName = context.routeName,
+        locationLabel = context.locationLabel,
+        reportedAtLabel = context.reportedAtLabel,
         isSubmitting = isReportingIncident,
         onDismiss = {
           if (!isReportingIncident) {
-            pendingIncidentType = null
+            incidentDialogContext = null
             incidentError = null
           }
         },
         onSubmit = { detail ->
           onReportIncident(
               activeTripExecutionId.orEmpty(),
-              incidentType,
+              context.type,
               detail,
               coordinate,
               {
-                pendingIncidentType = null
+                incidentDialogContext = null
                 incidentError = null
               },
               { message ->
@@ -1046,7 +1071,7 @@ private fun IncidentReportDialog(
         reportedAtLabel = reportedAtLabel,
     )
   }
-  var detail by remember(type, defaultMessage) { mutableStateOf(defaultMessage) }
+  var detail by remember(routeName, type, locationLabel, reportedAtLabel) { mutableStateOf(defaultMessage) }
 
   AlertDialog(
       onDismissRequest = onDismiss,

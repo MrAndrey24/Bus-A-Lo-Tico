@@ -13,6 +13,7 @@ import com.example.shared.domain.entities.TripExecution
 import com.example.shared.domain.entities.TripIncident
 import com.example.shared.domain.entities.TripIncidentType
 import com.example.shared.domain.entities.TripExecutionStatus
+import com.example.shared.util.currentCostaRicaTimeMinutes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -278,24 +279,41 @@ class DriverRouteViewModel(
   }
 
   private suspend fun buildUiState(driverId: String): DriverRouteUiState {
-    val route = routeRepository.getRouteByDriverId(driverId)
-        ?: return DriverRouteUiState(
-            errorMessage = "No hay una ruta asignada a este conductor.",
-        )
-
     val currentDriver = driverRepository.getDriver(driverId)
+    val assignedRoutes = routeRepository.getRoutesByDriverId(driverId)
+    if (assignedRoutes.isEmpty()) {
+      return DriverRouteUiState(
+          errorMessage = "No hay una ruta asignada a este conductor.",
+      )
+    }
+
     val tripExecutions = tripExecutionRepository.getTripExecutionsByDriver(driverId)
     val currentTripExecution = tripExecutions
         .filter {
           it.status == TripExecutionStatus.IN_PROGRESS || it.status == TripExecutionStatus.DELAYED
         }
         .maxByOrNull { it.startedAt }
+    val routeCache = assignedRoutes.associateBy { it.id }.toMutableMap()
+    val selectedRoute =
+        currentTripExecution
+            ?.let { execution -> routeCache[execution.routeId] ?: routeRepository.getRoute(execution.routeId) }
+            ?.also { route -> routeCache[route.id] = route }
+            ?: chooseNextAssignedRoute(
+                assignedRoutes = routeCache.values.toList(),
+                tripExecutions = tripExecutions,
+                driverId = driverId,
+            )
+            ?: routeCache.values.firstOrNull()
+            ?: return DriverRouteUiState(
+                errorMessage = "No hay una ruta asignada a este conductor.",
+            )
+
     val todayKey = todayDateKey()
     val completedTodayScheduleIds =
         tripExecutions
             .filter {
               (it.status == TripExecutionStatus.COMPLETED || it.status == TripExecutionStatus.TRANSFERRED) &&
-                  it.routeId == route.id
+                  it.routeId == selectedRoute.id
             }
             .filter { execution -> dateKey(execution.startedAt) == todayKey }
             .map { it.scheduleId }
@@ -308,7 +326,6 @@ class DriverRouteViewModel(
             .filter { it.id != driverId }
             .sortedBy { it.name }
 
-    val routeCache = mutableMapOf(route.id to route)
     val history =
         tripExecutions
             .filter {
@@ -318,7 +335,7 @@ class DriverRouteViewModel(
             .sortedByDescending { it.startedAt }
             .map { execution ->
               val executionRoute = routeCache.getOrPut(execution.routeId) {
-                routeRepository.getRoute(execution.routeId) ?: route
+                routeRepository.getRoute(execution.routeId) ?: selectedRoute
               }
               val departureTime =
                   executionRoute.schedules.firstOrNull { it.id == execution.scheduleId }?.departureTime ?: "--:--"
@@ -346,7 +363,7 @@ class DriverRouteViewModel(
             }
 
     return DriverRouteUiState(
-        route = route,
+        route = selectedRoute,
         isLoading = false,
         errorMessage = null,
         activeTripExecutionId = currentTripExecution?.id,
@@ -377,6 +394,63 @@ class DriverRouteViewModel(
   }
 
   private fun todayDateKey(): String = dateKey(Clock.System.now().toEpochMilliseconds())
+
+  private fun chooseNextAssignedRoute(
+      assignedRoutes: List<Route>,
+      tripExecutions: List<TripExecution>,
+      driverId: String,
+  ): Route? {
+    val currentMinutes = currentCostaRicaTimeMinutes()
+    val todayKey = todayDateKey()
+
+    data class Candidate(
+        val route: Route,
+        val schedule: RouteSchedule,
+        val departureMinutes: Int,
+    )
+
+    val completedByRoute = tripExecutions
+        .filter {
+          (it.status == TripExecutionStatus.COMPLETED || it.status == TripExecutionStatus.TRANSFERRED) &&
+              dateKey(it.startedAt) == todayKey
+        }
+        .groupBy { it.routeId }
+        .mapValues { (_, executions) -> executions.map { it.scheduleId }.toSet() }
+
+    val candidates = assignedRoutes.mapNotNull { route ->
+      val completedSchedules = completedByRoute[route.id].orEmpty()
+      val remainingSchedules = route.schedules
+          .filter { it.driverId == driverId && it.id !in completedSchedules }
+          .sortedBy { parseTimeToMinutes(it.departureTime) }
+
+      val preferredSchedule =
+          remainingSchedules.firstOrNull { parseTimeToMinutes(it.departureTime) >= currentMinutes }
+              ?: remainingSchedules.firstOrNull()
+              ?: return@mapNotNull null
+
+      Candidate(
+          route = route,
+          schedule = preferredSchedule,
+          departureMinutes = parseTimeToMinutes(preferredSchedule.departureTime),
+      )
+    }
+
+    return candidates
+        .sortedWith(
+            compareBy<Candidate> { if (it.departureMinutes >= currentMinutes) 0 else 1 }
+                .thenBy { if (it.departureMinutes >= currentMinutes) it.departureMinutes else Int.MAX_VALUE }
+                .thenBy { if (it.departureMinutes < currentMinutes) it.departureMinutes else Int.MAX_VALUE }
+        )
+        .firstOrNull()
+        ?.route
+  }
+
+  private fun parseTimeToMinutes(value: String): Int {
+    val parts = value.split(":")
+    val hours = parts.getOrNull(0)?.toIntOrNull() ?: return 0
+    val minutes = parts.getOrNull(1)?.toIntOrNull() ?: return 0
+    return hours * 60 + minutes
+  }
 
   private fun TripIncidentType.toDisplayLabel(): String {
     return when (this) {

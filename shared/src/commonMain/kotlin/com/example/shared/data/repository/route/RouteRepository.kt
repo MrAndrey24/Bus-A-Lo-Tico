@@ -12,6 +12,8 @@ class RouteRepository(
     override suspend fun getRoute(routeId: String): Route? = remoteDataSource.getRoute(routeId)
     override suspend fun getRouteByDriverId(driverId: String): Route? =
         remoteDataSource.getRouteByDriverId(driverId)
+    override suspend fun getRoutesByDriverId(driverId: String): List<Route> =
+        remoteDataSource.getRoutesByDriverId(driverId)
     override suspend fun upsertRoute(route: Route): Route = remoteDataSource.upsertRoute(route)
     override suspend fun upsertRouteStop(routeId: String, stop: RouteStop): RouteStop =
         remoteDataSource.upsertRouteStop(routeId, stop)
