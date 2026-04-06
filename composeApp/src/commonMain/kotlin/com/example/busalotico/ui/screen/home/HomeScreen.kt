@@ -181,7 +181,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(bottom = 240.dp, end = 16.dp), // Adjust bottom padding to be above the sheet
+                    .padding(bottom = 240.dp, end = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ZoomControls(
