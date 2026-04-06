@@ -33,12 +33,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -845,7 +848,7 @@ private fun AdminOverviewSection(uiState: com.example.shared.presentation.admin.
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            OverviewCard("Rutas", uiState.routes.size.toString(), "Configuradas en Firebase")
+            OverviewCard("Rutas", uiState.routes.size.toString(), "Cubiertas por la empresa.")
             OverviewCard("Conductores", uiState.companyDrivers.size.toString(), "Vinculados a la empresa seleccionada")
         }
 
@@ -862,11 +865,51 @@ private fun AdminOverviewSection(uiState: com.example.shared.presentation.admin.
                     uiState.recentIncidents.forEachIndexed { index, incident ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
                             verticalAlignment = Alignment.Top,
                         ) {
-                            Column {
-                                Text(incident.routeName, fontWeight = FontWeight.SemiBold)
+                            Surface(
+                                modifier = Modifier.size(42.dp),
+                                shape = CircleShape,
+                                color = incidentChipBackground(incident.incidentType),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = incidentIcon(incident.incidentType),
+                                        contentDescription = null,
+                                        tint = incidentChipContent(incident.incidentType),
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
+                            }
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top,
+                                ) {
+                                    Text(incident.routeName, fontWeight = FontWeight.SemiBold)
+                                    AssistChip(
+                                        onClick = {},
+                                        enabled = false,
+                                        label = { Text(formatIncidentType(incident.incidentType)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = incidentIcon(incident.incidentType),
+                                                contentDescription = null,
+                                                tint = incidentChipContent(incident.incidentType),
+                                                modifier = Modifier.size(16.dp),
+                                            )
+                                        },
+                                        colors = AssistChipDefaults.assistChipColors(
+                                            disabledContainerColor = incidentChipBackground(incident.incidentType),
+                                            disabledLabelColor = incidentChipContent(incident.incidentType),
+                                        ),
+                                    )
+                                }
                                 Text(
                                     text = "Chofer: ${incident.driverName}",
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -880,15 +923,6 @@ private fun AdminOverviewSection(uiState: com.example.shared.presentation.admin.
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
-                            AssistChip(
-                                onClick = {},
-                                enabled = false,
-                                label = { Text(formatIncidentType(incident.incidentType)) },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    disabledContainerColor = incidentChipBackground(incident.incidentType),
-                                    disabledLabelColor = incidentChipContent(incident.incidentType),
-                                ),
-                            )
                         }
                         if (index < uiState.recentIncidents.lastIndex) {
                             Divider(color = Color(0xFFEAECEF))
@@ -937,6 +971,13 @@ private fun incidentChipContent(type: TripIncidentType): Color =
         TripIncidentType.ACCIDENT -> Color(0xFFC0392B)
         TripIncidentType.BREAKDOWN -> Color(0xFFB9770E)
         TripIncidentType.SECURITY -> Color(0xFF2166B5)
+    }
+
+private fun incidentIcon(type: TripIncidentType): ImageVector =
+    when (type) {
+        TripIncidentType.ACCIDENT -> Icons.Default.ReportProblem
+        TripIncidentType.BREAKDOWN -> Icons.Default.Build
+        TripIncidentType.SECURITY -> Icons.Default.Security
     }
 
 @Composable
