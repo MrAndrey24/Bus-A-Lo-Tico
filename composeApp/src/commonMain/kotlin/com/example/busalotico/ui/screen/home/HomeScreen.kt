@@ -13,10 +13,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -38,6 +43,7 @@ import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteStop
 import com.example.shared.presentation.route.RouteUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     coordinate: Coordinate,
@@ -62,14 +68,92 @@ fun HomeScreen(
             .map { it.toRouteListItemUi(uiState.favoriteRouteIds) }
     }
 
-    Column(
-        modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-    ) {
-        // Top Section: Map as a header
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            initialValue = SheetValue.PartiallyExpanded,
+            skipHiddenState = true,
+        )
+    )
+
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 220.dp,
+        sheetContent = {
+            // Bottom Section: Favorites / Subscribed Routes
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "MIS RUTAS",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.2.sp
+                    )
+                    
+                    TextButton(onClick = onSelectRouteClick) {
+                        Text("Ver todas", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                if (favoriteRoutes.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "No tienes rutas favoritas aún",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Button(onClick = onSelectRouteClick) {
+                                Text("Explorar rutas")
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(bottom = 24.dp)
+                    ) {
+                        items(favoriteRoutes, key = { it.id }) { route ->
+                            RouteSelectionCard(
+                                route = route,
+                                onClick = { 
+                                    uiState.routes.find { it.id == route.id }?.let { onRouteSelected(it) }
+                                },
+                                onToggleFavorite = { 
+                                    onToggleFavorite(route.id, !route.isFavorite)
+                                },
+                                onShowAdministrativeDetail = { 
+                                    onAdministrativeDetailClick(route.id)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        modifier = modifier.fillMaxSize()
+    ) { padding ->
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(320.dp)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
             MapViewComponent(
                 coordinate = coordinate,
@@ -97,7 +181,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(bottom = 16.dp, end = 16.dp),
+                    .padding(bottom = 240.dp, end = 16.dp), // Adjust bottom padding to be above the sheet
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ZoomControls(
@@ -107,77 +191,6 @@ fun HomeScreen(
                 RecenterButton(
                     onClick = { recenterTrigger++ }
                 )
-            }
-        }
-
-        // Bottom Section: Favorites / Subscribed Routes
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(Modifier.height(24.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "MIS RUTAS",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 1.2.sp
-                )
-                
-                TextButton(onClick = onSelectRouteClick) {
-                    Text("Ver todas", style = MaterialTheme.typography.labelLarge)
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            if (favoriteRoutes.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "No tienes rutas favoritas aún",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Button(onClick = onSelectRouteClick) {
-                            Text("Explorar rutas")
-                        }
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(bottom = 24.dp)
-                ) {
-                    items(favoriteRoutes, key = { it.id }) { route ->
-                        RouteSelectionCard(
-                            route = route,
-                            onClick = { 
-                                // Find the original domain Route to pass to onRouteSelected
-                                uiState.routes.find { it.id == route.id }?.let { onRouteSelected(it) }
-                            },
-                            onToggleFavorite = { 
-                                onToggleFavorite(route.id, !route.isFavorite)
-                            },
-                            onShowAdministrativeDetail = { 
-                                onAdministrativeDetailClick(route.id)
-                            }
-                        )
-                    }
-                }
             }
         }
     }
