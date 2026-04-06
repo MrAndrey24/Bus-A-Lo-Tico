@@ -3,6 +3,8 @@ package com.example.busalotico.desktop
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +18,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +33,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -37,6 +43,7 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -65,9 +72,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -89,6 +98,7 @@ import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteLocation
 import com.example.shared.domain.entities.RouteSchedule
 import com.example.shared.domain.entities.RouteStop
+import com.example.shared.domain.entities.TripIncidentType
 import com.example.shared.domain.entities.UserRole
 import com.example.shared.domain.entities.geo.costaRicaGeoData
 import com.example.shared.presentation.auth.AuthViewModel
@@ -416,12 +426,12 @@ private fun DesktopLoginScreen(
                         if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector =
-                                    if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription =
-                                    if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
-                            )
+                        Icon(
+                            imageVector =
+                                    if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription =
+                                    if (passwordVisible) "Contraseña visible" else "Contraseña oculta",
+                        )
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(),
@@ -580,9 +590,9 @@ private fun CompanyAdminDesktopApp(
                         AdminSection.DRIVERS -> "Gestión de conductores"
                     },
                     subtitle = when (selectedSection) {
-                        AdminSection.DASHBOARD -> "Resumen operativo para horarios, rutas, paradas y personal."
-                        AdminSection.ROUTES -> "Administra la información base de cada ruta y mantén horarios y paradas al día."
-                        AdminSection.DRIVERS -> "Actualiza conductores vinculados a la empresa de la ruta seleccionada."
+                        AdminSection.DASHBOARD -> "Resumen operativo rutas y conductores."
+                        AdminSection.ROUTES -> "Administra la información de rutas y horarios y paradas."
+                        AdminSection.DRIVERS -> "Mantenimiento de conductores vinculados a la empresa."
                     },
                     currentUserName = currentUserName,
                     currentCompanyLabel = currentCompanyLabel,
@@ -829,10 +839,6 @@ private fun DesktopFeedbackCard(message: String, background: Color, content: Col
 
 @Composable
 private fun AdminOverviewSection(uiState: com.example.shared.presentation.admin.AdminCompanyUiState) {
-    val selectedRoute = uiState.selectedRoute
-    val scheduleCount = selectedRoute?.schedules?.size ?: 0
-    val stopCount = selectedRoute?.stops?.size ?: 0
-
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         FlowRow(
             maxItemsInEachRow = 4,
@@ -840,8 +846,6 @@ private fun AdminOverviewSection(uiState: com.example.shared.presentation.admin.
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OverviewCard("Rutas", uiState.routes.size.toString(), "Configuradas en Firebase")
-            OverviewCard("Horarios", scheduleCount.toString(), "Cargados en la ruta seleccionada")
-            OverviewCard("Paradas", stopCount.toString(), "Definidas en la ruta activa")
             OverviewCard("Conductores", uiState.companyDrivers.size.toString(), "Vinculados a la empresa seleccionada")
         }
 
@@ -851,26 +855,44 @@ private fun AdminOverviewSection(uiState: com.example.shared.presentation.admin.
             colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
         ) {
             Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Rutas recientes", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                if (uiState.routes.isEmpty()) {
-                    Text("Todavía no hay rutas para gestionar.")
+                Text("Incidentes recientes", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                if (uiState.recentIncidents.isEmpty()) {
+                    Text("No hay incidencias registradas para las rutas de esta empresa.")
                 } else {
-                    uiState.routes.take(6).forEach { route ->
+                    uiState.recentIncidents.forEachIndexed { index, incident ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment = Alignment.Top,
                         ) {
                             Column {
-                                Text(route.name, fontWeight = FontWeight.SemiBold)
+                                Text(incident.routeName, fontWeight = FontWeight.SemiBold)
                                 Text(
-                                    text = "${route.code} · ${route.startLocation.canton.orEmpty()} → ${route.endLocation.canton.orEmpty()}",
+                                    text = "Chofer: ${incident.driverName}",
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                Text(
+                                    text = incident.incidentDetail,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
-                            AssistChip(onClick = {}, label = { Text(if (route.isActive) "ACTIVA" else "INACTIVA") })
+                            AssistChip(
+                                onClick = {},
+                                enabled = false,
+                                label = { Text(formatIncidentType(incident.incidentType)) },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    disabledContainerColor = incidentChipBackground(incident.incidentType),
+                                    disabledLabelColor = incidentChipContent(incident.incidentType),
+                                ),
+                            )
                         }
-                        Divider(color = Color(0xFFEAECEF))
+                        if (index < uiState.recentIncidents.lastIndex) {
+                            Divider(color = Color(0xFFEAECEF))
+                        }
                     }
                 }
             }
@@ -895,6 +917,27 @@ private fun OverviewCard(title: String, value: String, subtitle: String) {
         }
     }
 }
+
+private fun formatIncidentType(type: TripIncidentType): String =
+    when (type) {
+        TripIncidentType.ACCIDENT -> "ACCIDENTE"
+        TripIncidentType.BREAKDOWN -> "AVERÍA"
+        TripIncidentType.SECURITY -> "SEGURIDAD"
+    }
+
+private fun incidentChipBackground(type: TripIncidentType): Color =
+    when (type) {
+        TripIncidentType.ACCIDENT -> Color(0xFFFFE3E0)
+        TripIncidentType.BREAKDOWN -> Color(0xFFFFF1D9)
+        TripIncidentType.SECURITY -> Color(0xFFE4F1FF)
+    }
+
+private fun incidentChipContent(type: TripIncidentType): Color =
+    when (type) {
+        TripIncidentType.ACCIDENT -> Color(0xFFC0392B)
+        TripIncidentType.BREAKDOWN -> Color(0xFFB9770E)
+        TripIncidentType.SECURITY -> Color(0xFF2166B5)
+    }
 
 @Composable
 private fun RouteManagementSection(
@@ -923,7 +966,7 @@ private fun RouteManagementSection(
 ) {
     Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         ElevatedCard(
-            modifier = Modifier.width(320.dp).fillMaxHeight(),
+            modifier = Modifier.width(380.dp).fillMaxHeight(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
         ) {
@@ -957,23 +1000,13 @@ private fun RouteManagementSection(
                 ) {
                     items(filteredRoutes, key = { it.id }) { route ->
                         val selected = !isCreatingRoute && uiState.selectedRoute?.id == route.id
-                        Card(
-                            modifier = Modifier.fillMaxWidth().clickable { onSelectRoute(route.id) },
-                            shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (selected) Color(0xFFEEF4FF) else Color(0xFFF9FAFC)
-                            ),
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(route.name, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(route.code, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(
-                                    text = "${route.startLocation.canton.orEmpty()} → ${route.endLocation.canton.orEmpty()}",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
-                            }
-                        }
+                        DesktopListCard(
+                            title = route.name,
+                            subtitle = "${route.startLocation.district.orEmpty()} → ${route.endLocation.district.orEmpty()}",
+                            icon = Icons.Default.LocationOn,
+                            selected = selected,
+                            onClick = { onSelectRoute(route.id) },
+                        )
                     }
                 }
             }
@@ -1069,11 +1102,38 @@ private fun RouteDetailsEditor(
     val scrollState = rememberScrollState()
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState), verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Text("Datos de la ruta", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp), maxItemsInEachRow = 2) {
-            AdminTextField("Código", routeForm.code, { onRouteFormChange(routeForm.copy(code = it)) })
-            AdminTextField("Nombre", routeForm.name, { onRouteFormChange(routeForm.copy(name = it)) })
-            AdminTextField("Operador", routeForm.operator, { onRouteFormChange(routeForm.copy(operator = it)) })
-            AdminTextField("Empresa (ID)", routeForm.companyId, { onRouteFormChange(routeForm.copy(companyId = it)) }, supportingText = companyLabel)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            AdminTextField(
+                "Código",
+                routeForm.code,
+                { onRouteFormChange(routeForm.copy(code = it)) },
+                modifier = Modifier.weight(0.32f),
+            )
+            AdminTextField(
+                "Nombre",
+                routeForm.name,
+                { onRouteFormChange(routeForm.copy(name = it)) },
+                modifier = Modifier.weight(0.68f),
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            AdminTextField(
+                "Operador",
+                routeForm.operator,
+                { onRouteFormChange(routeForm.copy(operator = it)) },
+                modifier = Modifier.weight(0.55f),
+            )
+            AdminTextField(
+                "Empresa (ID)",
+                routeForm.companyId,
+                { onRouteFormChange(routeForm.copy(companyId = it)) },
+                supportingText = companyLabel,
+                modifier = Modifier.weight(0.45f),
+            )
+        }
+
+        Text("Punto de inicio", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             AdminDropdownField(
                 label = "Provincia inicio",
                 value = routeForm.startProvince,
@@ -1088,6 +1148,7 @@ private fun RouteDetailsEditor(
                         )
                     )
                 },
+                modifier = Modifier.weight(1f),
             )
             AdminDropdownField(
                 label = "Cantón inicio",
@@ -1103,6 +1164,7 @@ private fun RouteDetailsEditor(
                         )
                     )
                 },
+                modifier = Modifier.weight(1f),
             )
             AdminDropdownField(
                 label = "Distrito inicio",
@@ -1113,10 +1175,32 @@ private fun RouteDetailsEditor(
                 onSelect = { districtName ->
                     onRouteFormChange(routeForm.copy(startDistrict = districtName))
                 },
+                modifier = Modifier.weight(1f),
             )
-            AdminTextField("Tarifa CRC", routeForm.fareCrc, { onRouteFormChange(routeForm.copy(fareCrc = it)) })
-            AdminTextField("Latitud inicio", routeForm.startLatitude, { onRouteFormChange(routeForm.copy(startLatitude = it)) })
-            AdminTextField("Longitud inicio", routeForm.startLongitude, { onRouteFormChange(routeForm.copy(startLongitude = it)) })
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            AdminTextField(
+                "Tarifa CRC",
+                routeForm.fareCrc,
+                { onRouteFormChange(routeForm.copy(fareCrc = it)) },
+                modifier = Modifier.weight(0.34f),
+            )
+            AdminTextField(
+                "Latitud inicio",
+                routeForm.startLatitude,
+                { onRouteFormChange(routeForm.copy(startLatitude = it)) },
+                modifier = Modifier.weight(0.33f),
+            )
+            AdminTextField(
+                "Longitud inicio",
+                routeForm.startLongitude,
+                { onRouteFormChange(routeForm.copy(startLongitude = it)) },
+                modifier = Modifier.weight(0.33f),
+            )
+        }
+
+        Text("Punto final", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             AdminDropdownField(
                 label = "Provincia final",
                 value = routeForm.endProvince,
@@ -1131,6 +1215,7 @@ private fun RouteDetailsEditor(
                         )
                     )
                 },
+                modifier = Modifier.weight(1f),
             )
             AdminDropdownField(
                 label = "Cantón final",
@@ -1146,6 +1231,7 @@ private fun RouteDetailsEditor(
                         )
                     )
                 },
+                modifier = Modifier.weight(1f),
             )
             AdminDropdownField(
                 label = "Distrito final",
@@ -1156,9 +1242,22 @@ private fun RouteDetailsEditor(
                 onSelect = { districtName ->
                     onRouteFormChange(routeForm.copy(endDistrict = districtName))
                 },
+                modifier = Modifier.weight(1f),
             )
-            AdminTextField("Latitud final", routeForm.endLatitude, { onRouteFormChange(routeForm.copy(endLatitude = it)) })
-            AdminTextField("Longitud final", routeForm.endLongitude, { onRouteFormChange(routeForm.copy(endLongitude = it)) })
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            AdminTextField(
+                "Latitud final",
+                routeForm.endLatitude,
+                { onRouteFormChange(routeForm.copy(endLatitude = it)) },
+                modifier = Modifier.weight(1f),
+            )
+            AdminTextField(
+                "Longitud final",
+                routeForm.endLongitude,
+                { onRouteFormChange(routeForm.copy(endLongitude = it)) },
+                modifier = Modifier.weight(1f),
+            )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1203,102 +1302,6 @@ private fun RouteSchedulesEditor(
     var driverExpanded by remember(drivers, scheduleForm.id) { mutableStateOf(false) }
 
     Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-        Column(modifier = Modifier.weight(0.42f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("Horario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = "Conductor",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Box {
-                    Surface(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable(enabled = drivers.isNotEmpty()) {
-                                    driverExpanded = !driverExpanded
-                                },
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (drivers.isEmpty()) Color(0xFFF9FAFC) else Color.White,
-                        border = BorderStroke(1.dp, Color(0xFFE3E8F0)),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 15.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text =
-                                    selectedDriverName.ifBlank {
-                                        if (drivers.isEmpty()) "No hay conductores disponibles" else "Selecciona un conductor"
-                                    },
-                                style = MaterialTheme.typography.bodyLarge,
-                                color =
-                                    if (selectedDriverName.isBlank()) {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface
-                                    },
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    DropdownMenu(
-                        expanded = driverExpanded && drivers.isNotEmpty(),
-                        onDismissRequest = { driverExpanded = false },
-                        modifier = Modifier.width(320.dp).background(Color.White),
-                    ) {
-                        drivers.forEach { driver ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = driver.name,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight =
-                                            if (scheduleForm.driverId == driver.id) FontWeight.SemiBold else FontWeight.Normal,
-                                    )
-                                },
-                                onClick = {
-                                    onScheduleFormChange(scheduleForm.copy(driverId = driver.id))
-                                    driverExpanded = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            AdminTextField("Hora salida", scheduleForm.departureTime, { onScheduleFormChange(scheduleForm.copy(departureTime = it)) }, supportingText = "Formato 07:00")
-            AdminTextField("Hora llegada", scheduleForm.arrivalTime, { onScheduleFormChange(scheduleForm.copy(arrivalTime = it)) }, supportingText = "Formato 08:25")
-            if (drivers.isEmpty()) {
-                Text(
-                    text = "No hay conductores registrados para esta empresa.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(onClick = onClearForm, enabled = !isSaving) {
-                    Text("Nuevo")
-                }
-                Button(
-                    onClick = onSaveSchedule,
-                    enabled = !isSaving && scheduleForm.driverId.isNotBlank() && scheduleForm.departureTime.isNotBlank() && scheduleForm.arrivalTime.isNotBlank(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(if (isSaving) "Guardando..." else "Guardar")
-                }
-                if (scheduleForm.id.isNotBlank()) {
-                    TextButton(onClick = onDeleteSchedule, enabled = !isSaving) {
-                        Text("Eliminar")
-                    }
-                }
-            }
-        }
         ElevatedCard(
             modifier = Modifier.weight(0.58f).fillMaxHeight(),
             shape = RoundedCornerShape(20.dp),
@@ -1331,6 +1334,114 @@ private fun RouteSchedulesEditor(
                 }
             }
         }
+        ElevatedCard(
+            modifier = Modifier.weight(0.42f).fillMaxHeight(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+        ) {
+            Column(modifier = Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Text("Horario", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Conductor",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Box {
+                        Surface(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable(enabled = drivers.isNotEmpty()) {
+                                        driverExpanded = !driverExpanded
+                                    },
+                            shape = RoundedCornerShape(16.dp),
+                            color = if (drivers.isEmpty()) Color(0xFFF9FAFC) else Color.White,
+                            border = BorderStroke(1.dp, Color(0xFFE3E8F0)),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 15.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text =
+                                        selectedDriverName.ifBlank {
+                                            if (drivers.isEmpty()) "No hay conductores disponibles" else "Selecciona un conductor"
+                                        },
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color =
+                                        if (selectedDriverName.isBlank()) {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        },
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        DropdownMenu(
+                            expanded = driverExpanded && drivers.isNotEmpty(),
+                            onDismissRequest = { driverExpanded = false },
+                            modifier = Modifier.width(320.dp).background(Color.White),
+                        ) {
+                            drivers.forEach { driver ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = driver.name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight =
+                                                if (scheduleForm.driverId == driver.id) FontWeight.SemiBold else FontWeight.Normal,
+                                        )
+                                    },
+                                    onClick = {
+                                        onScheduleFormChange(scheduleForm.copy(driverId = driver.id))
+                                        driverExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+                AdminTextField("Hora salida", scheduleForm.departureTime, { onScheduleFormChange(scheduleForm.copy(departureTime = it)) }, supportingText = "Formato 07:00")
+                AdminTextField("Hora llegada", scheduleForm.arrivalTime, { onScheduleFormChange(scheduleForm.copy(arrivalTime = it)) }, supportingText = "Formato 08:25")
+                if (drivers.isEmpty()) {
+                    Text(
+                        text = "No hay conductores registrados para esta empresa.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = onClearForm, enabled = !isSaving) {
+                        Icon(Icons.Default.Add, contentDescription = "Nuevo horario")
+                        Spacer(Modifier.width(6.dp))
+                        Text("Nuevo")
+                    }
+                    Button(
+                        onClick = onSaveSchedule,
+                        enabled = !isSaving && scheduleForm.driverId.isNotBlank() && scheduleForm.departureTime.isNotBlank() && scheduleForm.arrivalTime.isNotBlank(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.Save, contentDescription = "Guardar horario")
+                        }
+                    }
+                    if (scheduleForm.id.isNotBlank()) {
+                        TextButton(onClick = onDeleteSchedule, enabled = !isSaving) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar horario")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1352,30 +1463,6 @@ private fun RouteStopsEditor(
     }
 
     Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-        Column(modifier = Modifier.weight(0.42f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("Parada", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            AdminTextField("Nombre", stopForm.name, { onStopFormChange(stopForm.copy(name = it)) })
-            AdminTextField("Latitud", stopForm.latitude, { onStopFormChange(stopForm.copy(latitude = it)) })
-            AdminTextField("Longitud", stopForm.longitude, { onStopFormChange(stopForm.copy(longitude = it)) })
-            AdminTextField("Orden", stopForm.order, { onStopFormChange(stopForm.copy(order = it)) })
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(onClick = onClearForm, enabled = !isSaving) {
-                    Text("Nuevo")
-                }
-                Button(
-                    onClick = onSaveStop,
-                    enabled = !isSaving && stopForm.name.isNotBlank() && stopForm.latitude.isNotBlank() && stopForm.longitude.isNotBlank() && stopForm.order.isNotBlank(),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(if (isSaving) "Guardando..." else "Guardar")
-                }
-                if (stopForm.id.isNotBlank()) {
-                    TextButton(onClick = onDeleteStop, enabled = !isSaving) {
-                        Text("Eliminar")
-                    }
-                }
-            }
-        }
         ElevatedCard(
             modifier = Modifier.weight(0.58f).fillMaxHeight(),
             shape = RoundedCornerShape(20.dp),
@@ -1413,6 +1500,42 @@ private fun RouteStopsEditor(
                 }
             }
         }
+        ElevatedCard(
+            modifier = Modifier.weight(0.42f).fillMaxHeight(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+        ) {
+            Column(modifier = Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Text("Parada", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                AdminTextField("Nombre", stopForm.name, { onStopFormChange(stopForm.copy(name = it)) })
+                AdminTextField("Latitud", stopForm.latitude, { onStopFormChange(stopForm.copy(latitude = it)) })
+                AdminTextField("Longitud", stopForm.longitude, { onStopFormChange(stopForm.copy(longitude = it)) })
+                AdminTextField("Orden", stopForm.order, { onStopFormChange(stopForm.copy(order = it)) })
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = onClearForm, enabled = !isSaving) {
+                        Icon(Icons.Default.Add, contentDescription = "Nueva parada")
+                        Spacer(Modifier.width(6.dp))
+                        Text("Nuevo")
+                    }
+                    Button(
+                        onClick = onSaveStop,
+                        enabled = !isSaving && stopForm.name.isNotBlank() && stopForm.latitude.isNotBlank() && stopForm.longitude.isNotBlank() && stopForm.order.isNotBlank(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        if (isSaving) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.Save, contentDescription = "Guardar parada")
+                        }
+                    }
+                    if (stopForm.id.isNotBlank()) {
+                        TextButton(onClick = onDeleteStop, enabled = !isSaving) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar parada")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1443,16 +1566,13 @@ private fun DriverManagementSection(
                 Divider(color = Color(0xFFEAECEF))
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(uiState.companyDrivers, key = { it.id }) { driver ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth().clickable { onSelectDriver(driver) },
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFC)),
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(driver.name, fontWeight = FontWeight.SemiBold)
-                                Text(driver.id, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                        DesktopListCard(
+                            title = driver.name,
+                            subtitle = driver.id,
+                            icon = Icons.Default.Person,
+                            selected = driverForm.id == driver.id,
+                            onClick = { onSelectDriver(driver) },
+                        )
                     }
                 }
             }
@@ -1480,6 +1600,8 @@ private fun DriverManagementSection(
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     TextButton(onClick = onClearDriverForm, enabled = !uiState.isSavingDriver) {
+                        Icon(Icons.Default.Add, contentDescription = "Nuevo conductor")
+                        Spacer(Modifier.width(6.dp))
                         Text("Nuevo")
                     }
                     Button(
@@ -1487,11 +1609,15 @@ private fun DriverManagementSection(
                         enabled = !uiState.isSavingDriver && driverForm.id.isNotBlank() && driverForm.name.isNotBlank() && uiState.selectedRoute?.companyId != null,
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text(if (uiState.isSavingDriver) "Guardando..." else "Guardar")
+                        if (uiState.isSavingDriver) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.Save, contentDescription = "Guardar conductor")
+                        }
                     }
                     if (driverForm.id.isNotBlank()) {
                         TextButton(onClick = onDeleteDriver, enabled = !uiState.isSavingDriver) {
-                            Text("Eliminar")
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar conductor")
                         }
                     }
                 }
@@ -1508,11 +1634,89 @@ private fun EmptyPanelState(message: String) {
 }
 
 @Composable
-private fun AdminTextField(label: String, value: String, onValueChange: (String) -> Unit, supportingText: String? = null) {
+private fun DesktopListCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val hovered by interactionSource.collectIsHoveredAsState()
+    val containerColor =
+        when {
+            selected -> Color(0xFFEEF4FF)
+            hovered -> Color(0xFFF2F6FD)
+            else -> Color(0xFFF9FAFC)
+        }
+    val borderColor =
+        when {
+            selected -> Color(0xFFD6E4FF)
+            hovered -> Color(0xFFE1E8F5)
+            else -> Color(0xFFF9FAFC)
+        }
+
+    Card(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .hoverable(interactionSource = interactionSource)
+                .clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = BorderStroke(1.dp, borderColor),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(
+                    text = subtitle,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdminTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    supportingText: String? = null,
+    modifier: Modifier = Modifier,
+) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.width(320.dp),
+        modifier = modifier.widthIn(min = 220.dp),
         label = { Text(label) },
         supportingText =
             if (supportingText != null) {
@@ -1532,10 +1736,11 @@ private fun AdminDropdownField(
     options: List<String>,
     enabled: Boolean = true,
     onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var expanded by remember(options, value) { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.width(320.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier.widthIn(min = 220.dp)) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,

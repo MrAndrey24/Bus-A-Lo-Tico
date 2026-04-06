@@ -9,6 +9,7 @@ data class AdminCompanyUiState(
     val selectedRoute: Route? = null,
     val companyNames: Map<String, String> = emptyMap(),
     val companyDrivers: List<Driver> = emptyList(),
+    val recentIncidents: List<AdminRouteIncidentSummary> = emptyList(),
     val isSavingRoute: Boolean = false,
     val isSavingSchedule: Boolean = false,
     val isSavingStop: Boolean = false,

@@ -66,26 +66,32 @@ class RouteRemoteDataSource : IRouteRemoteDataSource {
     }
 
     override suspend fun getRouteByDriverId(driverId: String): Route? {
+        return getRoutesByDriverId(driverId).firstOrNull()
+    }
+
+    override suspend fun getRoutesByDriverId(driverId: String): List<Route> {
         val schedulesQuery = Firebase.firestore.collectionGroup(SCHEDULES_COLLECTION)
 
-        val scheduleSnapshot = runCatching {
-            schedulesQuery
-                .where { "driverId" equalTo driverId }
-                .limit(1)
-                .get()
-                .documents
-                .firstOrNull()
-        }.getOrNull() ?: schedulesQuery
-            .get()
-            .documents
-            .firstOrNull { snapshot ->
-                val scheduleDto = snapshot.data(RouteScheduleDto.serializer())
-                scheduleDto.driverId == driverId
-            }
-            ?: return null
+        val scheduleDocuments =
+            runCatching {
+                schedulesQuery
+                    .where { "driverId" equalTo driverId }
+                    .get()
+                    .documents
+            }.getOrNull()
+                ?: schedulesQuery
+                    .get()
+                    .documents
+                    .filter { snapshot ->
+                        val scheduleDto = snapshot.data(RouteScheduleDto.serializer())
+                        scheduleDto.driverId == driverId
+                    }
 
-        val routeId = scheduleSnapshot.reference.parent.parent?.id ?: return null
-        return getRoute(routeId)
+        val routeIds = scheduleDocuments
+            .mapNotNull { it.reference.parent.parent?.id }
+            .distinct()
+
+        return routeIds.mapNotNull { routeId -> getRoute(routeId) }
     }
 
     override suspend fun upsertRoute(route: Route): Route {

@@ -314,9 +314,9 @@ private fun AuthTextField(
             {
               Icon(
                   imageVector =
-                      if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                      if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                   contentDescription =
-                      if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                      if (passwordVisible) "Contraseña visible" else "Contraseña oculta",
                   tint = MaterialTheme.colorScheme.onSurfaceVariant,
                   modifier =
                       Modifier.clickable { onPasswordVisibilityToggle() }.padding(end = 4.dp),

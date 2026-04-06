@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.shared.data.repository.company.ICompanyRepository
 import com.example.shared.data.repository.driver.IDriverRepository
 import com.example.shared.data.repository.route.IRouteRepository
+import com.example.shared.data.repository.trip.ITripExecutionRepository
 import com.example.shared.domain.entities.Driver
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteSchedule
@@ -18,6 +19,7 @@ class AdminCompanyViewModel(
     private val routeRepository: IRouteRepository,
     private val driverRepository: IDriverRepository,
     private val companyRepository: ICompanyRepository,
+    private val tripExecutionRepository: ITripExecutionRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminCompanyUiState())
@@ -250,6 +252,36 @@ class AdminCompanyViewModel(
         return driverRepository.getDriversByCompany(companyId).sortedBy { it.name }
     }
 
+    private suspend fun loadRecentIncidents(
+        routes: List<Route>,
+        drivers: List<Driver>,
+    ): List<AdminRouteIncidentSummary> {
+        if (routes.isEmpty() || drivers.isEmpty()) return emptyList()
+
+        val routeNamesById = routes.associate { it.id to it.name }
+        val driverNamesById = drivers.associate { it.id to it.name }
+        val summaries = mutableListOf<AdminRouteIncidentSummary>()
+
+        drivers.forEach { driver ->
+            val tripExecutions = tripExecutionRepository.getTripExecutionsByDriver(driver.id)
+            tripExecutions
+                .filter { it.routeId in routeNamesById.keys && it.hadIncidents }
+                .forEach { tripExecution ->
+                    val latestIncident = tripExecutionRepository.getIncidents(tripExecution.id).firstOrNull() ?: return@forEach
+                    summaries += AdminRouteIncidentSummary(
+                        tripExecutionId = tripExecution.id,
+                        routeName = routeNamesById[tripExecution.routeId] ?: tripExecution.routeId,
+                        driverName = driverNamesById[tripExecution.driverId] ?: tripExecution.driverId,
+                        incidentType = latestIncident.type,
+                        incidentDetail = latestIncident.detail,
+                        createdAt = latestIncident.createdAt,
+                    )
+                }
+        }
+
+        return summaries.sortedByDescending { it.createdAt }.take(6)
+    }
+
     private suspend fun buildUiState(
         selectedRouteId: String?,
         isSavingRoute: Boolean = false,
@@ -269,13 +301,20 @@ class AdminCompanyViewModel(
         val selectedRoute = selectedId?.let { routeRepository.getRoute(it) }
         val companyNames = loadCompanyNames(routes)
         val drivers = loadDrivers(selectedRoute)
+        val companyDrivers =
+            when (val companyId = companyScopeId ?: selectedRoute?.companyId) {
+                null -> drivers
+                else -> driverRepository.getDriversByCompany(companyId).sortedBy { it.name }
+            }
+        val recentIncidents = loadRecentIncidents(routes, companyDrivers)
 
         return AdminCompanyUiState(
             isLoading = false,
             routes = routes,
             selectedRoute = selectedRoute,
             companyNames = companyNames,
-            companyDrivers = drivers,
+            companyDrivers = companyDrivers,
+            recentIncidents = recentIncidents,
             isSavingRoute = isSavingRoute,
             isSavingSchedule = isSavingSchedule,
             isSavingStop = isSavingStop,
