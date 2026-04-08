@@ -2,6 +2,7 @@ package com.example.busalotico.ui.screen.routes
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,10 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Payments
@@ -134,8 +137,7 @@ private fun AdministrativeDetailContent(
         item { AdministrativeHeroCard(route) }
         item { AdministrativeMetricsSection(route) }
         item { AdministrativeLocationCard(route = route) }
-        item { AdministrativePaymentCard(route) }
-        item { AdministrativeScheduleCard(route.schedules, driverNamesById) }
+        item { AdministrativeScheduleCard(route = route, driverNamesById = driverNamesById) }
         item { AdministrativeFooter(route) }
         item { Spacer(modifier = Modifier.height(24.dp)) }
     }
@@ -159,21 +161,13 @@ private fun AdministrativeHeroCard(route: Route) {
                     color = MaterialTheme.colorScheme.primary
                 ) {
                     Text(
-                        text = route.code,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        text = "RUTA OFICIAL",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold,
                     )
                 }
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "RUTA OFICIAL",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
             }
 
             Text(
@@ -188,47 +182,103 @@ private fun AdministrativeHeroCard(route: Route) {
 
 @Composable
 private fun AdministrativeMetricsSection(route: Route) {
-    Row(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        MetricCard(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Default.Payments,
-            label = "Tarifa Regular",
-            value = route.fareCrc?.let { "₡$it" } ?: "N/D",
-            color = MaterialTheme.colorScheme.primary
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SectionLabel(
+                    text = "Tarifa regular",
+                    icon = Icons.Default.Payments,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = route.fareCrc?.let { "₡$it" } ?: "N/D",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(64.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f))
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SectionLabel(
+                    text = "Medios de pago",
+                    icon = Icons.Default.CreditCard,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                PaymentMethodLine(
+                    text = "Efectivo",
+                    isAvailable = true,
+                )
+                if (route.acceptsCardPayment) {
+                    PaymentMethodLine(
+                        text = "Tarjeta",
+                        isAvailable = true,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionLabel(
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color.copy(alpha = 0.82f),
+            modifier = Modifier.size(18.dp)
         )
-        MetricCard(
-            modifier = Modifier.weight(1f),
-            icon = if (route.isLive) Icons.Default.Bolt else Icons.Default.Schedule,
-            label = "Estado",
-            value = if (route.isLive) "En Vivo" else "Programado",
-            color = if (route.isLive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = color.copy(alpha = 0.82f),
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }
 
 @Composable
-private fun MetricCard(
-    label: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color,
-    modifier: Modifier = Modifier
+private fun PaymentMethodLine(
+    text: String,
+    isAvailable: Boolean,
 ) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(imageVector = icon, contentDescription = null, tint = color.copy(alpha = 0.8f), modifier = Modifier.size(20.dp))
-            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-        }
-    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = if (isAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+        fontWeight = if (isAvailable) FontWeight.SemiBold else FontWeight.Normal,
+    )
 }
 
 @Composable
@@ -253,7 +303,12 @@ private fun AdministrativeLocationCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
             Text(
                 text = "Recorrido",
                 style = MaterialTheme.typography.titleSmall,
@@ -261,63 +316,60 @@ private fun AdministrativeLocationCard(
                 fontWeight = FontWeight.Bold,
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                AdministrativeLocationItem(
-                    label = "Origen",
-                    value = startLocation.ifBlank { "No disponible" },
-                    icon = Icons.Default.TripOrigin,
-                    iconColor = MaterialTheme.colorScheme.primary
-                )
-                
-                Box(modifier = Modifier.padding(start = 11.dp).width(2.dp).height(12.dp).background(MaterialTheme.colorScheme.outlineVariant))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.TripOrigin,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(2.dp)
+                            .height(34.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
 
-                AdministrativeLocationItem(
-                    label = "Destino",
-                    value = endLocation.ifBlank { "No disponible" },
-                    icon = Icons.Default.LocationOn,
-                    iconColor = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AdministrativeLocationItem(
-    label: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconColor: Color
-) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Icon(imageVector = icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
-        Column {
-            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-        }
-    }
-}
-
-@Composable
-private fun AdministrativePaymentCard(route: Route) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(
-                text = "Medios de Pago",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                PaymentChip(text = "Efectivo", icon = Icons.Default.Payments)
-                if (route.acceptsCardPayment) {
-                    PaymentChip(text = "Tarjeta", icon = Icons.Default.CreditCard)
+                Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "Origen",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = startLocation.ifBlank { "Origen no disponible" },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "Destino",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            text = endLocation.ifBlank { "Destino no disponible" },
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
             }
         }
@@ -325,26 +377,8 @@ private fun AdministrativePaymentCard(route: Route) {
 }
 
 @Composable
-private fun PaymentChip(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-            Text(text = text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
 private fun AdministrativeScheduleCard(
-    schedules: List<RouteSchedule>,
+    route: Route,
     driverNamesById: Map<String, String>,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -357,7 +391,7 @@ private fun AdministrativeScheduleCard(
             letterSpacing = 1.1.sp
         )
 
-        if (schedules.isEmpty()) {
+        if (route.schedules.isEmpty()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -372,7 +406,7 @@ private fun AdministrativeScheduleCard(
                 )
             }
         } else {
-            schedules.sortedBy { it.departureTime }.forEach { schedule ->
+            route.schedules.sortedBy { it.departureTime }.forEach { schedule ->
                 ScheduleListItem(
                     schedule = schedule,
                     driverName = driverNamesById[schedule.driverId],
@@ -389,52 +423,67 @@ private fun ScheduleListItem(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Surface(
-                modifier = Modifier.size(48.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(imageVector = Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                }
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = schedule.departureTime,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "Llegada: ${schedule.arrivalTime.ifBlank { "N/D" }}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            (driverName ?: schedule.driverId.takeIf { it.isNotBlank() })?.let { driverLabel ->
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "Chofer: ${driverLabel.take(20)}",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = schedule.departureTime,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    Text(
+                        text = "Llegada: ${schedule.arrivalTime.ifBlank { "N/D" }}",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold,
                     )
                 }
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = driverName ?: schedule.driverId.takeIf { it.isNotBlank() } ?: "Chofer no asignado",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
             }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f))
+            )
+
         }
     }
 }
