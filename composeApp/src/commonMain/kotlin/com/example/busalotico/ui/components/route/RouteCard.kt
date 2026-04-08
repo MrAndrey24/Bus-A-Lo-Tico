@@ -61,28 +61,25 @@ fun RouteSelectionCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Text(
+                    text = route.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
-                ) {
-                    RouteCodeBadge(code = route.code, isActive = route.isActive)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = route.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
@@ -110,8 +107,6 @@ fun RouteSelectionCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             val startLocation = listOfNotNull(
                 route.province?.takeIf { it.isNotBlank() },
                 route.canton?.takeIf { it.isNotBlank() },
@@ -129,8 +124,6 @@ fun RouteSelectionCard(
                 start = startLocation.ifBlank { "Origen" },
                 end = endLocation.ifBlank { "Destino" }
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Bottom Info Bar
             Row(
@@ -158,20 +151,10 @@ fun RouteSelectionCard(
                     )
                 }
 
-                route.fareCrc?.let { fare ->
-                    Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = "₡$fare",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
+                RouteCodeBadge(
+                    code = route.fareCrc?.let { "Tarifa: ₡$it" } ?: route.code,
+                    isActive = route.isActive,
+                )
             }
         }
     }
