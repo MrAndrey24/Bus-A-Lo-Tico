@@ -8,7 +8,6 @@ import com.example.shared.presentation.driver.DriverRouteViewModel
 import com.example.shared.presentation.location.LocationViewModel
 import com.example.shared.presentation.route.RouteAdministrativeDetailViewModel
 import com.example.shared.presentation.route.RouteDetailViewModel
-import com.example.shared.presentation.route.RouteStopMaintenanceViewModel
 import com.example.shared.presentation.route.RouteViewModel
 import org.koin.dsl.module
 
@@ -21,6 +20,5 @@ val presentationModule = module {
     factory { RouteViewModel(get(), get(), get(), get()) }
     factory { DriverRouteViewModel(get(), get(), get()) }
     factory { RouteAdministrativeDetailViewModel(get(), get()) }
-    factory { RouteStopMaintenanceViewModel(get()) }
     single { RouteDetailViewModel(get(), get()) }
 }
