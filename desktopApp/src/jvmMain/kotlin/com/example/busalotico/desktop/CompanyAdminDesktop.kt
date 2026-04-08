@@ -1129,7 +1129,23 @@ private fun RouteDetailsEditor(
     onSaveRoute: () -> Unit,
     isSaving: Boolean,
 ) {
-    val provinces = remember { costaRicaGeoData() }
+    val provinces =
+        remember {
+            costaRicaGeoData()
+                .sortedBy { it.name.lowercase() }
+                .map { province ->
+                    province.copy(
+                        cantons =
+                            province.cantons
+                                .sortedBy { it.name.lowercase() }
+                                .map { canton ->
+                                    canton.copy(
+                                        districts = canton.districts.sortedBy { it.lowercase() }
+                                    )
+                                },
+                    )
+                }
+        }
     val startProvince = provinces.firstOrNull { it.name == routeForm.startProvince }
     val startCantons = startProvince?.cantons ?: emptyList()
     val startCanton = startCantons.firstOrNull { it.name == routeForm.startCanton }
