@@ -34,7 +34,6 @@ import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
 import com.example.busalotico.ui.screen.routes.RouteAdministrativeDetailScreen
-import com.example.busalotico.ui.screen.routes.RouteStopMaintenanceScreen
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.presentation.route.RouteDetailViewModel
 import com.example.shared.presentation.route.RouteViewModel
@@ -209,23 +208,9 @@ fun BusAppNavigation(
         RouteAdministrativeDetailScreen(
             routeId = backStackEntry.arguments?.getString("routeId").orEmpty(),
             onBackClick = { navController.popBackStack() },
-            onStopMaintenanceClick = { routeId ->
-              navController.navigate("$RouteStopMaintenanceDestination/$routeId")
-            },
-        )
-      }
-
-      composable(
-          route = "$RouteStopMaintenanceDestination/{routeId}",
-          arguments = listOf(navArgument("routeId") { type = NavType.StringType }),
-      ) { backStackEntry ->
-        RouteStopMaintenanceScreen(
-            routeId = backStackEntry.arguments?.getString("routeId").orEmpty(),
-            onBackClick = { navController.popBackStack() },
         )
       }
     }
   }
 }
 private const val AdministrativeRouteDestination = "administrative_route_detail"
-private const val RouteStopMaintenanceDestination = "route_stop_maintenance"
