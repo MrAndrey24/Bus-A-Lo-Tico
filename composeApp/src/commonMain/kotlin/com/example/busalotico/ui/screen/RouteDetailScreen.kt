@@ -48,7 +48,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.RecenterButton
@@ -365,7 +364,7 @@ private fun TimelineStopRow(
                                 border = BorderStroke(2.dp, Color(0xFF4CAF50))
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Box(modifier = Modifier.size(10.dp).background(Color(0xFF4CAF50), CircleShape))
+                                    Text((index + 1).toString(), color = Color(0xFF4CAF50), fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                 }
                             }
                         }
@@ -378,7 +377,7 @@ private fun TimelineStopRow(
                             border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.outlineVariant, CircleShape))
+                                Text((index + 1).toString(), color = MaterialTheme.colorScheme.outlineVariant, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             }
                         }
                     }
