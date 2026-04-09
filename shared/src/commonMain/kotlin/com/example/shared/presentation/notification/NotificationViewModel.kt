@@ -50,4 +50,12 @@ class NotificationViewModel(
       }
     }
   }
+
+  fun deleteNotification(notificationId: String, userId: String) {
+    viewModelScope.launch {
+      notificationRepository.deleteNotification(notificationId, userId).onFailure {
+        _uiState.value = _uiState.value.copy(errorMessage = "No se pudo eliminar la notificación.")
+      }
+    }
+  }
 }
