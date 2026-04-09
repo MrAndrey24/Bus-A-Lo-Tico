@@ -15,6 +15,8 @@ import com.example.shared.domain.entities.TripIncident
 import com.example.shared.domain.entities.TripIncidentType
 import com.example.shared.domain.entities.TripExecutionStatus
 import com.example.shared.domain.entities.UserIncidentNotification
+import com.example.shared.presentation.notification.toNotificationDisplayLabel
+import com.example.shared.presentation.notification.toNotificationMessage
 import com.example.shared.util.currentCostaRicaTimeMinutes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -206,13 +208,14 @@ class DriverRouteViewModel(
                     status = TripExecutionStatus.DELAYED,
                 )
             )
-            incident
+            incident to existingTrip.routeId
           }
-          .onSuccess { incident ->
+            .onSuccess { (incident, routeId) ->
             refreshDriverData()
             _uiState.value = _uiState.value.copy(isReportingIncident = false)
             dispatchIncidentNotifications(
                 tripExecutionId = tripExecutionId,
+              routeId = routeId,
                 incident = incident,
             )
             onSuccess(incident)
@@ -460,11 +463,7 @@ class DriverRouteViewModel(
   }
 
   private fun TripIncidentType.toDisplayLabel(): String {
-    return when (this) {
-      TripIncidentType.ACCIDENT -> "Accidente"
-      TripIncidentType.BREAKDOWN -> "Avería"
-      TripIncidentType.SECURITY -> "Seguridad"
-    }
+    return toNotificationDisplayLabel()
   }
 
   private fun TripExecutionStatus.toHistoryStatusLabel(): String {
@@ -480,22 +479,25 @@ class DriverRouteViewModel(
 
   private fun dispatchIncidentNotifications(
       tripExecutionId: String,
+      routeId: String,
       incident: TripIncident,
   ) {
     val now = Clock.System.now().toEpochMilliseconds()
-    val routeName = _uiState.value.route?.name ?: ""
     val targets = listOf(currentDriverId).filter { it.isNotBlank() }.distinct()
 
-    targets.forEach { userId ->
-      viewModelScope.launch {
+    viewModelScope.launch {
+      val normalizedRouteId = routeId.trim()
+
+      targets.forEach { userId ->
         notificationRepository.addNotification(
             UserIncidentNotification(
                 userId = userId,
                 tripExecutionId = tripExecutionId,
-                incidentType = incident.type.toDisplayLabel(),
+                routeId = normalizedRouteId,
+                incidentType = incident.type.toNotificationDisplayLabel(),
                 detail = incident.detail,
-                sanitizedDetail = "Se ha reportado un incidente en la ruta",
-                routeName = routeName,
+                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteId),
+                routeName = normalizedRouteId,
                 dispatchedAt = now,
                 createdAt = now,
             )
