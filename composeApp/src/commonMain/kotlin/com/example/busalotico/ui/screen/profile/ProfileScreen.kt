@@ -45,6 +45,7 @@ fun ProfileScreen(
     companyLoadError: String? = null,
     onUpdateCompany: ((String) -> Unit)? = null,
     onSignOut: () -> Unit,
+    onOpenNotifications: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
   var selectedCompanyId by remember(currentCompanyId, companies) {
@@ -52,6 +53,7 @@ fun ProfileScreen(
   }
   val selectedCompanyName = companies.firstOrNull { it.id == selectedCompanyId }?.name.orEmpty()
   val showCompanyEditor = onUpdateCompany != null
+  val showPassengerNotifications = userRole.equals("Pasajero", ignoreCase = true)
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -130,6 +132,15 @@ fun ProfileScreen(
             ProfileInfoRow(label = "Correo", value = userEmail.ifBlank { "-" })
             Spacer(modifier = Modifier.height(12.dp))
             ProfileInfoRow(label = "Rol", value = userRole.ifBlank { "-" })
+
+            if (showPassengerNotifications) {
+              Spacer(modifier = Modifier.height(20.dp))
+              PillActionButton(
+                  text = "Ver notificaciones",
+                  onClick = onOpenNotifications,
+                  modifier = Modifier.fillMaxWidth(),
+              )
+            }
 
             if (showCompanyEditor) {
               Spacer(modifier = Modifier.height(20.dp))
