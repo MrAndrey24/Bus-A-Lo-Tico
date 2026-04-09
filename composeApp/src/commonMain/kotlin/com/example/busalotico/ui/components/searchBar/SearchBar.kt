@@ -181,7 +181,7 @@ private fun SearchResultItem(route: Route, onClick: () -> Unit) {
           fontWeight = FontWeight.Medium,
       )
       Text(
-          text = route.code,
+          text = "Tarifa: ₡${route.fareCrc}",
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
