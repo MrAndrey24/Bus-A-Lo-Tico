@@ -18,6 +18,11 @@ class NotificationRepository(
       userId: String,
   ): Result<Unit> = remoteDataSource.markNotificationAsRead(notificationId, userId)
 
+  override suspend fun deleteNotification(
+      notificationId: String,
+      userId: String,
+  ): Result<Unit> = remoteDataSource.deleteNotification(notificationId, userId)
+
   override suspend fun addNotification(notification: UserIncidentNotification): Result<String> =
       remoteDataSource.addNotification(UserIncidentNotificationDto.fromEntity(notification))
 }

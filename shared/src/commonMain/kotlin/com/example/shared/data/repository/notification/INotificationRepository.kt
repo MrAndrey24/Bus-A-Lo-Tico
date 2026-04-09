@@ -8,5 +8,7 @@ interface INotificationRepository {
 
   suspend fun markNotificationAsRead(notificationId: String, userId: String): Result<Unit>
 
+  suspend fun deleteNotification(notificationId: String, userId: String): Result<Unit>
+
   suspend fun addNotification(notification: UserIncidentNotification): Result<String>
 }

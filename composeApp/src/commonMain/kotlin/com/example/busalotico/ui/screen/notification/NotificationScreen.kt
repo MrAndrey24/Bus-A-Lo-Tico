@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,6 +53,7 @@ fun NotificationScreen(
       topBar = {
         CenterAlignedTopAppBar(
             title = { Text("Notificaciones") },
+            windowInsets = WindowInsets(0, 0, 0, 0),
             navigationIcon = {
               IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -94,6 +97,9 @@ fun NotificationScreen(
                   onMarkAsRead = { notificationId ->
                     viewModel.markNotificationAsRead(notificationId, userId)
                   },
+                  onDelete = { notificationId ->
+                    viewModel.deleteNotification(notificationId, userId)
+                  },
               )
             }
           }
@@ -106,6 +112,7 @@ fun NotificationScreen(
 fun NotificationItem(
     notification: UserIncidentNotification,
     onMarkAsRead: (String) -> Unit,
+  onDelete: (String) -> Unit,
 ) {
   val routeReference = notification.routeId.ifBlank { notification.routeName }
 
@@ -171,11 +178,19 @@ fun NotificationItem(
           )
         }
 
-        Text(
-            text = formatNotificationTime(notification.dispatchedAt),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+              text = formatNotificationTime(notification.dispatchedAt),
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+
+          TextButton(onClick = { onDelete(notification.id) }) { Text("Eliminar") }
+        }
       }
     }
   }
