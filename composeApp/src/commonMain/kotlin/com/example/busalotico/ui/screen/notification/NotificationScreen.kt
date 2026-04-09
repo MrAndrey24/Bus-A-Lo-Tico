@@ -107,6 +107,8 @@ fun NotificationItem(
     notification: UserIncidentNotification,
     onMarkAsRead: (String) -> Unit,
 ) {
+  val routeReference = notification.routeId.ifBlank { notification.routeName }
+
   Card(
       modifier =
           Modifier.fillMaxWidth().clickable(enabled = notification.readAt == null) {
@@ -160,21 +162,21 @@ fun NotificationItem(
           modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
       )
 
-      if (notification.routeName.isNotBlank()) {
+      Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        if (routeReference.isNotBlank()) {
+          Text(
+              text = "Ruta: $routeReference",
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+
         Text(
-            text = "Ruta: ${notification.routeName}",
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            text = formatNotificationTime(notification.dispatchedAt),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
-
-      Text(
-          text = formatNotificationTime(notification.dispatchedAt),
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.padding(top = 8.dp),
-      )
     }
   }
 }

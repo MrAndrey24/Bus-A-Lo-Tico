@@ -4,6 +4,7 @@ data class UserIncidentNotification(
     val id: String = "",
     val userId: String = "",
     val tripExecutionId: String = "",
+    val routeId: String = "",
     val incidentType: String = "",
     val detail: String = "",
     val sanitizedDetail: String = "",

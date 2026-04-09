@@ -34,7 +34,7 @@ class NotificationViewModel(
       notificationRepository.observeUserNotifications(userId).collect { notifications ->
         _uiState.value =
             NotificationUiState(
-                notifications = notifications,
+                notifications = notifications.map(UserIncidentNotification::toDisplayNotification),
                 isLoading = false,
                 errorMessage = null,
             )
