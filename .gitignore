@@ -23,3 +23,6 @@ node_modules/
 androidApp/google-services.json
 androidApp/src/debug/google-services.json
 **/firebase.properties
+
+# Firebase logs
+firebase-debug.log
