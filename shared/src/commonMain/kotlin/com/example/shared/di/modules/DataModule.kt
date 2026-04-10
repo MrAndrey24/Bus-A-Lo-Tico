@@ -8,6 +8,8 @@ import com.example.shared.data.remote.company.CompanyRemoteDataSource
 import com.example.shared.data.remote.company.ICompanyRemoteDataSource
 import com.example.shared.data.remote.driver.DriverRemoteDataSource
 import com.example.shared.data.remote.driver.IDriverRemoteDataSource
+import com.example.shared.data.remote.datasource.notification.INotificationRemoteDataSource
+import com.example.shared.data.remote.datasource.notification.NotificationRemoteDataSource
 import com.example.shared.data.remote.route.IRouteRemoteDataSource
 import com.example.shared.data.remote.route.RouteRemoteDataSource
 import com.example.shared.data.remote.trip.ITripExecutionRemoteDataSource
@@ -24,6 +26,8 @@ import com.example.shared.data.repository.location.ILocationRepository
 import com.example.shared.data.repository.location.LocationRepository
 import com.example.shared.data.repository.mapbox.IMapboxRepository
 import com.example.shared.data.repository.mapbox.MapboxRepository
+import com.example.shared.data.repository.notification.INotificationRepository
+import com.example.shared.data.repository.notification.NotificationRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.route.RouteRepository
 import com.example.shared.data.repository.trip.ITripExecutionRepository
@@ -48,4 +52,6 @@ val dataModule = module {
     single<ITripExecutionRepository> { TripExecutionRepository(get()) }
     single<IUserRepository> { UserRepository(get()) }
     single<IMapboxRepository> { MapboxRepository(get()) }
+    single<INotificationRemoteDataSource> { NotificationRemoteDataSource() }
+    single<INotificationRepository> { NotificationRepository(get()) }
 }

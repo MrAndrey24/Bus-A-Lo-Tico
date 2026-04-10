@@ -32,9 +32,11 @@ import com.example.busalotico.ui.model.mapper.toRouteSelectionUiState
 import com.example.busalotico.ui.screen.RouteDetailScreen
 import com.example.busalotico.ui.screen.RouteSelectionScreen
 import com.example.busalotico.ui.screen.home.HomeScreen
+import com.example.busalotico.ui.screen.notification.NotificationScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
 import com.example.busalotico.ui.screen.routes.RouteAdministrativeDetailScreen
 import com.example.shared.domain.entities.Coordinate
+import com.example.shared.presentation.notification.NotificationViewModel
 import com.example.shared.presentation.route.RouteDetailViewModel
 import com.example.shared.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -198,6 +200,16 @@ fun BusAppNavigation(
             userEmail = userEmail,
             userRole = userRole,
             onSignOut = onSignOut,
+            onOpenNotifications = { navController.navigate(BusAppScreen.Notifications.name) },
+        )
+      }
+
+      composable(route = BusAppScreen.Notifications.name) {
+        val notificationViewModel = koinViewModel<NotificationViewModel>()
+        NotificationScreen(
+            viewModel = notificationViewModel,
+            userId = userId,
+            onBack = { navController.popBackStack() },
         )
       }
 

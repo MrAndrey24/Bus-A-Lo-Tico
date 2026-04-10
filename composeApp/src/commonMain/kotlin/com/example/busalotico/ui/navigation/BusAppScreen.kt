@@ -4,5 +4,6 @@ enum class BusAppScreen {
     Home,
     Routes,
     Detail,
-    Profile
+    Profile,
+    Notifications,
 }
