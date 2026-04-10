@@ -3,6 +3,7 @@ package com.example.shared.presentation.driver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shared.data.repository.driver.IDriverRepository
+import com.example.shared.data.repository.notification.INotificationRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.trip.ITripExecutionRepository
 import com.example.shared.domain.entities.Coordinate
@@ -13,6 +14,9 @@ import com.example.shared.domain.entities.TripExecution
 import com.example.shared.domain.entities.TripIncident
 import com.example.shared.domain.entities.TripIncidentType
 import com.example.shared.domain.entities.TripExecutionStatus
+import com.example.shared.domain.entities.UserIncidentNotification
+import com.example.shared.presentation.notification.toNotificationDisplayLabel
+import com.example.shared.presentation.notification.toNotificationMessage
 import com.example.shared.util.currentCostaRicaTimeMinutes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +30,7 @@ class DriverRouteViewModel(
     private val driverRepository: IDriverRepository,
     private val routeRepository: IRouteRepository,
     private val tripExecutionRepository: ITripExecutionRepository,
+  private val notificationRepository: INotificationRepository,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(DriverRouteUiState())
@@ -203,11 +208,16 @@ class DriverRouteViewModel(
                     status = TripExecutionStatus.DELAYED,
                 )
             )
-            incident
+            incident to existingTrip.routeId
           }
-          .onSuccess { incident ->
+            .onSuccess { (incident, routeId) ->
             refreshDriverData()
             _uiState.value = _uiState.value.copy(isReportingIncident = false)
+            dispatchIncidentNotifications(
+                tripExecutionId = tripExecutionId,
+              routeId = routeId,
+                incident = incident,
+            )
             onSuccess(incident)
           }
           .onFailure {
@@ -453,11 +463,7 @@ class DriverRouteViewModel(
   }
 
   private fun TripIncidentType.toDisplayLabel(): String {
-    return when (this) {
-      TripIncidentType.ACCIDENT -> "Accidente"
-      TripIncidentType.BREAKDOWN -> "Avería"
-      TripIncidentType.SECURITY -> "Seguridad"
-    }
+    return toNotificationDisplayLabel()
   }
 
   private fun TripExecutionStatus.toHistoryStatusLabel(): String {
@@ -468,6 +474,35 @@ class DriverRouteViewModel(
       TripExecutionStatus.IN_PROGRESS -> "EN CURSO"
       TripExecutionStatus.PENDING -> "PENDIENTE"
       TripExecutionStatus.CANCELLED -> "CANCELADO"
+    }
+  }
+
+  private fun dispatchIncidentNotifications(
+      tripExecutionId: String,
+      routeId: String,
+      incident: TripIncident,
+  ) {
+    val now = Clock.System.now().toEpochMilliseconds()
+    val targets = listOf(currentDriverId).filter { it.isNotBlank() }.distinct()
+
+    viewModelScope.launch {
+      val normalizedRouteId = routeId.trim()
+
+      targets.forEach { userId ->
+        notificationRepository.addNotification(
+            UserIncidentNotification(
+                userId = userId,
+                tripExecutionId = tripExecutionId,
+                routeId = normalizedRouteId,
+                incidentType = incident.type.toNotificationDisplayLabel(),
+                detail = incident.detail,
+                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteId),
+                routeName = normalizedRouteId,
+                dispatchedAt = now,
+                createdAt = now,
+            )
+        )
+      }
     }
   }
 }
