@@ -18,8 +18,8 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 class RouteDetailViewModel(
-    private val mapboxRepository: IMapboxRepository,
-    private val routeRepository: IRouteRepository,
+  private val mapboxRepository: IMapboxRepository,
+  private val routeRepository: IRouteRepository,
 ) : ViewModel() {
 
   private val _selectedRouteId = MutableStateFlow("")
@@ -43,8 +43,10 @@ class RouteDetailViewModel(
   private val _stopEtas = MutableStateFlow<List<String>>(emptyList())
   val stopEtas: StateFlow<List<String>> = _stopEtas.asStateFlow()
 
-  private val ARRIVAL_THRESHOLD_METERS = 300.0
+  private val _isSimulationCompleted = MutableStateFlow(false)
+  val isSimulationCompleted: StateFlow<Boolean> = _isSimulationCompleted.asStateFlow()
 
+  private val ARRIVAL_THRESHOLD_METERS = 300.0
   private var simulationJob: Job? = null
 
   fun loadStops(routeId: String) {
@@ -59,12 +61,11 @@ class RouteDetailViewModel(
           _routeName.value = route.name
           _currentStopIndex.value = 0
 
-          val coordinates =
-              route.stops.map { Coordinate(it.latitude, it.longitude) }.toMutableList()
+          val coordinates = route.stops
+            .map { Coordinate(it.latitude, it.longitude) }
+            .toMutableList()
 
           loadMapboxLine(coordinates)
-
-          // Fetch durations between stops (not including the loop-back)
           loadEtas(route.stops.map { Coordinate(it.latitude, it.longitude) })
         }
       } catch (e: Exception) {
@@ -78,14 +79,9 @@ class RouteDetailViewModel(
 
     try {
       val durations = mapboxRepository.getStopDurations(stopCoordinates)
-
-      // durations[i] = seconds from stop i to stop i+1
-      // We calculate absolute arrival time for each stop from now
       val now = getCurrentTimeMinutes()
-
       val etas = mutableListOf<String>()
 
-      // First stop — the bus is already here (or departing)
       etas.add(formatMinutes(now))
 
       var accumulated = 0.0
@@ -117,20 +113,22 @@ class RouteDetailViewModel(
 
   private fun startSimulation(points: List<Coordinate>) {
     simulationJob?.cancel()
+    _isSimulationCompleted.value = false
 
-    simulationJob =
-        viewModelScope.launch {
-          if (points.isEmpty()) return@launch
+    simulationJob = viewModelScope.launch {
+      if (points.isEmpty()) return@launch
 
-          while (isActive) {
-            for (point in points) {
-              _busLocation.value = point
-              updateCurrentStop(point)
-              delay(3000)
-            }
-          }
-        }
+      for (point in points) {
+        if (!isActive) break
+        _busLocation.value = point
+        updateCurrentStop(point)
+        delay(3000)
+      }
+
+      _isSimulationCompleted.value = true
+    }
   }
+
   private fun updateCurrentStop(busLocation: Coordinate) {
     val stops = _stops.value
     val currentIndex = _currentStopIndex.value
@@ -147,10 +145,19 @@ class RouteDetailViewModel(
     }
   }
 
+  fun clearSimulation() {
+    simulationJob?.cancel()
+    _isSimulationCompleted.value = false
+    _selectedRouteId.value = ""
+    _routeName.value = ""
+    _polylinePoints.value = emptyList()
+    _stops.value = emptyList()
+    _busLocation.value = null
+    _currentStopIndex.value = 0
+    _stopEtas.value = emptyList()
+  }
 
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
+  // ── Helpers ─────────────────────────────────────────────────────────────
 
   private fun getCurrentTimeMinutes(): Int {
     val now = Clock.System.now()
