@@ -327,12 +327,16 @@ private fun AuthTextField(
           },
       colors =
           OutlinedTextFieldDefaults.colors(
-              focusedContainerColor = MaterialTheme.colorScheme.surface,
-              unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+              focusedContainerColor = Color.White,
+              unfocusedContainerColor = Color.White,
+              disabledContainerColor = Color.White,
               focusedBorderColor = MaterialTheme.colorScheme.primary,
               unfocusedBorderColor = MaterialTheme.colorScheme.outline,
               focusedTextColor = MaterialTheme.colorScheme.onSurface,
               unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+              disabledTextColor = MaterialTheme.colorScheme.onSurface,
+              focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+              unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
           ),
   )
 }

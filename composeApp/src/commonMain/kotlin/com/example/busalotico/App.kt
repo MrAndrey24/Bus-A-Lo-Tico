@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.example.busalotico.config.DevSessionConfig
 import com.example.busalotico.data.PermissionRequest
 import com.example.busalotico.ui.components.button.PillActionButton
-import com.example.busalotico.ui.components.input.DropdownSelectField
+import com.example.busalotico.ui.components.input.SearchableCompanySelectField
 import com.example.busalotico.ui.components.mapview.BindPlatformLocationTrackerEffect
 import com.example.busalotico.ui.components.mapview.getLocationTracker
 import com.example.busalotico.ui.navigation.RoleBasedNavigation
@@ -224,14 +224,15 @@ private fun AdminCompanyAssignmentScreen(
               CircularProgressIndicator()
             }
           } else {
-            DropdownSelectField(
+            SearchableCompanySelectField(
                 value = selectedCompanyName,
                 placeholder = if (companies.isEmpty()) "No hay empresas disponibles" else "Selecciona una empresa",
                 enabled = companies.isNotEmpty() && !isLoading,
-                options = companies.map { it.name },
-                onSelect = { selectedName ->
-                  selectedCompanyId = companies.firstOrNull { it.name == selectedName }?.id.orEmpty()
+                companies = companies,
+                onSelect = { company ->
+                  selectedCompanyId = company.id
                 },
+                showCompanyId = false,
             )
           }
 

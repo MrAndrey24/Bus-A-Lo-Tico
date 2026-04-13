@@ -107,6 +107,8 @@ import com.example.shared.domain.entities.geo.costaRicaGeoData
 import com.example.shared.presentation.auth.AuthViewModel
 import com.example.shared.presentation.admin.AdminCompanyViewModel
 import com.example.shared.presentation.company.CompanyListViewModel
+import com.example.shared.util.normalizeTimeTo24Hour
+import com.example.shared.util.parseFlexibleTimeToMinutes
 import org.koin.compose.viewmodel.koinViewModel
 import java.io.File
 import java.util.Properties
@@ -1381,7 +1383,10 @@ private fun RouteSchedulesEditor(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Column {
-                                    Text("${schedule.departureTime} → ${schedule.arrivalTime}", fontWeight = FontWeight.SemiBold)
+                                    Text(
+                                        "${schedule.departureTime.toDisplayMeridiemTime()} → ${schedule.arrivalTime.toDisplayMeridiemTime()}",
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                     Text("Chofer: $driverName", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Icon(Icons.Default.Schedule, contentDescription = null, tint = Color(0xFF718096))
@@ -1465,8 +1470,8 @@ private fun RouteSchedulesEditor(
                         }
                     }
                 }
-                AdminTextField("Hora salida", scheduleForm.departureTime, { onScheduleFormChange(scheduleForm.copy(departureTime = it)) }, supportingText = "Formato 07:00")
-                AdminTextField("Hora llegada", scheduleForm.arrivalTime, { onScheduleFormChange(scheduleForm.copy(arrivalTime = it)) }, supportingText = "Formato 08:25")
+                AdminTextField("Hora salida", scheduleForm.departureTime, { onScheduleFormChange(scheduleForm.copy(departureTime = it)) }, supportingText = "Formato 07:00 o 7:00 AM")
+                AdminTextField("Hora llegada", scheduleForm.arrivalTime, { onScheduleFormChange(scheduleForm.copy(arrivalTime = it)) }, supportingText = "Formato 08:25 o 8:25 AM")
                 if (drivers.isEmpty()) {
                     Text(
                         text = "No hay conductores registrados para esta empresa.",
@@ -1941,8 +1946,8 @@ private fun ScheduleFormState.toSchedule(): RouteSchedule {
     return RouteSchedule(
         id = id,
         driverId = driverId.trim(),
-        departureTime = departureTime.trim(),
-        arrivalTime = arrivalTime.trim(),
+        departureTime = normalizeTimeTo24Hour(departureTime.trim()) ?: departureTime.trim(),
+        arrivalTime = normalizeTimeTo24Hour(arrivalTime.trim()) ?: arrivalTime.trim(),
     )
 }
 
@@ -1964,6 +1969,20 @@ private fun StopFormState.toStop(): RouteStop {
         longitude = longitude.toDoubleOrNull() ?: 0.0,
         order = order.toIntOrNull() ?: 0,
     )
+}
+
+private fun String.toDisplayMeridiemTime(): String {
+    val totalMinutes = parseFlexibleTimeToMinutes(this) ?: return this
+    val hour24 = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    val meridiem = if (hour24 >= 12) "PM" else "AM"
+    val hour12 =
+        when {
+            hour24 == 0 -> 12
+            hour24 > 12 -> hour24 - 12
+            else -> hour24
+        }
+    return "${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} $meridiem"
 }
 
 private fun Driver.toFormState(): DriverFormState {

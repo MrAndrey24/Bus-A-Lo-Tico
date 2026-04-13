@@ -6,6 +6,7 @@ import com.example.shared.data.repository.driver.IDriverRepository
 import com.example.shared.data.repository.notification.INotificationRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.trip.ITripExecutionRepository
+import com.example.shared.data.repository.user.IUserRepository
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Driver
 import com.example.shared.domain.entities.Route
@@ -18,6 +19,7 @@ import com.example.shared.domain.entities.UserIncidentNotification
 import com.example.shared.presentation.notification.toNotificationDisplayLabel
 import com.example.shared.presentation.notification.toNotificationMessage
 import com.example.shared.util.currentCostaRicaTimeMinutes
+import com.example.shared.util.parseFlexibleTimeToMinutes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +32,8 @@ class DriverRouteViewModel(
     private val driverRepository: IDriverRepository,
     private val routeRepository: IRouteRepository,
     private val tripExecutionRepository: ITripExecutionRepository,
-  private val notificationRepository: INotificationRepository,
+    private val notificationRepository: INotificationRepository,
+    private val userRepository: IUserRepository,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(DriverRouteUiState())
@@ -188,7 +191,7 @@ class DriverRouteViewModel(
     _uiState.value = _uiState.value.copy(isReportingIncident = true)
 
     viewModelScope.launch {
-      runCatching {
+          runCatching {
             val incident =
                 tripExecutionRepository.addIncident(
                 tripExecutionId = tripExecutionId,
@@ -203,19 +206,23 @@ class DriverRouteViewModel(
             val existingTrip =
                 tripExecutionRepository.getTripExecution(tripExecutionId)
                     ?: error("No se encontró el viaje activo.")
+            val route =
+                routeRepository.getRoute(existingTrip.routeId)
+                    ?: error("No se encontró la ruta asociada al viaje.")
             tripExecutionRepository.updateTripExecution(
                 existingTrip.copy(
                     status = TripExecutionStatus.DELAYED,
                 )
             )
-            incident to existingTrip.routeId
+            Triple(incident, existingTrip.routeId, route.name)
           }
-            .onSuccess { (incident, routeId) ->
+            .onSuccess { (incident, routeId, routeName) ->
             refreshDriverData()
             _uiState.value = _uiState.value.copy(isReportingIncident = false)
             dispatchIncidentNotifications(
                 tripExecutionId = tripExecutionId,
-              routeId = routeId,
+                routeId = routeId,
+                routeName = routeName,
                 incident = incident,
             )
             onSuccess(incident)
@@ -456,10 +463,7 @@ class DriverRouteViewModel(
   }
 
   private fun parseTimeToMinutes(value: String): Int {
-    val parts = value.split(":")
-    val hours = parts.getOrNull(0)?.toIntOrNull() ?: return 0
-    val minutes = parts.getOrNull(1)?.toIntOrNull() ?: return 0
-    return hours * 60 + minutes
+    return parseFlexibleTimeToMinutes(value) ?: 0
   }
 
   private fun TripIncidentType.toDisplayLabel(): String {
@@ -480,13 +484,18 @@ class DriverRouteViewModel(
   private fun dispatchIncidentNotifications(
       tripExecutionId: String,
       routeId: String,
+      routeName: String,
       incident: TripIncident,
   ) {
     val now = Clock.System.now().toEpochMilliseconds()
-    val targets = listOf(currentDriverId).filter { it.isNotBlank() }.distinct()
 
     viewModelScope.launch {
       val normalizedRouteId = routeId.trim()
+      val normalizedRouteName = routeName.trim()
+      val targets =
+          userRepository.getSubscribedPassengerIdsForRoute(normalizedRouteId)
+              .filter { it.isNotBlank() && it != currentDriverId }
+              .distinct()
 
       targets.forEach { userId ->
         notificationRepository.addNotification(
@@ -496,8 +505,8 @@ class DriverRouteViewModel(
                 routeId = normalizedRouteId,
                 incidentType = incident.type.toNotificationDisplayLabel(),
                 detail = incident.detail,
-                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteId),
-                routeName = normalizedRouteId,
+                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteName),
+                routeName = normalizedRouteName,
                 dispatchedAt = now,
                 createdAt = now,
             )

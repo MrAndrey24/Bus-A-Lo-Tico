@@ -25,6 +25,33 @@ class UserRemoteDataSource : IUserRemoteDataSource {
         return dto.toDomain(userId, favoriteRouteIds)
     }
 
+    override suspend fun getSubscribedPassengerIdsForRoute(routeId: String): List<String> {
+        val normalizedRouteId = routeId.trim()
+        if (normalizedRouteId.isBlank()) return emptyList()
+
+        val favoriteDocuments =
+            runCatching {
+                Firebase.firestore
+                    .collectionGroup(FAVORITE_ROUTES_COLLECTION)
+                    .where { "routeId" equalTo normalizedRouteId }
+                    .get()
+                    .documents
+            }.getOrElse {
+                Firebase.firestore
+                    .collectionGroup(FAVORITE_ROUTES_COLLECTION)
+                    .get()
+                    .documents
+                    .filter { snapshot -> snapshot.id == normalizedRouteId }
+            }
+
+        return favoriteDocuments
+            .mapNotNull { it.reference.parent.parent?.id }
+            .distinct()
+            .mapNotNull { userId -> getUserProfile(userId) }
+            .filter { profile -> profile.role == UserRole.PASSENGER }
+            .map { profile -> profile.id }
+    }
+
     override suspend fun upsertUserProfile(
         userId: String,
         email: String,
