@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,6 +67,8 @@ fun RouteDetailScreen(
     coordinate: Coordinate,
     viewModel: RouteDetailViewModel = koinViewModel(),
     onBackClick: () -> Unit = {},
+    navigateToMapOnComplete: Boolean = false,
+    onSimulationComplete: () -> Unit = {},
 ) {
     val polylinePoints by viewModel.polylinePoints.collectAsState()
     val stops by viewModel.stops.collectAsState()
@@ -72,6 +76,7 @@ fun RouteDetailScreen(
     val routeName by viewModel.routeName.collectAsState()
     val currentStopIdx by viewModel.currentStopIndex.collectAsState()
     val stopEtas by viewModel.stopEtas.collectAsState()
+    val isSimulationCompleted by viewModel.isSimulationCompleted.collectAsState()
 
     var recenterTrigger by remember { mutableIntStateOf(0) }
     var zoomInTrigger by remember { mutableIntStateOf(0) }
@@ -84,7 +89,7 @@ fun RouteDetailScreen(
 
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Spacer(Modifier.height(24.dp))
-            
+
             Text(
                 text = "RUTA ACTIVA",
                 style = MaterialTheme.typography.labelMedium,
@@ -92,15 +97,15 @@ fun RouteDetailScreen(
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             )
-            
+
             Spacer(Modifier.height(8.dp))
-            
+
             RouteNameSection(routeName = routeName)
-            
+
             Spacer(Modifier.height(16.dp))
-            
+
             RouteStatusRow()
-            
+
             Spacer(Modifier.height(24.dp))
 
             MapPreviewCard(
@@ -143,6 +148,50 @@ fun RouteDetailScreen(
             item { Spacer(Modifier.height(24.dp)) }
         }
     }
+
+    if (isSimulationCompleted) {
+        RouteCompletedDialog(
+            onDismiss = {
+                if (navigateToMapOnComplete) {
+                    viewModel.clearSimulation()
+                    onSimulationComplete()
+                } else {
+                    viewModel.clearSimulation()
+                    onBackClick()
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun RouteCompletedDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Entendido", fontWeight = FontWeight.Bold)
+            }
+        },
+        icon = {
+            Text("🎉", fontSize = 32.sp)
+        },
+        title = {
+            Text(
+                text = "¡Ruta completada!",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            Text(
+                text = "El autobús ha llegado al destino final.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        shape = RoundedCornerShape(24.dp)
+    )
 }
 
 @Composable
@@ -279,8 +328,7 @@ private fun MapPreviewCard(
                 polylinePoints = polylinePoints,
                 busLocation = busLocation,
             )
-            
-            // Zoom controls kept as requested
+
             Column(
                 modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -308,7 +356,6 @@ private fun TimelineStopRow(
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
         verticalAlignment = Alignment.Top
     ) {
-        // Timeline Column
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.width(48.dp)
@@ -355,7 +402,7 @@ private fun TimelineStopRow(
                                     .size(24.dp)
                                     .alpha(alpha)
                                     .background(Color(0xFF4CAF50), CircleShape)
-                                    .padding(scale.dp * 10) // Just a trick to visualize expansion
+                                    .padding(scale.dp * 10)
                             )
                             Surface(
                                 modifier = Modifier.size(24.dp),
@@ -395,10 +442,7 @@ private fun TimelineStopRow(
 
         Spacer(Modifier.width(16.dp))
 
-        // Stop Content
-        Column(
-            modifier = Modifier.weight(1f).padding(bottom = 24.dp)
-        ) {
+        Column(modifier = Modifier.weight(1f).padding(bottom = 24.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
@@ -411,25 +455,25 @@ private fun TimelineStopRow(
                     textDecoration = if (isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 Spacer(Modifier.width(16.dp))
 
                 Text(
-                    text = eta ?: "08:15", // Placeholder as per mockup if null
+                    text = eta ?: "08:15",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     color = if (isCompleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
                 )
             }
-            
+
             Spacer(Modifier.height(4.dp))
-            
+
             Text(
                 text = when {
                     isCompleted -> "Completada"
                     isCurrent -> "Llegando ahora"
                     isLast -> "Destino Final"
-                    else -> "En 12 mins aproximadamente" // Logic-driven placeholder
+                    else -> "En 12 mins aproximadamente"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (isCurrent) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant,
