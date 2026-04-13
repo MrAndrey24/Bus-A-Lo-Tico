@@ -19,7 +19,7 @@ val presentationModule = module {
     factory { LocationViewModel(get()) }
     factory { CompanyViewModel(get()) }
     factory { RouteViewModel(get(), get(), get(), get()) }
-    factory { DriverRouteViewModel(get(), get(), get(), get()) }
+    factory { DriverRouteViewModel(get(), get(), get(), get(), get()) }
     factory { RouteAdministrativeDetailViewModel(get(), get()) }
     factory { NotificationViewModel(get()) }
     single { RouteDetailViewModel(get(), get()) }
