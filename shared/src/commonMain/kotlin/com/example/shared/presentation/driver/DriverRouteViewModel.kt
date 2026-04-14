@@ -6,6 +6,7 @@ import com.example.shared.data.repository.driver.IDriverRepository
 import com.example.shared.data.repository.notification.INotificationRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.trip.ITripExecutionRepository
+import com.example.shared.data.repository.user.IUserRepository
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.Driver
 import com.example.shared.domain.entities.Route
@@ -30,7 +31,8 @@ class DriverRouteViewModel(
     private val driverRepository: IDriverRepository,
     private val routeRepository: IRouteRepository,
     private val tripExecutionRepository: ITripExecutionRepository,
-  private val notificationRepository: INotificationRepository,
+    private val notificationRepository: INotificationRepository,
+    private val userRepository: IUserRepository,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(DriverRouteUiState())
@@ -483,10 +485,13 @@ class DriverRouteViewModel(
       incident: TripIncident,
   ) {
     val now = Clock.System.now().toEpochMilliseconds()
-    val targets = listOf(currentDriverId).filter { it.isNotBlank() }.distinct()
 
     viewModelScope.launch {
       val normalizedRouteId = routeId.trim()
+      val targets =
+          (userRepository.getPassengerIdsByFavoriteRoute(normalizedRouteId))
+              .filter { it.isNotBlank() }
+              .distinct()
 
       targets.forEach { userId ->
         notificationRepository.addNotification(
