@@ -66,7 +66,7 @@ fun HomeScreen(
 
     val favoriteRoutes = remember(uiState.routes, uiState.favoriteRouteIds) {
         uiState.routes.filter { uiState.favoriteRouteIds.contains(it.id) }
-            .map { it.toRouteListItemUi(uiState.favoriteRouteIds) }
+            .map { it.toRouteListItemUi(uiState.favoriteRouteIds, uiState.routeRuntimeById) }
     }
 
     val scaffoldState = rememberBottomSheetScaffoldState(

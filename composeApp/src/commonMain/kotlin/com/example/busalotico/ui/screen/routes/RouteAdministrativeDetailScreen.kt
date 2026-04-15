@@ -52,6 +52,9 @@ import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteSchedule
+import com.example.shared.presentation.route.AdministrativeRouteRuntimeStatus
+import com.example.shared.presentation.route.AdministrativeRouteStatus
+import com.example.shared.presentation.route.AdministrativeScheduleRuntimeStatus
 import com.example.shared.presentation.route.RouteAdministrativeDetailViewModel
 import com.example.shared.util.currentCostaRicaTimeMinutes
 import com.example.shared.util.parseFlexibleTimeToMinutes
@@ -101,6 +104,9 @@ fun RouteAdministrativeDetailScreen(
                     AdministrativeDetailContent(
                         route = uiState.route!!,
                         driverNamesById = uiState.driverNamesById,
+                        routeRuntimeStatus = uiState.routeRuntimeStatus,
+                        scheduleStatusesById = uiState.scheduleStatusesById,
+                        highlightedScheduleId = uiState.highlightedScheduleId,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -130,6 +136,9 @@ private fun AdministrativeTopBar(onBackClick: () -> Unit) {
 private fun AdministrativeDetailContent(
     route: Route,
     driverNamesById: Map<String, String>,
+    routeRuntimeStatus: AdministrativeRouteRuntimeStatus,
+    scheduleStatusesById: Map<String, AdministrativeScheduleRuntimeStatus>,
+    highlightedScheduleId: String?,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -137,16 +146,26 @@ private fun AdministrativeDetailContent(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item { AdministrativeHeroCard(route) }
+        item { AdministrativeHeroCard(route, routeRuntimeStatus) }
         item { AdministrativeMetricsSection(route) }
-        item { AdministrativeScheduleCard(route = route, driverNamesById = driverNamesById) }
+        item {
+            AdministrativeScheduleCard(
+                route = route,
+                driverNamesById = driverNamesById,
+                scheduleStatusesById = scheduleStatusesById,
+                highlightedScheduleId = highlightedScheduleId,
+            )
+        }
         item { AdministrativeFooter(route) }
         item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }
 
 @Composable
-private fun AdministrativeHeroCard(route: Route) {
+private fun AdministrativeHeroCard(
+    route: Route,
+    routeRuntimeStatus: AdministrativeRouteRuntimeStatus,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -176,10 +195,10 @@ private fun AdministrativeHeroCard(route: Route) {
             Box(
                 modifier = Modifier
                     .size(7.dp)
-                    .background(Color(0xFF32B45F), CircleShape)
+                    .background(routeRuntimeStatus.state.dotColor(), CircleShape)
             )
             Text(
-                text = "Servicio en horario regular",
+                text = routeRuntimeStatus.detail,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
@@ -293,6 +312,8 @@ private fun PaymentMethodLine(
 private fun AdministrativeScheduleCard(
     route: Route,
     driverNamesById: Map<String, String>,
+    scheduleStatusesById: Map<String, AdministrativeScheduleRuntimeStatus>,
+    highlightedScheduleId: String?,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
@@ -322,7 +343,8 @@ private fun AdministrativeScheduleCard(
                 ScheduleListItem(
                     schedule = schedule,
                     driverName = driverNamesById[schedule.driverId],
-                    isHighlighted = index == 0,
+                    scheduleStatus = scheduleStatusesById[schedule.id] ?: rememberScheduleStatus(schedule),
+                    isHighlighted = highlightedScheduleId?.let { it == schedule.id } ?: (index == 0),
                 )
             }
         }
@@ -333,11 +355,11 @@ private fun AdministrativeScheduleCard(
 private fun ScheduleListItem(
     schedule: RouteSchedule,
     driverName: String?,
+    scheduleStatus: AdministrativeScheduleRuntimeStatus,
     isHighlighted: Boolean,
 ) {
     val (timeText, meridiemText) = schedule.departureTime.toMeridiemParts()
     val (arrivalTimeText, arrivalMeridiemText) = schedule.arrivalTime.toMeridiemParts()
-    val scheduleStatus = rememberScheduleStatus(schedule)
     val statusColor = scheduleStatus.color()
     val statusLabel = scheduleStatus.label()
     Card(
@@ -471,17 +493,17 @@ private fun String.toDisplayTitle(): String {
     }
 }
 
-private fun rememberScheduleStatus(schedule: RouteSchedule): ScheduleStatus {
+private fun rememberScheduleStatus(schedule: RouteSchedule): AdministrativeScheduleRuntimeStatus {
     val currentMinutes = currentCostaRicaTimeMinutes()
     val departureMinutes = parseFlexibleTimeToMinutes(schedule.departureTime)
     val arrivalMinutes = parseFlexibleTimeToMinutes(schedule.arrivalTime)
 
-    if (departureMinutes == null || arrivalMinutes == null) return ScheduleStatus.SCHEDULED
+    if (departureMinutes == null || arrivalMinutes == null) return AdministrativeScheduleRuntimeStatus.SCHEDULED
 
     return when {
-        currentMinutes > arrivalMinutes -> ScheduleStatus.COMPLETED
-        currentMinutes in departureMinutes..arrivalMinutes -> ScheduleStatus.ACTIVE
-        else -> ScheduleStatus.SCHEDULED
+        currentMinutes > arrivalMinutes -> AdministrativeScheduleRuntimeStatus.COMPLETED
+        currentMinutes in departureMinutes..arrivalMinutes -> AdministrativeScheduleRuntimeStatus.ACTIVE
+        else -> AdministrativeScheduleRuntimeStatus.SCHEDULED
     }
 }
 
@@ -498,24 +520,27 @@ private fun String.toMeridiemParts(): Pair<String, String> {
     return "%02d:%s".format(hour12, minute) to meridiem
 }
 
-private enum class ScheduleStatus {
-    SCHEDULED,
-    ACTIVE,
-    COMPLETED,
-}
-
-private fun ScheduleStatus.label(): String =
+private fun AdministrativeScheduleRuntimeStatus.label(): String =
     when (this) {
-        ScheduleStatus.COMPLETED -> "COMPLETADO"
-        ScheduleStatus.ACTIVE -> "ACTIVO"
-        ScheduleStatus.SCHEDULED -> "PROGRAMADO"
+        AdministrativeScheduleRuntimeStatus.COMPLETED -> "COMPLETADO"
+        AdministrativeScheduleRuntimeStatus.ACTIVE -> "ACTIVO"
+        AdministrativeScheduleRuntimeStatus.DELAYED -> "DETENIDO"
+        AdministrativeScheduleRuntimeStatus.SCHEDULED -> "PROGRAMADO"
     }
 
-private fun ScheduleStatus.color(): Color =
+private fun AdministrativeScheduleRuntimeStatus.color(): Color =
     when (this) {
-        ScheduleStatus.COMPLETED -> Color(0xFF6F7D8C)
-        ScheduleStatus.ACTIVE -> Color(0xFF25B48F)
-        ScheduleStatus.SCHEDULED -> Color(0xFF294A6B)
+        AdministrativeScheduleRuntimeStatus.COMPLETED -> Color(0xFF6F7D8C)
+        AdministrativeScheduleRuntimeStatus.ACTIVE -> Color(0xFF25B48F)
+        AdministrativeScheduleRuntimeStatus.DELAYED -> Color(0xFFD67C2E)
+        AdministrativeScheduleRuntimeStatus.SCHEDULED -> Color(0xFF294A6B)
+    }
+
+private fun AdministrativeRouteStatus.dotColor(): Color =
+    when (this) {
+        AdministrativeRouteStatus.IDLE -> Color(0xFF6F7D8C)
+        AdministrativeRouteStatus.ACTIVE -> Color(0xFF32B45F)
+        AdministrativeRouteStatus.DELAYED -> Color(0xFFD67C2E)
     }
 
 private fun buildArrivalLabel(timeText: String, meridiemText: String): String {

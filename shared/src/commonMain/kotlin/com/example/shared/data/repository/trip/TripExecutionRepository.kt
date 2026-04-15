@@ -31,4 +31,8 @@ class TripExecutionRepository(
     override suspend fun getIncidents(tripExecutionId: String): List<TripIncident> {
         return remoteDataSource.getIncidents(tripExecutionId)
     }
+
+    override suspend fun deleteIncident(tripExecutionId: String, incidentId: String) {
+        remoteDataSource.deleteIncident(tripExecutionId, incidentId)
+    }
 }

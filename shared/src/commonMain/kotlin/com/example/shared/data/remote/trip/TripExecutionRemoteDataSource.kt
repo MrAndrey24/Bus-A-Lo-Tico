@@ -90,6 +90,15 @@ class TripExecutionRemoteDataSource : ITripExecutionRemoteDataSource {
             .sortedByDescending { it.createdAt }
     }
 
+    override suspend fun deleteIncident(tripExecutionId: String, incidentId: String) {
+        Firebase.firestore
+            .collection(TRIP_EXECUTIONS_COLLECTION)
+            .document(tripExecutionId)
+            .collection(INCIDENTS_COLLECTION)
+            .document(incidentId)
+            .delete()
+    }
+
     private companion object {
         const val TRIP_EXECUTIONS_COLLECTION = "tripExecutions"
         const val INCIDENTS_COLLECTION = "incidents"

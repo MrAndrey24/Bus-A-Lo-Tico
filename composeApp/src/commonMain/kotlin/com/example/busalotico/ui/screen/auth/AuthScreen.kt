@@ -121,8 +121,8 @@ fun AuthScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             color = authPanelBackground,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)),
-            shadowElevation = 4.dp,
+            border = BorderStroke(0.6.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.04f)),
+            shadowElevation = 1.dp,
         ) {
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp)) {
             if (isRegisterMode) {
