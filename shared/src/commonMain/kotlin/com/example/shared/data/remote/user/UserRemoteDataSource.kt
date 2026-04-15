@@ -25,31 +25,46 @@ class UserRemoteDataSource : IUserRemoteDataSource {
         return dto.toDomain(userId, favoriteRouteIds)
     }
 
-    override suspend fun getSubscribedPassengerIdsForRoute(routeId: String): List<String> {
+    override suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String> {
         val normalizedRouteId = routeId.trim()
-        if (normalizedRouteId.isBlank()) return emptyList()
+        if (normalizedRouteId.isBlank()) return emptySet()
 
+        val favoritesQuery = Firebase.firestore.collectionGroup(FAVORITE_ROUTES_COLLECTION)
         val favoriteDocuments =
             runCatching {
-                Firebase.firestore
-                    .collectionGroup(FAVORITE_ROUTES_COLLECTION)
+                favoritesQuery
                     .where { "routeId" equalTo normalizedRouteId }
                     .get()
                     .documents
-            }.getOrElse {
-                Firebase.firestore
-                    .collectionGroup(FAVORITE_ROUTES_COLLECTION)
+            }.getOrNull()
+                ?: favoritesQuery
                     .get()
                     .documents
-                    .filter { snapshot -> snapshot.id == normalizedRouteId }
-            }
+                    .filter { snapshot ->
+                        runCatching {
+                            snapshot.data(RouteFavoriteDto.serializer()).routeId == normalizedRouteId
+                        }.getOrDefault(false)
+                    }
 
-        return favoriteDocuments
+        val candidateUserIds = favoriteDocuments
             .mapNotNull { it.reference.parent.parent?.id }
-            .distinct()
-            .mapNotNull { userId -> getUserProfile(userId) }
-            .filter { profile -> profile.role == UserRole.PASSENGER }
-            .map { profile -> profile.id }
+            .toSet()
+
+        if (candidateUserIds.isEmpty()) return emptySet()
+
+        return candidateUserIds.filter { userId ->
+            val snapshot =
+                runCatching {
+                    Firebase.firestore.collection(USERS_COLLECTION).document(userId).get()
+                }.getOrNull()
+                    ?: return@filter false
+
+            if (!snapshot.exists) return@filter false
+            val role =
+                runCatching { snapshot.data(UserProfileDto.serializer()).role }
+                    .getOrDefault(UserRole.PASSENGER.name)
+            role == UserRole.PASSENGER.name
+        }.toSet()
     }
 
     override suspend fun upsertUserProfile(
