@@ -270,6 +270,7 @@ class AdminCompanyViewModel(
                     val latestIncident = tripExecutionRepository.getIncidents(tripExecution.id).firstOrNull() ?: return@forEach
                     summaries += AdminRouteIncidentSummary(
                         tripExecutionId = tripExecution.id,
+                        incidentId = latestIncident.id,
                         routeName = routeNamesById[tripExecution.routeId] ?: tripExecution.routeId,
                         driverName = driverNamesById[tripExecution.driverId] ?: tripExecution.driverId,
                         incidentType = latestIncident.type,
@@ -280,6 +281,26 @@ class AdminCompanyViewModel(
         }
 
         return summaries.sortedByDescending { it.createdAt }.take(6)
+    }
+
+    fun deleteIncident(tripExecutionId: String, incidentId: String) {
+        if (tripExecutionId.isBlank() || incidentId.isBlank()) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, successMessage = null)
+            runCatching {
+                tripExecutionRepository.deleteIncident(tripExecutionId, incidentId)
+            }.onSuccess {
+                _uiState.value = buildUiState(
+                    selectedRouteId = _uiState.value.selectedRoute?.id,
+                    successMessage = "Incidencia eliminada correctamente."
+                )
+            }.onFailure { error ->
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = error.message ?: "No se pudo eliminar la incidencia."
+                )
+            }
+        }
     }
 
     private suspend fun buildUiState(
