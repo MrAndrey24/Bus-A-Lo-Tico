@@ -463,7 +463,10 @@ class DriverRouteViewModel(
   }
 
   private fun parseTimeToMinutes(value: String): Int {
-    return parseFlexibleTimeToMinutes(value) ?: 0
+    val parts = value.split(":")
+    val hours = parts.getOrNull(0)?.toIntOrNull() ?: return 0
+    val minutes = parts.getOrNull(1)?.toIntOrNull() ?: return 0
+    return hours * 60 + minutes
   }
 
   private fun TripIncidentType.toDisplayLabel(): String {
@@ -491,10 +494,9 @@ class DriverRouteViewModel(
 
     viewModelScope.launch {
       val normalizedRouteId = routeId.trim()
-      val normalizedRouteName = routeName.trim()
       val targets =
-          userRepository.getSubscribedPassengerIdsForRoute(normalizedRouteId)
-              .filter { it.isNotBlank() && it != currentDriverId }
+          (userRepository.getPassengerIdsByFavoriteRoute(normalizedRouteId))
+              .filter { it.isNotBlank() }
               .distinct()
 
       targets.forEach { userId ->
