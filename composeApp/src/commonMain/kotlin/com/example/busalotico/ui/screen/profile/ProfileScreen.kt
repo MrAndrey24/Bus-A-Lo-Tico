@@ -65,6 +65,7 @@ fun ProfileScreen(
   val showCompanyEditor = onUpdateCompany != null
   val showPassengerNotifications = userRole.equals("Pasajero", ignoreCase = true)
   val profileCardBackground = Color.White
+  val inputBackground = Color(0xFFEEF2F5)
   val scrollState = rememberScrollState()
 
   Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -96,7 +97,7 @@ fun ProfileScreen(
               horizontalAlignment = Alignment.CenterHorizontally,
           ) {
             Surface(
-                modifier = Modifier.size(104.dp),
+                modifier = Modifier.size(42.dp),
                 shape = CircleShape,
                 color = profileCardBackground,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
@@ -105,13 +106,13 @@ fun ProfileScreen(
                 Icon(
                     imageVector = Icons.Filled.Person,
                     contentDescription = null,
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
               }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
                 text = userName.ifBlank { "Usuario" },
@@ -169,23 +170,23 @@ fun ProfileScreen(
                   border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
               ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                   Row(
-                      horizontalArrangement = Arrangement.spacedBy(12.dp),
-                      verticalAlignment = Alignment.CenterVertically,
+                      horizontalArrangement = Arrangement.spacedBy(10.dp),
+                      verticalAlignment = Alignment.Top,
                   ) {
                     Surface(
-                        modifier = Modifier.size(38.dp),
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.size(32.dp),
+                        shape = RoundedCornerShape(10.dp),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                     ) {
                       Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Business,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.primary,
                         )
                       }
@@ -194,16 +195,16 @@ fun ProfileScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                       Text(
                           text = "Información empresarial",
-                          style = MaterialTheme.typography.labelLarge,
-                          color = MaterialTheme.colorScheme.primary,
-                          fontWeight = FontWeight.Bold,
+                          style = MaterialTheme.typography.labelSmall,
+                          color = MaterialTheme.colorScheme.onSurfaceVariant,
+                          fontWeight = FontWeight.SemiBold,
                       )
                       selectedCompanyName.takeIf { it.isNotBlank() }?.let { companyName ->
                         Text(
                             text = companyName,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                         )
                       }
                     }
@@ -221,7 +222,7 @@ fun ProfileScreen(
                       )
                       Text(
                           text = "Verificada",
-                          style = MaterialTheme.typography.labelMedium,
+                          style = MaterialTheme.typography.labelSmall,
                           color = MaterialTheme.colorScheme.onSurfaceVariant,
                           fontWeight = FontWeight.SemiBold,
                       )
@@ -236,6 +237,8 @@ fun ProfileScreen(
                       onSelect = { company ->
                         selectedCompanyId = company.id
                       },
+                      containerColor = inputBackground,
+                      border = null,
                   )
 
                   companyLoadError?.let {
@@ -274,8 +277,8 @@ private fun ProfileInfoCard(
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(22.dp),
-      color = Color.White,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
+      color = Color(0xFFEEF2F5),
+      border = null,
   ) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)) {
       Text(

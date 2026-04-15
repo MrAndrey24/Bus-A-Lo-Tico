@@ -86,7 +86,6 @@ fun RouteSelectionScreen (
                 save = { state ->
                     listOf(
                         state.query,
-                        state.nearMeOnly.toString(),
                         state.favoritesOnly.toString(),
                         state.selectedProvince?.name,
                         state.selectedCanton?.name,
@@ -94,15 +93,14 @@ fun RouteSelectionScreen (
                     )
                 },
                 restore = { saved ->
-                    val province = provinces.firstOrNull { it.name == saved.getOrNull(3) }
-                    val canton = province?.cantons?.firstOrNull { it.name == saved.getOrNull(4) }
+                    val province = provinces.firstOrNull { it.name == saved.getOrNull(2) }
+                    val canton = province?.cantons?.firstOrNull { it.name == saved.getOrNull(3) }
                     RouteFiltersState(
                         query = saved.getOrNull(0).orEmpty(),
-                        nearMeOnly = saved.getOrNull(1).toBoolean(),
-                        favoritesOnly = saved.getOrNull(2).toBoolean(),
+                        favoritesOnly = saved.getOrNull(1).toBoolean(),
                         selectedProvince = province,
                         selectedCanton = canton,
-                        selectedDistrict = saved.getOrNull(5),
+                        selectedDistrict = saved.getOrNull(4),
                     )
                 },
             )
@@ -157,7 +155,6 @@ fun RouteSelectionScreen (
                             .contains(filters.query, ignoreCase = true)
                     }
 
-                val nearMeMatches = !filters.nearMeOnly || route.isNearMe
                 val favoritesMatch = !filters.favoritesOnly || route.isFavorite
                 val provinceMatch =
                     filters.selectedProvince == null ||
@@ -173,7 +170,6 @@ fun RouteSelectionScreen (
                             route.endDistrict.equals(filters.selectedDistrict, ignoreCase = true)
 
                 queryMatches &&
-                        nearMeMatches &&
                         favoritesMatch &&
                         provinceMatch &&
                         cantonMatch &&
@@ -198,8 +194,6 @@ fun RouteSelectionScreen (
                 Spacer(modifier = Modifier.height(12.dp))
 
                 FilterChipsRow(
-                    nearMe = filters.nearMeOnly,
-                    onNearMeToggle = { filters = filters.copy(nearMeOnly = !filters.nearMeOnly) },
                     locationLabel =
                     buildLocationLabel(
                         filters.selectedProvince,
@@ -355,8 +349,6 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, placehol
 
 @Composable
 private fun FilterChipsRow(
-    nearMe: Boolean,
-    onNearMeToggle: () -> Unit,
     locationLabel: String,
     locationSelected: Boolean,
     onLocationClick: () -> Unit,
@@ -371,12 +363,6 @@ private fun FilterChipsRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SelectableFilterChip(
-            text = if (nearMe) "Cerca de mí" else "Cerca de mí",
-            selected = nearMe,
-            onClick = onNearMeToggle,
-        )
-
         SelectableFilterChip(
             text = locationLabel,
             selected = locationSelected,

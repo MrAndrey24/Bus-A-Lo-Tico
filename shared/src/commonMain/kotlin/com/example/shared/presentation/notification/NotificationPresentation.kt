@@ -5,7 +5,7 @@ import com.example.shared.domain.entities.UserIncidentNotification
 
 internal fun UserIncidentNotification.toDisplayNotification(): UserIncidentNotification {
   val normalizedType = incidentType.toNotificationDisplayLabel()
-  val routeReference = routeId.ifBlank { routeName }
+  val routeReference = routeName.ifBlank { routeId }
   return copy(
       incidentType = normalizedType,
       routeId = routeReference,
@@ -21,11 +21,17 @@ internal fun TripIncidentType.toNotificationDisplayLabel(): String {
   }
 }
 
-internal fun TripIncidentType.toNotificationMessage(routeName: String = ""): String {
+internal fun TripIncidentType.toNotificationMessage(
+    routeName: String = "",
+    scheduledTimeLabel: String? = null,
+): String {
   return when (this) {
-    TripIncidentType.ACCIDENT -> routeName.buildNotificationMessage("Se ha reportado un accidente")
-    TripIncidentType.BREAKDOWN -> routeName.buildNotificationMessage("Se ha reportado una avería")
-    TripIncidentType.SECURITY -> routeName.buildNotificationMessage("Se ha reportado un incidente de seguridad")
+    TripIncidentType.ACCIDENT ->
+        routeName.buildNotificationMessage("Se ha reportado un accidente", scheduledTimeLabel)
+    TripIncidentType.BREAKDOWN ->
+        routeName.buildNotificationMessage("Se ha reportado una avería", scheduledTimeLabel)
+    TripIncidentType.SECURITY ->
+        routeName.buildNotificationMessage("Se ha reportado un incidente de seguridad", scheduledTimeLabel)
   }
 }
 
@@ -39,22 +45,33 @@ internal fun String.toNotificationDisplayLabel(): String {
 }
 
 internal fun String.toNotificationMessage(originalIncidentType: String, routeName: String = ""): String {
+  val scheduleSuffix = extractScheduleSuffix()
   return when (originalIncidentType.toNotificationTypeKey()) {
-    NotificationTypeKey.ACCIDENT -> routeName.buildNotificationMessage("Se ha reportado un accidente")
+    NotificationTypeKey.ACCIDENT ->
+        routeName.buildNotificationMessage("Se ha reportado un accidente", scheduleSuffix)
     NotificationTypeKey.BREAKDOWN ->
-        if (trim().isBlank()) routeName.buildNotificationMessage("Se ha reportado una avería") else trim()
+        if (routeName.isBlank() && trim().isNotBlank()) trim()
+        else routeName.buildNotificationMessage("Se ha reportado una avería", scheduleSuffix)
     NotificationTypeKey.SECURITY ->
-        if (trim().isBlank()) routeName.buildNotificationMessage("Se ha reportado un incidente de seguridad") else trim()
-    NotificationTypeKey.UNKNOWN -> trim().ifBlank { routeName.buildNotificationMessage("Se ha reportado un incidente") }
+        if (routeName.isBlank() && trim().isNotBlank()) trim()
+        else routeName.buildNotificationMessage("Se ha reportado un incidente de seguridad", scheduleSuffix)
+    NotificationTypeKey.UNKNOWN ->
+        trim().ifBlank { routeName.buildNotificationMessage("Se ha reportado un incidente", scheduleSuffix) }
   }
 }
 
-private fun String.buildNotificationMessage(prefix: String): String {
+private fun String.buildNotificationMessage(prefix: String, scheduledTimeLabel: String? = null): String {
   val routeLabel = trim()
+  val scheduleSuffix =
+      scheduledTimeLabel
+          ?.trim()
+          ?.takeIf { it.isNotBlank() }
+          ?.let { " para el horario de las $it" }
+          .orEmpty()
   return if (routeLabel.isBlank()) {
-    "$prefix en la ruta."
+    "$prefix en la ruta$scheduleSuffix."
   } else {
-    "$prefix en la ruta $routeLabel."
+    "$prefix en la ruta $routeLabel$scheduleSuffix."
   }
 }
 
@@ -74,6 +91,15 @@ private fun String.normalizeNotificationToken(): String {
       .replace('Í', 'I')
       .replace('Ó', 'O')
       .replace('Ú', 'U')
+}
+
+private fun String.extractScheduleSuffix(): String? {
+  val text = trim()
+  val marker = " para el horario de las "
+  val startIndex = text.indexOf(marker, ignoreCase = true)
+  if (startIndex == -1) return null
+  val rawSuffix = text.substring(startIndex + marker.length).removeSuffix(".").trim()
+  return rawSuffix.ifBlank { null }
 }
 
 private enum class NotificationTypeKey {

@@ -44,6 +44,8 @@ fun SearchableCompanySelectField(
     modifier: Modifier = Modifier,
     label: String = "Empresa",
     showCompanyId: Boolean = true,
+    containerColor: Color = Color.White,
+    border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
 ) {
   var showDialog by remember { mutableStateOf(false) }
   var query by remember { mutableStateOf("") }
@@ -65,8 +67,8 @@ fun SearchableCompanySelectField(
   Surface(
       modifier = modifier.fillMaxWidth().clickable(enabled = enabled) { showDialog = true },
       shape = RoundedCornerShape(16.dp),
-      color = Color.White,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
+      color = containerColor,
+      border = border,
   ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
