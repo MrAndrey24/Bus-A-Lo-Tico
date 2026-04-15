@@ -47,3 +47,17 @@ fun normalizeTimeTo24Hour(value: String): String? {
     val minutes = totalMinutes % 60
     return "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}"
 }
+
+fun formatTimeToMeridiem(value: String): String {
+    val totalMinutes = parseFlexibleTimeToMinutes(value) ?: return value
+    val hour24 = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    val meridiem = if (hour24 >= 12) "PM" else "AM"
+    val hour12 =
+        when {
+            hour24 == 0 -> 12
+            hour24 > 12 -> hour24 - 12
+            else -> hour24
+        }
+    return "${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} $meridiem"
+}

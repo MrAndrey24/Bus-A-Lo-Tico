@@ -194,7 +194,7 @@ private fun AdministrativeMetricsSection(route: Route) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -338,6 +338,8 @@ private fun ScheduleListItem(
     val (timeText, meridiemText) = schedule.departureTime.toMeridiemParts()
     val (arrivalTimeText, arrivalMeridiemText) = schedule.arrivalTime.toMeridiemParts()
     val scheduleStatus = rememberScheduleStatus(schedule)
+    val statusColor = scheduleStatus.color()
+    val statusLabel = scheduleStatus.label()
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -348,28 +350,22 @@ private fun ScheduleListItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 18.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
             ) {
                 Column(
                     modifier = Modifier.width(74.dp),
                     horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
                 ) {
                     Text(
-                        text = "Salida",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    Text(
                         text = timeText,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.ExtraBold,
                     )
                     Text(
@@ -379,42 +375,52 @@ private fun ScheduleListItem(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.8.sp,
                     )
+                    if (isHighlighted) {
+                        Text(
+                            text = "PRÓXIMO",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = statusColor,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.8.sp,
+                        )
+                    }
                 }
 
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = "Llegada:",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = arrivalTimeText.ifBlank { "N/D" },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        if (arrivalMeridiemText.isNotBlank()) {
-                            Text(
-                                text = arrivalMeridiemText,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.6.sp,
-                            )
-                        }
-                        ScheduleStatusChip(status = scheduleStatus)
-                    }
+                Box(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .width(3.dp)
+                        .height(72.dp)
+                        .background(statusColor, RoundedCornerShape(999.dp))
+                )
 
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 2.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
                     Text(
-                        text = "Conductor: ${driverName ?: schedule.driverId.takeIf { it.isNotBlank() } ?: "Chofer no asignado"}",
+                        text = statusLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = statusColor,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.8.sp,
+                    )
+                    Text(
+                        text = buildArrivalLabel(arrivalTimeText, arrivalMeridiemText),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "Conductor",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = driverName ?: schedule.driverId.takeIf { it.isNotBlank() } ?: "Chofer no asignado",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium,
@@ -422,38 +428,6 @@ private fun ScheduleListItem(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ScheduleStatusChip(status: ScheduleStatus) {
-    val background = when (status) {
-        ScheduleStatus.COMPLETED -> Color(0xFFE9EEF5)
-        ScheduleStatus.ACTIVE -> Color(0xFFE7F7EA)
-        ScheduleStatus.SCHEDULED -> Color(0xFFEEF4FF)
-    }
-    val content = when (status) {
-        ScheduleStatus.COMPLETED -> Color(0xFF6B7280)
-        ScheduleStatus.ACTIVE -> Color(0xFF2F8D46)
-        ScheduleStatus.SCHEDULED -> Color(0xFF295BA7)
-    }
-    val label = when (status) {
-        ScheduleStatus.COMPLETED -> "COMPLETADO"
-        ScheduleStatus.ACTIVE -> "ACTIVO"
-        ScheduleStatus.SCHEDULED -> "PROGRAMADO"
-    }
-
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = background,
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = content,
-            fontWeight = FontWeight.ExtraBold,
-        )
     }
 }
 
@@ -528,4 +502,27 @@ private enum class ScheduleStatus {
     SCHEDULED,
     ACTIVE,
     COMPLETED,
+}
+
+private fun ScheduleStatus.label(): String =
+    when (this) {
+        ScheduleStatus.COMPLETED -> "COMPLETADO"
+        ScheduleStatus.ACTIVE -> "ACTIVO"
+        ScheduleStatus.SCHEDULED -> "PROGRAMADO"
+    }
+
+private fun ScheduleStatus.color(): Color =
+    when (this) {
+        ScheduleStatus.COMPLETED -> Color(0xFF6F7D8C)
+        ScheduleStatus.ACTIVE -> Color(0xFF25B48F)
+        ScheduleStatus.SCHEDULED -> Color(0xFF294A6B)
+    }
+
+private fun buildArrivalLabel(timeText: String, meridiemText: String): String {
+    val time = timeText.ifBlank { "N/D" }
+    return if (meridiemText.isBlank()) {
+        "Llegada $time"
+    } else {
+        "Llegada $time $meridiemText"
+    }
 }

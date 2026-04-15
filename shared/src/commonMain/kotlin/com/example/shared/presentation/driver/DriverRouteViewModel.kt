@@ -18,6 +18,7 @@ import com.example.shared.domain.entities.TripExecutionStatus
 import com.example.shared.domain.entities.UserIncidentNotification
 import com.example.shared.presentation.notification.toNotificationDisplayLabel
 import com.example.shared.presentation.notification.toNotificationMessage
+import com.example.shared.util.formatTimeToMeridiem
 import com.example.shared.util.currentCostaRicaTimeMinutes
 import com.example.shared.util.parseFlexibleTimeToMinutes
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -494,20 +495,28 @@ class DriverRouteViewModel(
 
     viewModelScope.launch {
       val normalizedRouteId = routeId.trim()
+      val tripExecution = tripExecutionRepository.getTripExecution(tripExecutionId)
+      val route = routeRepository.getRoute(normalizedRouteId)
+      val scheduledTimeLabel =
+          tripExecution
+              ?.scheduleId
+              ?.let { scheduleId -> route?.schedules?.firstOrNull { it.id == scheduleId }?.departureTime }
+              ?.let(::formatTimeToMeridiem)
       val targets =
           (userRepository.getPassengerIdsByFavoriteRoute(normalizedRouteId))
               .filter { it.isNotBlank() }
               .distinct()
 
       targets.forEach { userId ->
-        notificationRepository.addNotification(
+        val normalizedRouteName = routeName.trim()
+          notificationRepository.addNotification(
             UserIncidentNotification(
                 userId = userId,
                 tripExecutionId = tripExecutionId,
                 routeId = normalizedRouteId,
                 incidentType = incident.type.toNotificationDisplayLabel(),
                 detail = incident.detail,
-                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteName),
+                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteName, scheduledTimeLabel),
                 routeName = normalizedRouteName,
                 dispatchedAt = now,
                 createdAt = now,

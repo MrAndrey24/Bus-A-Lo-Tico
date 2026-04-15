@@ -1,25 +1,23 @@
 package com.example.busalotico.ui.screen.notification
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Security
@@ -32,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -128,135 +125,112 @@ fun NotificationScreen(
 fun NotificationItem(
     notification: UserIncidentNotification,
     onMarkAsRead: (String) -> Unit,
-  onDelete: (String) -> Unit,
+    onDelete: (String) -> Unit,
 ) {
-  val routeReference = notification.routeId.ifBlank { notification.routeName }
   val accent = notification.notificationAccent()
   val title = notification.notificationTitle()
-
-  Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(0.dp),
+  val isUnread = notification.readAt == null
+  Card(
+      modifier =
+          Modifier
+              .fillMaxWidth()
+              .clickable(enabled = isUnread) {
+                onMarkAsRead(notification.id)
+              },
+      shape = RoundedCornerShape(18.dp),
+      colors = CardDefaults.cardColors(containerColor = Color.White),
+      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
   ) {
-    Box(
-        modifier = Modifier
-            .width(4.dp)
-            .height(174.dp)
-            .background(accent.barColor, RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp))
-    )
-    Card(
-        modifier =
-            Modifier
-                .weight(1f)
-                .clickable(enabled = notification.readAt == null) {
-                  onMarkAsRead(notification.id)
-                },
-        shape = RoundedCornerShape(topStart = 0.dp, topEnd = 18.dp, bottomEnd = 18.dp, bottomStart = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
     ) {
-      Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+      Surface(
+          modifier = Modifier.size(38.dp),
+          shape = RoundedCornerShape(999.dp),
+          color = accent.iconBackground.copy(alpha = 0.32f),
+          shadowElevation = 0.dp,
+          tonalElevation = 0.dp,
+      ) {
+        Box(contentAlignment = Alignment.Center) {
+          Icon(
+              imageVector = accent.icon,
+              contentDescription = null,
+              tint = accent.barColor,
+              modifier = Modifier.size(18.dp),
+          )
+        }
+      }
+
+      Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(6.dp),
+      ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
-          Row(
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.spacedBy(8.dp),
+          Column(
+              modifier = Modifier.weight(1f),
+              verticalArrangement = Arrangement.spacedBy(4.dp),
           ) {
-            Surface(
-                modifier = Modifier.size(26.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = accent.iconBackground,
-                border = BorderStroke(1.dp, accent.barColor.copy(alpha = 0.18f)),
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+            )
+            Text(
+                text = notification.sanitizedDetail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                lineHeight = 17.sp,
+            )
+          }
+
+          Spacer(modifier = Modifier.width(10.dp))
+
+          Column(
+              horizontalAlignment = Alignment.End,
+              verticalArrangement = Arrangement.spacedBy(6.dp),
+          ) {
+            Text(
+                text = formatNotificationTime(notification.dispatchedAt),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-              Box(contentAlignment = Alignment.Center) {
+              if (isUnread) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(8.dp)
+                            .background(
+                                color = accent.barColor,
+                                shape = RoundedCornerShape(999.dp),
+                            )
+                )
+              }
+              IconButton(
+                  onClick = { onDelete(notification.id) },
+                  modifier = Modifier.size(20.dp),
+              ) {
                 Icon(
-                    imageVector = accent.icon,
-                    contentDescription = null,
-                    tint = accent.barColor,
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Eliminar notificación",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(14.dp),
                 )
               }
             }
-            Text(
-                text = notification.incidentType.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                color = accent.barColor,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.6.sp,
-            )
-          }
-          Text(
-              text = formatNotificationTime(notification.dispatchedAt),
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              fontWeight = FontWeight.Medium,
-          )
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-          Text(
-              text = title,
-              style = MaterialTheme.typography.titleMedium,
-              color = MaterialTheme.colorScheme.onSurface,
-              fontWeight = FontWeight.ExtraBold,
-          )
-          Text(
-              text = notification.sanitizedDetail,
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Row(
-              modifier = Modifier.weight(1f),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.spacedBy(6.dp),
-          ) {
-            Icon(
-                imageVector = Icons.Default.LocationOn,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                modifier = Modifier.size(14.dp),
-            )
-            Text(
-                text = routeReference.ifBlank { "Ruta no disponible" }.uppercase(),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-            )
-          }
-          TextButton(onClick = { onDelete(notification.id) }) {
-            Text(
-                text = "ELIMINAR",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFFD85757),
-                fontWeight = FontWeight.ExtraBold,
-            )
-          }
-        }
-
-        if (notification.readAt == null) {
-          Spacer(modifier = Modifier.height(2.dp))
-          Box(
-              modifier = Modifier
-                  .background(accent.barColor, shape = RoundedCornerShape(999.dp))
-                  .padding(horizontal = 8.dp, vertical = 4.dp)
-          ) {
-            Text(
-                text = "Nuevo",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-            )
           }
         }
       }

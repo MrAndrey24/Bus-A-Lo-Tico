@@ -43,8 +43,8 @@ import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -64,6 +64,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
@@ -371,7 +373,7 @@ private fun DesktopLoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF6F7FB))
+            .background(Color(0xFFF1F3F6))
             .padding(32.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -379,6 +381,7 @@ private fun DesktopLoginScreen(
             modifier = Modifier.width(520.dp),
             shape = RoundedCornerShape(30.dp),
             colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(32.dp),
@@ -387,15 +390,14 @@ private fun DesktopLoginScreen(
             ) {
                 Surface(
                     modifier = Modifier.width(74.dp).height(74.dp),
-                    shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    shape = RoundedCornerShape(22.dp),
+                    color = Color(0xFF122B4A),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.DirectionsBus,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = Color.White,
                         )
                     }
                 }
@@ -414,32 +416,51 @@ private fun DesktopLoginScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                OutlinedTextField(
+                TextField(
                     value = email,
                     onValueChange = { email = it },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Correo") },
                     singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors =
+                        TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFFF1F3F6),
+                            unfocusedContainerColor = Color(0xFFF1F3F6),
+                            disabledContainerColor = Color(0xFFF1F3F6),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                        ),
                 )
-                OutlinedTextField(
+                TextField(
                     value = password,
                     onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Contraseña") },
                     singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
                     visualTransformation =
                         if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             imageVector =
-                                    if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
                             contentDescription =
                                     if (passwordVisible) "Contraseña visible" else "Contraseña oculta",
                         )
                         }
                     },
-                    colors = OutlinedTextFieldDefaults.colors(),
+                    colors =
+                        TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFFF1F3F6),
+                            unfocusedContainerColor = Color(0xFFF1F3F6),
+                            disabledContainerColor = Color(0xFFF1F3F6),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                        ),
                 )
                 errorMessage?.let { message ->
                     Surface(shape = RoundedCornerShape(18.dp), color = Color(0xFFFDECEC)) {
@@ -465,6 +486,32 @@ private fun DesktopLoginScreen(
                     } else {
                         Text("Entrar al panel")
                     }
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier.width(18.dp).height(2.dp).background(Color(0xFF2C63D6), RoundedCornerShape(999.dp))
+                        )
+                        Box(
+                            modifier = Modifier.width(30.dp).height(2.dp).background(Color(0xFFE25555), RoundedCornerShape(999.dp))
+                        )
+                        Box(
+                            modifier = Modifier.width(18.dp).height(2.dp).background(Color(0xFF2C63D6), RoundedCornerShape(999.dp))
+                        )
+                    }
+                    Text(
+                        text = "PURA VIDA • COSTA RICA",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 2.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
                 }
             }
         }
