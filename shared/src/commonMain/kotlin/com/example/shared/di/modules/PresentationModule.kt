@@ -10,17 +10,18 @@ import com.example.shared.presentation.notification.NotificationViewModel
 import com.example.shared.presentation.route.RouteAdministrativeDetailViewModel
 import com.example.shared.presentation.route.RouteDetailViewModel
 import com.example.shared.presentation.route.RouteViewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val presentationModule = module {
-    factory { AdminCompanyViewModel(get(), get(), get(), get()) }
-    factory { AuthViewModel(get(), get(), get()) }
-    factory { CompanyListViewModel(get()) }
-    factory { LocationViewModel(get()) }
-    factory { CompanyViewModel(get()) }
-    factory { RouteViewModel(get(), get(), get(), get()) }
-    factory { DriverRouteViewModel(get(), get(), get(), get(), get()) }
-    factory { RouteAdministrativeDetailViewModel(get(), get()) }
-    factory { NotificationViewModel(get()) }
-    single { RouteDetailViewModel(get(), get()) }
+    viewModel { AdminCompanyViewModel(get(), get(), get(), get()) }
+    viewModel { AuthViewModel(get(), get(), get()) }
+    viewModel { CompanyListViewModel(get()) }
+    viewModel { LocationViewModel(get()) }
+    viewModel { CompanyViewModel(get()) }
+    viewModel { RouteViewModel(get(), get(), get(), get()) }
+    viewModel { DriverRouteViewModel(get(), get(), get(), get(), get()) }
+    viewModel { RouteAdministrativeDetailViewModel(get(), get()) }
+    viewModel { NotificationViewModel(get()) }
+    viewModel { RouteDetailViewModel(get(), get()) }
 }
