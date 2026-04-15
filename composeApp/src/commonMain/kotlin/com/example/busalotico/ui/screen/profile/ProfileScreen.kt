@@ -64,11 +64,10 @@ fun ProfileScreen(
   val selectedCompanyName = companies.firstOrNull { it.id == selectedCompanyId }?.name.orEmpty()
   val showCompanyEditor = onUpdateCompany != null
   val showPassengerNotifications = userRole.equals("Pasajero", ignoreCase = true)
-  val profilePageBackground = Color(0xFFF4F6FA)
   val profileCardBackground = Color.White
   val scrollState = rememberScrollState()
 
-  Surface(modifier = modifier.fillMaxSize(), color = profilePageBackground) {
+  Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
     Column(modifier = Modifier.fillMaxSize()) {
       ScreenHeader(
           title = "Perfil",

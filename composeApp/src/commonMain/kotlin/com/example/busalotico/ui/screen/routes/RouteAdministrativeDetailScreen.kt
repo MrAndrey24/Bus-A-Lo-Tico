@@ -65,11 +65,10 @@ fun RouteAdministrativeDetailScreen(
     viewModel: RouteAdministrativeDetailViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val administrativeBackground = Color(0xFFF4F6FA)
 
     LaunchedEffect(routeId) { viewModel.loadRoute(routeId) }
 
-    Surface(modifier = modifier.fillMaxSize(), color = administrativeBackground) {
+    Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(modifier = Modifier.fillMaxSize()) {
             AdministrativeTopBar(onBackClick = onBackClick)
 
@@ -339,15 +338,10 @@ private fun ScheduleListItem(
     val (timeText, meridiemText) = schedule.departureTime.toMeridiemParts()
     val (arrivalTimeText, arrivalMeridiemText) = schedule.arrivalTime.toMeridiemParts()
     val scheduleStatus = rememberScheduleStatus(schedule)
-    val cardBackground = if (isHighlighted) {
-        Color(0xFFECEFF5)
-    } else {
-        Color(0xFFE7EBF1)
-    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = cardBackground),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
@@ -465,40 +459,35 @@ private fun ScheduleStatusChip(status: ScheduleStatus) {
 
 @Composable
 private fun AdministrativeFooter(route: Route) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F7FA)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.AccountBalance,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
-                modifier = Modifier.size(22.dp)
-            )
-            Text(
-                text = "OPERADO POR",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.8.sp
-            )
-            Text(
-                text = route.operator.toDisplayTitle(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Icon(
+            imageVector = Icons.Outlined.AccountBalance,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            text = "OPERADO POR",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 0.8.sp
+        )
+        Text(
+            text = route.operator.toDisplayTitle(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
