@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Route
 import androidx.compose.material3.Icon
@@ -110,6 +111,17 @@ fun BusAppNavigation(
                         indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                         disabledIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                         disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                    ),
+                )
+                NavigationBarItem(
+                    selected = currentRoute == BusAppScreen.Notifications.name,
+                    onClick = { navController.navigate(BusAppScreen.Notifications.name) },
+                    label = { Text("Avisos") },
+                    icon = { Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                     ),
                 )
                 NavigationBarItem(
