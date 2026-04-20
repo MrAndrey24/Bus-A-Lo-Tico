@@ -1,10 +1,11 @@
 package com.example.busalotico.ui.model
 
 import androidx.compose.runtime.Immutable
+import com.example.shared.domain.entities.geo.Canton as SharedCanton
+import com.example.shared.domain.entities.geo.Province as SharedProvince
 
-@Immutable data class Province(val name: String, val cantons: List<Canton>)
-
-@Immutable data class Canton(val name: String, val districts: List<String>)
+typealias Province = SharedProvince
+typealias Canton = SharedCanton
 
 @Immutable
 data class RouteListItemUi(
@@ -18,6 +19,7 @@ data class RouteListItemUi(
     val frequencyText: String,
     val isActive: Boolean = true,
     val isLive: Boolean = true,
+    val isDelayed: Boolean = false,
     val isFavorite: Boolean = false,
     val isNearMe: Boolean = true,
     val province: String? = null,

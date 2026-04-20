@@ -16,13 +16,18 @@ class UserRepository(
         return remoteDataSource.getUserProfile(userId)?.favoriteRouteIds ?: emptySet()
     }
 
+    override suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String> {
+        return remoteDataSource.getPassengerIdsByFavoriteRoute(routeId)
+    }
+
     override suspend fun upsertUserProfile(
         userId: String,
         email: String,
         name: String,
-        role: UserRole
+        role: UserRole,
+        companyId: String?,
     ): UserProfile {
-        return remoteDataSource.upsertUserProfile(userId, email, name, role)
+        return remoteDataSource.upsertUserProfile(userId, email, name, role, companyId)
     }
 
     override suspend fun setRouteFavorite(userId: String, routeId: String, isFavorite: Boolean) {

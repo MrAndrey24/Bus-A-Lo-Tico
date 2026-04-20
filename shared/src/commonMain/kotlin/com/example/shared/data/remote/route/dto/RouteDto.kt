@@ -52,4 +52,29 @@ data class RouteDto(
             polylinePoints = emptyList()
         )
     }
+
+    companion object {
+        fun fromDomain(route: Route): RouteDto {
+            return RouteDto(
+                code = route.code,
+                name = route.name,
+                companyId = route.companyId,
+                operator = route.operator,
+                startLocation = RouteLocationDto.fromDomain(route.startLocation),
+                endLocation = RouteLocationDto.fromDomain(route.endLocation),
+                distanceKm = route.distanceKm,
+                slopeCategory = route.slopeCategory,
+                pavedPercentage = route.pavedPercentage,
+                surveyYear = route.surveyYear,
+                fareCrc = route.fareCrc,
+                acceptsCardPayment = route.acceptsCardPayment,
+                statusText = route.statusText,
+                etaText = route.etaText,
+                frequencyText = route.frequencyText,
+                isActive = route.isActive,
+                isLive = route.isLive,
+                isFavorite = route.isFavorite,
+            )
+        }
+    }
 }

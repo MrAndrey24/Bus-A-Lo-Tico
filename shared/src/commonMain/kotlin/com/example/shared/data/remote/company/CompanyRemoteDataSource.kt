@@ -19,6 +19,15 @@ class CompanyRemoteDataSource : ICompanyRemoteDataSource {
         return dto.toDomain(snapshot.id)
     }
 
+    override suspend fun getCompanies(): List<Company> {
+        return Firebase.firestore
+            .collection(COMPANIES_COLLECTION)
+            .get()
+            .documents
+            .map { snapshot -> snapshot.data(CompanyDto.serializer()).toDomain(snapshot.id) }
+            .sortedBy { it.name }
+    }
+
     private companion object {
         const val COMPANIES_COLLECTION = "companies"
     }

@@ -22,11 +22,11 @@ fun SelectableFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
     showChevron: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    border: BorderStroke? = null,
 ) {
     val shape = RoundedCornerShape(999.dp)
     val backgroundColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
     val textColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Surface(
@@ -35,7 +35,7 @@ fun SelectableFilterChip(
             .clickable(onClick = onClick),
         shape = shape,
         color = backgroundColor,
-        border = BorderStroke(1.dp, borderColor)
+        border = border
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),

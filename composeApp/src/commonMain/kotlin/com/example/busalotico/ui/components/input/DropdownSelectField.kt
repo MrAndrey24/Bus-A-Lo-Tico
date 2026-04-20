@@ -1,6 +1,5 @@
 package com.example.busalotico.ui.components.input
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,8 +55,8 @@ fun DropdownSelectField(
                 }
                 .clickable(enabled = enabled) { expanded = true },
             shape = RoundedCornerShape(16.dp),
-            color = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            color = if (enabled) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
         ) {
             Row(
                 modifier = Modifier
@@ -86,8 +85,7 @@ fun DropdownSelectField(
             shape = RoundedCornerShape(14.dp),
             containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 0.dp,
-            shadowElevation = 4.dp,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            shadowElevation = 4.dp
         ) {
             options.forEach { option ->
                 DropdownMenuItem(

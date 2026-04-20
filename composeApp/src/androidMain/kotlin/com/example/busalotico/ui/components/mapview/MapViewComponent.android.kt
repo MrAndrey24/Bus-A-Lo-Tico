@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.busalotico.ui.components.mapview.details.FitCameraToRoute
 import com.example.busalotico.ui.components.mapview.icon.UserPoint
 import com.example.busalotico.ui.components.mapview.route.RouteAnnotations
 import com.example.shared.domain.entities.Coordinate
@@ -104,6 +105,7 @@ actual fun MapViewComponent(
       mapViewportState = mapViewportState,
       style = { MapStyle(style = Style.MAPBOX_STREETS) },
   ) {
+    FitCameraToRoute(recenterTrigger, polylinePoints, stops)
     UserPoint(currentPoint)
     RouteAnnotations(polylinePoints = polylinePoints, stops = stops, busLocation = busLocation)
   }

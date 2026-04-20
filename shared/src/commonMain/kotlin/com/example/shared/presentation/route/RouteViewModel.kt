@@ -4,17 +4,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shared.data.repository.auth.IAuthRepository
 import com.example.shared.data.repository.route.IRouteRepository
+import com.example.shared.data.repository.trip.ITripExecutionRepository
 import com.example.shared.data.repository.user.IUserRepository
+import com.example.shared.domain.entities.Route
+import com.example.shared.domain.entities.TripExecution
+import com.example.shared.domain.entities.TripExecutionStatus
 import com.example.shared.domain.usecases.route.SearchRoutesByLocationUseCase
+import kotlin.time.Clock
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 class RouteViewModel(
     private val routeRepository: IRouteRepository,
+    private val tripExecutionRepository: ITripExecutionRepository,
     private val authRepository: IAuthRepository,
     private val userRepository: IUserRepository,
     private val searchRoutesByLocationUseCase: SearchRoutesByLocationUseCase
@@ -39,15 +47,18 @@ class RouteViewModel(
             )
             try {
                 val routes = routeRepository.getRoutes()
+                val routeRuntimeById = buildRouteRuntimeById(routes)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     routes = routes,
+                    routeRuntimeById = routeRuntimeById,
                     errorMessage = null
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     routes = emptyList(),
+                    routeRuntimeById = emptyMap(),
                     errorMessage = e.message ?: "Error loading routes"
                 )
             }
@@ -86,10 +97,10 @@ class RouteViewModel(
         }
     }
 
-    fun onClearSearch() {
+    fun onRouteSelected(route: Route) {
         searchJob?.cancel()
         _uiState.value = _uiState.value.copy(
-            searchQuery = "",
+            searchQuery = route.name,
             searchResults = emptyList(),
             isSearching = false
         )
@@ -150,4 +161,71 @@ class RouteViewModel(
             }
         }
     }
+
+    private suspend fun buildRouteRuntimeById(routes: List<Route>): Map<String, RouteRuntimeSummary> {
+        val driverIds =
+            routes.flatMap { route -> route.schedules.map { it.driverId } }
+                .filter { it.isNotBlank() }
+                .distinct()
+
+        if (driverIds.isEmpty()) return emptyMap()
+
+        val executionsByDriver =
+            driverIds.associateWith { driverId ->
+                runCatching { tripExecutionRepository.getTripExecutionsByDriver(driverId) }.getOrDefault(emptyList())
+            }
+
+        val todayKey = todayDateKey()
+
+        return routes.associate { route ->
+            val routeScheduleIds = route.schedules.map { it.id }.toSet()
+            val routeExecutionsToday =
+                route.schedules
+                    .mapNotNull { schedule -> executionsByDriver[schedule.driverId] }
+                    .flatten()
+                    .filter { execution ->
+                        execution.routeId == route.id &&
+                            execution.scheduleId in routeScheduleIds &&
+                            dateKey(execution.startedAt) == todayKey
+                    }
+
+            val activeExecution =
+                routeExecutionsToday
+                    .filter {
+                        it.status == TripExecutionStatus.IN_PROGRESS ||
+                            it.status == TripExecutionStatus.DELAYED
+                    }
+                    .maxByOrNull { it.startedAt }
+
+            val runtime =
+                when (activeExecution?.status) {
+                    TripExecutionStatus.IN_PROGRESS ->
+                        RouteRuntimeSummary(
+                            status = RouteRuntimeStatus.ACTIVE,
+                            statusText = "ACTIVA",
+                        )
+                    TripExecutionStatus.DELAYED ->
+                        RouteRuntimeSummary(
+                            status = RouteRuntimeStatus.DELAYED,
+                            statusText = "DETENIDA",
+                        )
+                    else ->
+                        RouteRuntimeSummary(
+                            status = RouteRuntimeStatus.IDLE,
+                            statusText = "EN ESPERA",
+                        )
+                }
+
+            route.id to runtime
+        }
+    }
+
+    private fun dateKey(epochMilliseconds: Long): String {
+        val dateTime =
+            kotlin.time.Instant.fromEpochMilliseconds(epochMilliseconds)
+                .toLocalDateTime(TimeZone.of("America/Costa_Rica"))
+        return "${dateTime.year}-${dateTime.monthNumber}-${dateTime.dayOfMonth}"
+    }
+
+    private fun todayDateKey(): String = dateKey(Clock.System.now().toEpochMilliseconds())
 }
