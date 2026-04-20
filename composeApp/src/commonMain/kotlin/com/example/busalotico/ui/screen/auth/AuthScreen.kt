@@ -18,8 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBus
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,21 +63,24 @@ fun AuthScreen(
   var selectedRole by remember { mutableStateOf(UserRole.PASSENGER) }
 
   val canSubmit = email.isNotBlank() && password.isNotBlank()
+  val authPageBackground = Color(0xFFF1F3F6)
+  val authPanelBackground = Color.White
+  val authInputBackground = Color(0xFFF1F3F6)
 
-  Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+  Surface(modifier = modifier.fillMaxSize(), color = authPageBackground) {
     Box(modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
       Column(
           modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 72.dp),
           horizontalAlignment = Alignment.CenterHorizontally,
       ) {
         Box(
-            modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.surface, CircleShape),
+            modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
           Icon(
               imageVector = Icons.Filled.DirectionsBus,
               contentDescription = "Bus",
-              tint = MaterialTheme.colorScheme.primary,
+              tint = Color.White,
               modifier = Modifier.size(28.dp),
           )
         }
@@ -117,14 +120,19 @@ fun AuthScreen(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            shadowElevation = 4.dp,
+            color = authPanelBackground,
+            border = BorderStroke(0.6.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.04f)),
+            shadowElevation = 1.dp,
         ) {
           Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp)) {
             if (isRegisterMode) {
               FieldLabel("NOMBRE")
-              AuthTextField(value = name, onValueChange = { name = it }, placeholder = "Tu nombre")
+              AuthTextField(
+                  value = name,
+                  onValueChange = { name = it },
+                  placeholder = "Tu nombre",
+                  containerColor = authInputBackground,
+              )
               Spacer(modifier = Modifier.height(16.dp))
             }
 
@@ -133,6 +141,7 @@ fun AuthScreen(
                 value = email,
                 onValueChange = { email = it },
                 placeholder = "nombre@ejemplo.com",
+                containerColor = authInputBackground,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -145,6 +154,7 @@ fun AuthScreen(
                 isPassword = true,
                 passwordVisible = passwordVisible,
                 onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
+                containerColor = authInputBackground,
             )
 
             if (isRegisterMode) {
@@ -160,6 +170,7 @@ fun AuthScreen(
                         selectedRole = role
                       },
                       showChevron = false,
+                      border = null,
                   )
                 }
               }
@@ -239,7 +250,7 @@ fun AuthScreen(
                 modifier = Modifier.fillMaxWidth(),
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.onSurface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                border = null,
             )
           }
         }
@@ -292,6 +303,7 @@ private fun AuthTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
+    containerColor: Color,
     isPassword: Boolean = false,
     passwordVisible: Boolean = false,
     onPasswordVisibilityToggle: (() -> Unit)? = null,
@@ -314,7 +326,7 @@ private fun AuthTextField(
             {
               Icon(
                   imageVector =
-                      if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                      if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
                   contentDescription =
                       if (passwordVisible) "Contraseña visible" else "Contraseña oculta",
                   tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -327,12 +339,17 @@ private fun AuthTextField(
           },
       colors =
           OutlinedTextFieldDefaults.colors(
-              focusedContainerColor = MaterialTheme.colorScheme.surface,
-              unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-              focusedBorderColor = MaterialTheme.colorScheme.primary,
-              unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+              focusedContainerColor = containerColor,
+              unfocusedContainerColor = containerColor,
+              disabledContainerColor = containerColor,
+              focusedBorderColor = Color.Transparent,
+              unfocusedBorderColor = Color.Transparent,
+              disabledBorderColor = Color.Transparent,
               focusedTextColor = MaterialTheme.colorScheme.onSurface,
               unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+              disabledTextColor = MaterialTheme.colorScheme.onSurface,
+              focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+              unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
           ),
   )
 }

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.TripOrigin
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material3.Card
@@ -51,7 +52,12 @@ import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteSchedule
+import com.example.shared.presentation.route.AdministrativeRouteRuntimeStatus
+import com.example.shared.presentation.route.AdministrativeRouteStatus
+import com.example.shared.presentation.route.AdministrativeScheduleRuntimeStatus
 import com.example.shared.presentation.route.RouteAdministrativeDetailViewModel
+import com.example.shared.util.currentCostaRicaTimeMinutes
+import com.example.shared.util.parseFlexibleTimeToMinutes
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -98,6 +104,9 @@ fun RouteAdministrativeDetailScreen(
                     AdministrativeDetailContent(
                         route = uiState.route!!,
                         driverNamesById = uiState.driverNamesById,
+                        routeRuntimeStatus = uiState.routeRuntimeStatus,
+                        scheduleStatusesById = uiState.scheduleStatusesById,
+                        highlightedScheduleId = uiState.highlightedScheduleId,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -127,6 +136,9 @@ private fun AdministrativeTopBar(onBackClick: () -> Unit) {
 private fun AdministrativeDetailContent(
     route: Route,
     driverNamesById: Map<String, String>,
+    routeRuntimeStatus: AdministrativeRouteRuntimeStatus,
+    scheduleStatusesById: Map<String, AdministrativeScheduleRuntimeStatus>,
+    highlightedScheduleId: String?,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -134,47 +146,62 @@ private fun AdministrativeDetailContent(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item { AdministrativeHeroCard(route) }
+        item { AdministrativeHeroCard(route, routeRuntimeStatus) }
         item { AdministrativeMetricsSection(route) }
-        item { AdministrativeLocationCard(route = route) }
-        item { AdministrativeScheduleCard(route = route, driverNamesById = driverNamesById) }
+        item {
+            AdministrativeScheduleCard(
+                route = route,
+                driverNamesById = driverNamesById,
+                scheduleStatusesById = scheduleStatusesById,
+                highlightedScheduleId = highlightedScheduleId,
+            )
+        }
         item { AdministrativeFooter(route) }
         item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }
 
 @Composable
-private fun AdministrativeHeroCard(route: Route) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+private fun AdministrativeHeroCard(
+    route: Route,
+    routeRuntimeStatus: AdministrativeRouteRuntimeStatus,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.primary
-                ) {
-                    Text(
-                        text = "RUTA OFICIAL",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
+        Text(
+            text = "RUTA ACTIVA",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.72f),
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+        )
 
+        Text(
+            text = route.name.trim().uppercase().replace(" - ", " • "),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.ExtraBold,
+            lineHeight = 24.sp,
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .background(routeRuntimeStatus.state.dotColor(), CircleShape)
+            )
             Text(
-                text = route.name.trim().uppercase(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.ExtraBold,
+                text = routeRuntimeStatus.detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium,
             )
         }
     }
@@ -186,7 +213,7 @@ private fun AdministrativeMetricsSection(route: Route) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -282,113 +309,19 @@ private fun PaymentMethodLine(
 }
 
 @Composable
-private fun AdministrativeLocationCard(
-    route: Route,
-) {
-    val startLocation = listOfNotNull(
-        route.startLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-        route.startLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-        route.startLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-    ).joinToString(", ")
-
-    val endLocation = listOfNotNull(
-        route.endLocation.province?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-        route.endLocation.canton?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-        route.endLocation.district?.takeIf { it.isNotBlank() }?.toDisplayTitle(),
-    ).joinToString(", ")
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(
-                text = "Recorrido",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.TripOrigin,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Box(
-                        modifier = Modifier
-                            .width(2.dp)
-                            .height(34.dp)
-                            .background(MaterialTheme.colorScheme.outlineVariant)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = "Origen",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = startLocation.ifBlank { "Origen no disponible" },
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = "Destino",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = endLocation.ifBlank { "Destino no disponible" },
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun AdministrativeScheduleCard(
     route: Route,
     driverNamesById: Map<String, String>,
+    scheduleStatusesById: Map<String, AdministrativeScheduleRuntimeStatus>,
+    highlightedScheduleId: String?,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "HORARIOS DE SALIDA",
+            text = "Horarios de salida",
             modifier = Modifier.padding(horizontal = 4.dp),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 1.1.sp
         )
 
         if (route.schedules.isEmpty()) {
@@ -406,10 +339,12 @@ private fun AdministrativeScheduleCard(
                 )
             }
         } else {
-            route.schedules.sortedBy { it.departureTime }.forEach { schedule ->
+            route.schedules.sortedBy { it.departureTime }.forEachIndexed { index, schedule ->
                 ScheduleListItem(
                     schedule = schedule,
                     driverName = driverNamesById[schedule.driverId],
+                    scheduleStatus = scheduleStatusesById[schedule.id] ?: rememberScheduleStatus(schedule),
+                    isHighlighted = highlightedScheduleId?.let { it == schedule.id } ?: (index == 0),
                 )
             }
         }
@@ -420,123 +355,199 @@ private fun AdministrativeScheduleCard(
 private fun ScheduleListItem(
     schedule: RouteSchedule,
     driverName: String?,
+    scheduleStatus: AdministrativeScheduleRuntimeStatus,
+    isHighlighted: Boolean,
 ) {
+    val (timeText, meridiemText) = schedule.departureTime.toMeridiemParts()
+    val (arrivalTimeText, arrivalMeridiemText) = schedule.arrivalTime.toMeridiemParts()
+    val statusColor = scheduleStatus.color()
+    val statusLabel = scheduleStatus.label()
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.Top,
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(
+                    modifier = Modifier.width(74.dp),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
                     Text(
-                        text = schedule.departureTime,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        text = timeText,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.ExtraBold,
                     )
                     Text(
-                        text = "Llegada: ${schedule.arrivalTime.ifBlank { "N/D" }}",
-                        style = MaterialTheme.typography.titleSmall,
+                        text = meridiemText,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.8.sp,
                     )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f))
-            )
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Text(
-                    text = "Conductor",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.SemiBold,
-                )
-
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primary
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(16.dp),
-                        )
+                    if (isHighlighted) {
                         Text(
-                            text = driverName ?: schedule.driverId.takeIf { it.isNotBlank() } ?: "Chofer no asignado",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.SemiBold,
+                            text = "PRÓXIMO",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = statusColor,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.8.sp,
                         )
                     }
                 }
-            }
 
+                Box(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .width(3.dp)
+                        .height(72.dp)
+                        .background(statusColor, RoundedCornerShape(999.dp))
+                )
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 2.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    Text(
+                        text = statusLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = statusColor,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.8.sp,
+                    )
+                    Text(
+                        text = buildArrivalLabel(arrivalTimeText, arrivalMeridiemText),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = "Conductor",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = driverName ?: schedule.driverId.takeIf { it.isNotBlank() } ?: "Chofer no asignado",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun AdministrativeFooter(route: Route) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Icon(imageVector = Icons.Outlined.AccountBalance, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-            Text(
-                text = "OPERADO POR",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            )
-            Text(
-                text = route.operator.toDisplayTitle(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Icon(
+            imageVector = Icons.Outlined.AccountBalance,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            text = "OPERADO POR",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 0.8.sp
+        )
+        Text(
+            text = route.operator.toDisplayTitle(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
 private fun String.toDisplayTitle(): String {
     return trim().lowercase().split(Regex("\\s+")).joinToString(" ") { word ->
         word.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase() else char.toString() }
+    }
+}
+
+private fun rememberScheduleStatus(schedule: RouteSchedule): AdministrativeScheduleRuntimeStatus {
+    val currentMinutes = currentCostaRicaTimeMinutes()
+    val departureMinutes = parseFlexibleTimeToMinutes(schedule.departureTime)
+    val arrivalMinutes = parseFlexibleTimeToMinutes(schedule.arrivalTime)
+
+    if (departureMinutes == null || arrivalMinutes == null) return AdministrativeScheduleRuntimeStatus.SCHEDULED
+
+    return when {
+        currentMinutes > arrivalMinutes -> AdministrativeScheduleRuntimeStatus.COMPLETED
+        currentMinutes in departureMinutes..arrivalMinutes -> AdministrativeScheduleRuntimeStatus.ACTIVE
+        else -> AdministrativeScheduleRuntimeStatus.SCHEDULED
+    }
+}
+
+private fun String.toMeridiemParts(): Pair<String, String> {
+    val parts = split(":")
+    val hour24 = parts.firstOrNull()?.toIntOrNull() ?: return this to ""
+    val minute = parts.getOrNull(1) ?: return this to ""
+    val meridiem = if (hour24 >= 12) "PM" else "AM"
+    val hour12 = when {
+        hour24 == 0 -> 12
+        hour24 > 12 -> hour24 - 12
+        else -> hour24
+    }
+    return "%02d:%s".format(hour12, minute) to meridiem
+}
+
+private fun AdministrativeScheduleRuntimeStatus.label(): String =
+    when (this) {
+        AdministrativeScheduleRuntimeStatus.COMPLETED -> "COMPLETADO"
+        AdministrativeScheduleRuntimeStatus.ACTIVE -> "ACTIVO"
+        AdministrativeScheduleRuntimeStatus.DELAYED -> "DETENIDO"
+        AdministrativeScheduleRuntimeStatus.SCHEDULED -> "PROGRAMADO"
+    }
+
+private fun AdministrativeScheduleRuntimeStatus.color(): Color =
+    when (this) {
+        AdministrativeScheduleRuntimeStatus.COMPLETED -> Color(0xFF6F7D8C)
+        AdministrativeScheduleRuntimeStatus.ACTIVE -> Color(0xFF25B48F)
+        AdministrativeScheduleRuntimeStatus.DELAYED -> Color(0xFFD67C2E)
+        AdministrativeScheduleRuntimeStatus.SCHEDULED -> Color(0xFF294A6B)
+    }
+
+private fun AdministrativeRouteStatus.dotColor(): Color =
+    when (this) {
+        AdministrativeRouteStatus.IDLE -> Color(0xFF6F7D8C)
+        AdministrativeRouteStatus.ACTIVE -> Color(0xFF32B45F)
+        AdministrativeRouteStatus.DELAYED -> Color(0xFFD67C2E)
+    }
+
+private fun buildArrivalLabel(timeText: String, meridiemText: String): String {
+    val time = timeText.ifBlank { "N/D" }
+    return if (meridiemText.isBlank()) {
+        "Llegada $time"
+    } else {
+        "Llegada $time $meridiemText"
     }
 }

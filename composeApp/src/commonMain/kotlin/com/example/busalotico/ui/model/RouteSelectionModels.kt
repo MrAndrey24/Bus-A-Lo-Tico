@@ -19,6 +19,7 @@ data class RouteListItemUi(
     val frequencyText: String,
     val isActive: Boolean = true,
     val isLive: Boolean = true,
+    val isDelayed: Boolean = false,
     val isFavorite: Boolean = false,
     val isNearMe: Boolean = true,
     val province: String? = null,
