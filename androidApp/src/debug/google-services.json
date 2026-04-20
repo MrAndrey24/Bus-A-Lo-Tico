@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "859308289491",
+    "project_id": "busalotico-4db95",
+    "storage_bucket": "busalotico-4db95.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:859308289491:android:a345d1dd78c81258c61326",
+        "android_client_info": {
+          "package_name": "com.example.busalotico"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiB9U-cOhhZloTOgvIXw8TG5OafBs6Rk0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

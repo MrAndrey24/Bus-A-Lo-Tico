@@ -25,17 +25,61 @@ class UserRemoteDataSource : IUserRemoteDataSource {
         return dto.toDomain(userId, favoriteRouteIds)
     }
 
+    override suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String> {
+        val normalizedRouteId = routeId.trim()
+        if (normalizedRouteId.isBlank()) return emptySet()
+
+        val favoritesQuery = Firebase.firestore.collectionGroup(FAVORITE_ROUTES_COLLECTION)
+        val favoriteDocuments =
+            runCatching {
+                favoritesQuery
+                    .where { "routeId" equalTo normalizedRouteId }
+                    .get()
+                    .documents
+            }.getOrNull()
+                ?: favoritesQuery
+                    .get()
+                    .documents
+                    .filter { snapshot ->
+                        runCatching {
+                            snapshot.data(RouteFavoriteDto.serializer()).routeId == normalizedRouteId
+                        }.getOrDefault(false)
+                    }
+
+        val candidateUserIds = favoriteDocuments
+            .mapNotNull { it.reference.parent.parent?.id }
+            .toSet()
+
+        if (candidateUserIds.isEmpty()) return emptySet()
+
+        return candidateUserIds.filter { userId ->
+            val snapshot =
+                runCatching {
+                    Firebase.firestore.collection(USERS_COLLECTION).document(userId).get()
+                }.getOrNull()
+                    ?: return@filter false
+
+            if (!snapshot.exists) return@filter false
+            val role =
+                runCatching { snapshot.data(UserProfileDto.serializer()).role }
+                    .getOrDefault(UserRole.PASSENGER.name)
+            role == UserRole.PASSENGER.name
+        }.toSet()
+    }
+
     override suspend fun upsertUserProfile(
         userId: String,
         email: String,
         name: String,
-        role: UserRole
+        role: UserRole,
+        companyId: String?,
     ): UserProfile {
         val userRef = Firebase.firestore.collection(USERS_COLLECTION).document(userId)
         val dto = UserProfileDto(
             email = email,
             name = name,
-            role = role.name
+            role = role.name,
+            companyId = companyId,
         )
         userRef.set(dto)
         return dto.toDomain(userId, emptySet())

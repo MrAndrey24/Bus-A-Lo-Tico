@@ -3,6 +3,7 @@ package com.example.shared.presentation.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shared.data.repository.auth.IAuthRepository
+import com.example.shared.data.repository.driver.IDriverRepository
 import com.example.shared.data.repository.user.IUserRepository
 import com.example.shared.domain.entities.UserRole
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     private val authRepository: IAuthRepository,
+    private val driverRepository: IDriverRepository,
     private val userRepository: IUserRepository,
 ) : ViewModel() {
 
@@ -48,6 +50,7 @@ class AuthViewModel(
                     email = email,
                     name = email.substringBefore("@"),
                     role = UserRole.PASSENGER,
+                    companyId = null,
                 )
           }
           .onSuccess { profile ->
@@ -63,17 +66,27 @@ class AuthViewModel(
     }
   }
 
-  fun signUp(name: String, email: String, password: String, role: UserRole) {
+  fun signUp(name: String, email: String, password: String, role: UserRole, companyId: String? = null) {
     viewModelScope.launch {
       runCatching {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            val normalizedCompanyId = companyId?.trim().takeUnless { it.isNullOrBlank() }
             val userId = authRepository.signUp(email, password)
-            userRepository.upsertUserProfile(
+            val profile = userRepository.upsertUserProfile(
                 userId = userId,
                 email = email,
                 name = name,
                 role = role,
+                companyId = normalizedCompanyId,
             )
+            if (role == UserRole.DRIVER) {
+              driverRepository.upsertDriver(
+                  driverId = userId,
+                  name = name,
+                  companyId = null,
+              )
+            }
+            profile
           }
           .onSuccess { profile ->
             _uiState.value = AuthUiState(isLoading = false, currentUser = profile)
@@ -83,6 +96,40 @@ class AuthViewModel(
                 AuthUiState(
                     isLoading = false,
                     errorMessage = error.toSpanishAuthMessage("No se pudo registrar el usuario"),
+                )
+          }
+    }
+  }
+
+  fun updateCurrentUserCompany(companyId: String) {
+    val currentUser = _uiState.value.currentUser ?: return
+    viewModelScope.launch {
+      runCatching {
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            val updatedProfile = userRepository.upsertUserProfile(
+                userId = currentUser.id,
+                email = currentUser.email,
+                name = currentUser.name,
+                role = currentUser.role,
+                companyId = companyId.trim(),
+            )
+            if (currentUser.role == UserRole.DRIVER) {
+              driverRepository.upsertDriver(
+                  driverId = currentUser.id,
+                  name = currentUser.name,
+                  companyId = companyId.trim(),
+              )
+            }
+            updatedProfile
+          }
+          .onSuccess { profile ->
+            _uiState.value = _uiState.value.copy(isLoading = false, currentUser = profile, errorMessage = null)
+          }
+          .onFailure { error ->
+            _uiState.value =
+                _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = error.message ?: "No se pudo actualizar la empresa.",
                 )
           }
     }

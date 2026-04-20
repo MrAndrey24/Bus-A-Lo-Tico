@@ -1,6 +1,5 @@
 package com.example.shared.data.repository.mapbox
 
-import AppSecrets
 import com.example.shared.data.repository.mapbox.MapboxConstants.DIRECTIONS_BASE_URL
 import com.example.shared.data.repository.mapbox.MapboxConstants.GEOCODING_BASE_URL
 import com.example.shared.data.repository.mapbox.MapboxConstants.PARAM_ACCESS_TOKEN

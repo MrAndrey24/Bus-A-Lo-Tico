@@ -21,3 +21,8 @@ captures
 node_modules/
 **/AppSecrets.kt
 androidApp/google-services.json
+androidApp/src/debug/google-services.json
+**/firebase.properties
+
+# Firebase logs
+firebase-debug.log

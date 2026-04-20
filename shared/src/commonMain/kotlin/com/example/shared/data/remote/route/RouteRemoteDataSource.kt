@@ -4,8 +4,13 @@ import com.example.shared.data.remote.route.dto.RouteDto
 import com.example.shared.data.remote.route.dto.RouteScheduleDto
 import com.example.shared.data.remote.route.dto.RouteStopDto
 import com.example.shared.domain.entities.Route
+import com.example.shared.domain.entities.RouteSchedule
+import com.example.shared.domain.entities.RouteStop
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
+import dev.gitlive.firebase.firestore.where
+import kotlin.random.Random
+import kotlin.time.Clock
 
 class RouteRemoteDataSource : IRouteRemoteDataSource {
 
@@ -60,9 +65,93 @@ class RouteRemoteDataSource : IRouteRemoteDataSource {
         )
     }
 
+    override suspend fun getRouteByDriverId(driverId: String): Route? {
+        return getRoutesByDriverId(driverId).firstOrNull()
+    }
+
+    override suspend fun getRoutesByDriverId(driverId: String): List<Route> {
+        val schedulesQuery = Firebase.firestore.collectionGroup(SCHEDULES_COLLECTION)
+
+        val scheduleDocuments =
+            runCatching {
+                schedulesQuery
+                    .where { "driverId" equalTo driverId }
+                    .get()
+                    .documents
+            }.getOrNull()
+                ?: schedulesQuery
+                    .get()
+                    .documents
+                    .filter { snapshot ->
+                        val scheduleDto = snapshot.data(RouteScheduleDto.serializer())
+                        scheduleDto.driverId == driverId
+                    }
+
+        val routeIds = scheduleDocuments
+            .mapNotNull { it.reference.parent.parent?.id }
+            .distinct()
+
+        return routeIds.mapNotNull { routeId -> getRoute(routeId) }
+    }
+
+    override suspend fun upsertRoute(route: Route): Route {
+        val routeId = route.id.ifBlank { generateDocumentId("route") }
+        Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .document(routeId)
+            .set(RouteDto.fromDomain(route))
+        return route.copy(id = routeId)
+    }
+
+    override suspend fun upsertRouteStop(routeId: String, stop: RouteStop): RouteStop {
+        val stopsCollection = Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .document(routeId)
+            .collection(STOPS_COLLECTION)
+
+        val stopId = stop.id.ifBlank { generateDocumentId("stop") }
+        stopsCollection.document(stopId).set(RouteStopDto.fromDomain(stop))
+        return stop.copy(id = stopId)
+    }
+
+    override suspend fun deleteRouteStop(routeId: String, stopId: String) {
+        Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .document(routeId)
+            .collection(STOPS_COLLECTION)
+            .document(stopId)
+            .delete()
+    }
+
+    override suspend fun upsertRouteSchedule(routeId: String, schedule: RouteSchedule): RouteSchedule {
+        val schedulesCollection = Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .document(routeId)
+            .collection(SCHEDULES_COLLECTION)
+
+        val scheduleId = schedule.id.ifBlank { generateDocumentId("schedule") }
+        schedulesCollection.document(scheduleId).set(RouteScheduleDto.fromDomain(schedule))
+        return schedule.copy(id = scheduleId)
+    }
+
+    override suspend fun deleteRouteSchedule(routeId: String, scheduleId: String) {
+        Firebase.firestore
+            .collection(ROUTES_COLLECTION)
+            .document(routeId)
+            .collection(SCHEDULES_COLLECTION)
+            .document(scheduleId)
+            .delete()
+    }
+
     private companion object {
         const val ROUTES_COLLECTION = "routes"
         const val STOPS_COLLECTION = "stops"
         const val SCHEDULES_COLLECTION = "schedules"
+    }
+
+    private fun generateDocumentId(prefix: String): String {
+        val now = Clock.System.now().toEpochMilliseconds()
+        val random = Random.nextInt(100000, 999999)
+        return "${prefix}_${now}_$random"
     }
 }
