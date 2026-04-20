@@ -132,8 +132,11 @@ fun RouteSelectionCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (route.isLive) {
-                        LiveBadge()
+                    if (route.isLive || route.isDelayed) {
+                        LiveBadge(
+                            text = route.statusText,
+                            isDelayed = route.isDelayed,
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     
@@ -236,9 +239,19 @@ fun RouteCodeBadge(code: String, isActive: Boolean, modifier: Modifier = Modifie
 }
 
 @Composable
-fun LiveBadge(modifier: Modifier = Modifier) {
+fun LiveBadge(
+    text: String = "EN VIVO",
+    isDelayed: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    val containerColor =
+        if (isDelayed) Color(0xFFFFF0DD) else MaterialTheme.colorScheme.tertiaryContainer
+    val dotColor = if (isDelayed) Color(0xFFD67C2E) else MaterialTheme.colorScheme.tertiary
+    val contentColor =
+        if (isDelayed) Color(0xFF8A5A18) else MaterialTheme.colorScheme.onTertiaryContainer
+
     Surface(
-        color = MaterialTheme.colorScheme.tertiaryContainer,
+        color = containerColor,
         shape = RoundedCornerShape(6.dp),
         modifier = modifier
     ) {
@@ -249,14 +262,14 @@ fun LiveBadge(modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .size(6.dp)
-                    .background(MaterialTheme.colorScheme.tertiary, CircleShape)
+                    .background(dotColor, CircleShape)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
-                text = "EN VIVO",
+                text = text,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
+                color = contentColor
             )
         }
     }

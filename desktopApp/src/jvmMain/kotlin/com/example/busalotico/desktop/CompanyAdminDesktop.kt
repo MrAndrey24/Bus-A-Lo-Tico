@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,8 +44,8 @@ import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -55,6 +56,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +66,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
@@ -107,6 +111,8 @@ import com.example.shared.domain.entities.geo.costaRicaGeoData
 import com.example.shared.presentation.auth.AuthViewModel
 import com.example.shared.presentation.admin.AdminCompanyViewModel
 import com.example.shared.presentation.company.CompanyListViewModel
+import com.example.shared.util.normalizeTimeTo24Hour
+import com.example.shared.util.parseFlexibleTimeToMinutes
 import org.koin.compose.viewmodel.koinViewModel
 import java.io.File
 import java.util.Properties
@@ -369,101 +375,152 @@ private fun DesktopLoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF6F7FB))
+            .background(Color(0xFFF1F3F6))
             .padding(32.dp),
         contentAlignment = Alignment.Center,
     ) {
-        ElevatedCard(
+        Column(
             modifier = Modifier.width(520.dp),
-            shape = RoundedCornerShape(30.dp),
-            colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(18.dp),
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(30.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
             ) {
-                Surface(
-                    modifier = Modifier.width(74.dp).height(74.dp),
-                    shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.DirectionsBus,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-                Text(
-                    text = "Bus A Lo Tico",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "Viaja informado",
-                    color = MaterialTheme.colorScheme.secondary,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Text(
-                    text = "Ingresa con una cuenta administrativa para acceder al panel empresarial.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Correo") },
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Contraseña") },
-                    singleLine = true,
-                    visualTransformation =
-                        if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector =
-                                    if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription =
-                                    if (passwordVisible) "Contraseña visible" else "Contraseña oculta",
-                        )
+                    Surface(
+                        modifier = Modifier.width(74.dp).height(74.dp),
+                        shape = RoundedCornerShape(22.dp),
+                        color = Color(0xFF122B4A),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.DirectionsBus,
+                                contentDescription = null,
+                                tint = Color.White,
+                            )
                         }
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(),
-                )
-                errorMessage?.let { message ->
-                    Surface(shape = RoundedCornerShape(18.dp), color = Color(0xFFFDECEC)) {
-                        Text(
-                            text = message,
-                            modifier = Modifier.padding(14.dp),
-                            color = Color(0xFFB3261E),
-                        )
+                    }
+                    Text(
+                        text = "Bus A Lo Tico",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "Viaja informado",
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = "Ingresa con una cuenta administrativa para acceder al panel empresarial.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    TextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Correo") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors =
+                            TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFF1F3F6),
+                                unfocusedContainerColor = Color(0xFFF1F3F6),
+                                disabledContainerColor = Color(0xFFF1F3F6),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                            ),
+                    )
+                    TextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Contraseña") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        visualTransformation =
+                            if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector =
+                                        if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                                contentDescription =
+                                        if (passwordVisible) "Contraseña visible" else "Contraseña oculta",
+                            )
+                            }
+                        },
+                        colors =
+                            TextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFFF1F3F6),
+                                unfocusedContainerColor = Color(0xFFF1F3F6),
+                                disabledContainerColor = Color(0xFFF1F3F6),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                            ),
+                    )
+                    errorMessage?.let { message ->
+                        Surface(shape = RoundedCornerShape(18.dp), color = Color(0xFFFDECEC)) {
+                            Text(
+                                text = message,
+                                modifier = Modifier.padding(14.dp),
+                                color = Color(0xFFB3261E),
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = { onSignIn(email.trim(), password) },
+                        enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.width(20.dp).height(20.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Text("Entrar al panel")
+                        }
                     }
                 }
-                Button(
-                    onClick = { onSignIn(email.trim(), password) },
-                    enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    shape = RoundedCornerShape(16.dp),
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.width(20.dp).height(20.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text("Entrar al panel")
-                    }
+                    Box(
+                        modifier = Modifier.width(18.dp).height(2.dp).background(Color(0xFF2C63D6), RoundedCornerShape(999.dp))
+                    )
+                    Box(
+                        modifier = Modifier.width(30.dp).height(2.dp).background(Color(0xFFE25555), RoundedCornerShape(999.dp))
+                    )
+                    Box(
+                        modifier = Modifier.width(18.dp).height(2.dp).background(Color(0xFF2C63D6), RoundedCornerShape(999.dp))
+                    )
                 }
+                Text(
+                    text = "PURA VIDA • COSTA RICA",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 2.sp,
+                    fontWeight = FontWeight.Medium,
+                )
             }
         }
     }
@@ -624,7 +681,12 @@ private fun CompanyAdminDesktopApp(
                 }
 
                 when (selectedSection) {
-                    AdminSection.DASHBOARD -> AdminOverviewSection(uiState = uiState)
+                    AdminSection.DASHBOARD -> AdminOverviewSection(
+                        uiState = uiState,
+                        onDeleteIncident = { tripExecutionId, incidentId ->
+                            viewModel.deleteIncident(tripExecutionId, incidentId)
+                        },
+                    )
                     AdminSection.ROUTES -> RouteManagementSection(
                         uiState = uiState,
                         selectedTab = selectedTab,
@@ -841,7 +903,10 @@ private fun DesktopFeedbackCard(message: String, background: Color, content: Col
 }
 
 @Composable
-private fun AdminOverviewSection(uiState: com.example.shared.presentation.admin.AdminCompanyUiState) {
+private fun AdminOverviewSection(
+    uiState: com.example.shared.presentation.admin.AdminCompanyUiState,
+    onDeleteIncident: (String, String) -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         FlowRow(
             maxItemsInEachRow = 4,
@@ -862,70 +927,88 @@ private fun AdminOverviewSection(uiState: com.example.shared.presentation.admin.
                 if (uiState.recentIncidents.isEmpty()) {
                     Text("No hay incidencias registradas para las rutas de esta empresa.")
                 } else {
-                    uiState.recentIncidents.forEachIndexed { index, incident ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            verticalAlignment = Alignment.Top,
-                        ) {
-                            Surface(
-                                modifier = Modifier.size(42.dp),
-                                shape = CircleShape,
-                                color = incidentChipBackground(incident.incidentType),
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = incidentIcon(incident.incidentType),
-                                        contentDescription = null,
-                                        tint = incidentChipContent(incident.incidentType),
-                                        modifier = Modifier.size(20.dp),
-                                    )
-                                }
-                            }
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp),
+                    ) {
+                        items(uiState.recentIncidents, key = { "${it.tripExecutionId}:${it.incidentId}" }) { incident ->
+                            Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp),
                                     verticalAlignment = Alignment.Top,
                                 ) {
-                                    Text(incident.routeName, fontWeight = FontWeight.SemiBold)
-                                    AssistChip(
-                                        onClick = {},
-                                        enabled = false,
-                                        label = { Text(formatIncidentType(incident.incidentType)) },
-                                        leadingIcon = {
+                                    Surface(
+                                        modifier = Modifier.size(42.dp),
+                                        shape = CircleShape,
+                                        color = incidentChipBackground(incident.incidentType),
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 imageVector = incidentIcon(incident.incidentType),
                                                 contentDescription = null,
                                                 tint = incidentChipContent(incident.incidentType),
-                                                modifier = Modifier.size(16.dp),
+                                                modifier = Modifier.size(20.dp),
                                             )
-                                        },
-                                        colors = AssistChipDefaults.assistChipColors(
-                                            disabledContainerColor = incidentChipBackground(incident.incidentType),
-                                            disabledLabelColor = incidentChipContent(incident.incidentType),
-                                        ),
-                                    )
+                                        }
+                                    }
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.Top,
+                                        ) {
+                                            Text(incident.routeName, fontWeight = FontWeight.SemiBold)
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                AssistChip(
+                                                    onClick = {},
+                                                    enabled = false,
+                                                    label = { Text(formatIncidentType(incident.incidentType)) },
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            imageVector = incidentIcon(incident.incidentType),
+                                                            contentDescription = null,
+                                                            tint = incidentChipContent(incident.incidentType),
+                                                            modifier = Modifier.size(16.dp),
+                                                        )
+                                                    },
+                                                    colors = AssistChipDefaults.assistChipColors(
+                                                        disabledContainerColor = incidentChipBackground(incident.incidentType),
+                                                        disabledLabelColor = incidentChipContent(incident.incidentType),
+                                                    ),
+                                                )
+                                                IconButton(
+                                                    onClick = { onDeleteIncident(incident.tripExecutionId, incident.incidentId) },
+                                                    modifier = Modifier.size(32.dp),
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Delete,
+                                                        contentDescription = "Eliminar incidencia",
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        modifier = Modifier.size(16.dp),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Text(
+                                            text = "Chofer: ${incident.driverName}",
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                        Text(
+                                            text = incident.incidentDetail,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                    }
                                 }
-                                Text(
-                                    text = "Chofer: ${incident.driverName}",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
-                                Text(
-                                    text = incident.incidentDetail,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
+                                HorizontalDivider(color = Color(0xFFEAECEF))
                             }
-                        }
-                        if (index < uiState.recentIncidents.lastIndex) {
-                            Divider(color = Color(0xFFEAECEF))
                         }
                     }
                 }
@@ -1381,7 +1464,10 @@ private fun RouteSchedulesEditor(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Column {
-                                    Text("${schedule.departureTime} → ${schedule.arrivalTime}", fontWeight = FontWeight.SemiBold)
+                                    Text(
+                                        "${schedule.departureTime.toDisplayMeridiemTime()} → ${schedule.arrivalTime.toDisplayMeridiemTime()}",
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                     Text("Chofer: $driverName", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Icon(Icons.Default.Schedule, contentDescription = null, tint = Color(0xFF718096))
@@ -1465,8 +1551,8 @@ private fun RouteSchedulesEditor(
                         }
                     }
                 }
-                AdminTextField("Hora salida", scheduleForm.departureTime, { onScheduleFormChange(scheduleForm.copy(departureTime = it)) }, supportingText = "Formato 07:00")
-                AdminTextField("Hora llegada", scheduleForm.arrivalTime, { onScheduleFormChange(scheduleForm.copy(arrivalTime = it)) }, supportingText = "Formato 08:25")
+                AdminTextField("Hora salida", scheduleForm.departureTime, { onScheduleFormChange(scheduleForm.copy(departureTime = it)) }, supportingText = "Formato 07:00 o 7:00 AM")
+                AdminTextField("Hora llegada", scheduleForm.arrivalTime, { onScheduleFormChange(scheduleForm.copy(arrivalTime = it)) }, supportingText = "Formato 08:25 o 8:25 AM")
                 if (drivers.isEmpty()) {
                     Text(
                         text = "No hay conductores registrados para esta empresa.",
@@ -1941,8 +2027,8 @@ private fun ScheduleFormState.toSchedule(): RouteSchedule {
     return RouteSchedule(
         id = id,
         driverId = driverId.trim(),
-        departureTime = departureTime.trim(),
-        arrivalTime = arrivalTime.trim(),
+        departureTime = normalizeTimeTo24Hour(departureTime.trim()) ?: departureTime.trim(),
+        arrivalTime = normalizeTimeTo24Hour(arrivalTime.trim()) ?: arrivalTime.trim(),
     )
 }
 
@@ -1964,6 +2050,20 @@ private fun StopFormState.toStop(): RouteStop {
         longitude = longitude.toDoubleOrNull() ?: 0.0,
         order = order.toIntOrNull() ?: 0,
     )
+}
+
+private fun String.toDisplayMeridiemTime(): String {
+    val totalMinutes = parseFlexibleTimeToMinutes(this) ?: return this
+    val hour24 = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    val meridiem = if (hour24 >= 12) "PM" else "AM"
+    val hour12 =
+        when {
+            hour24 == 0 -> 12
+            hour24 > 12 -> hour24 - 12
+            else -> hour24
+        }
+    return "${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} $meridiem"
 }
 
 private fun Driver.toFormState(): DriverFormState {

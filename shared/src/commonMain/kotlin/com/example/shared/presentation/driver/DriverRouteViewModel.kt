@@ -18,7 +18,9 @@ import com.example.shared.domain.entities.TripExecutionStatus
 import com.example.shared.domain.entities.UserIncidentNotification
 import com.example.shared.presentation.notification.toNotificationDisplayLabel
 import com.example.shared.presentation.notification.toNotificationMessage
+import com.example.shared.util.formatTimeToMeridiem
 import com.example.shared.util.currentCostaRicaTimeMinutes
+import com.example.shared.util.parseFlexibleTimeToMinutes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -190,7 +192,7 @@ class DriverRouteViewModel(
     _uiState.value = _uiState.value.copy(isReportingIncident = true)
 
     viewModelScope.launch {
-      runCatching {
+          runCatching {
             val incident =
                 tripExecutionRepository.addIncident(
                 tripExecutionId = tripExecutionId,
@@ -205,19 +207,23 @@ class DriverRouteViewModel(
             val existingTrip =
                 tripExecutionRepository.getTripExecution(tripExecutionId)
                     ?: error("No se encontró el viaje activo.")
+            val route =
+                routeRepository.getRoute(existingTrip.routeId)
+                    ?: error("No se encontró la ruta asociada al viaje.")
             tripExecutionRepository.updateTripExecution(
                 existingTrip.copy(
                     status = TripExecutionStatus.DELAYED,
                 )
             )
-            incident to existingTrip.routeId
+            Triple(incident, existingTrip.routeId, route.name)
           }
-            .onSuccess { (incident, routeId) ->
+            .onSuccess { (incident, routeId, routeName) ->
             refreshDriverData()
             _uiState.value = _uiState.value.copy(isReportingIncident = false)
             dispatchIncidentNotifications(
                 tripExecutionId = tripExecutionId,
-              routeId = routeId,
+                routeId = routeId,
+                routeName = routeName,
                 incident = incident,
             )
             onSuccess(incident)
@@ -482,27 +488,36 @@ class DriverRouteViewModel(
   private fun dispatchIncidentNotifications(
       tripExecutionId: String,
       routeId: String,
+      routeName: String,
       incident: TripIncident,
   ) {
     val now = Clock.System.now().toEpochMilliseconds()
 
     viewModelScope.launch {
       val normalizedRouteId = routeId.trim()
+      val tripExecution = tripExecutionRepository.getTripExecution(tripExecutionId)
+      val route = routeRepository.getRoute(normalizedRouteId)
+      val scheduledTimeLabel =
+          tripExecution
+              ?.scheduleId
+              ?.let { scheduleId -> route?.schedules?.firstOrNull { it.id == scheduleId }?.departureTime }
+              ?.let(::formatTimeToMeridiem)
       val targets =
           (userRepository.getPassengerIdsByFavoriteRoute(normalizedRouteId))
               .filter { it.isNotBlank() }
               .distinct()
 
       targets.forEach { userId ->
-        notificationRepository.addNotification(
+        val normalizedRouteName = routeName.trim()
+          notificationRepository.addNotification(
             UserIncidentNotification(
                 userId = userId,
                 tripExecutionId = tripExecutionId,
                 routeId = normalizedRouteId,
                 incidentType = incident.type.toNotificationDisplayLabel(),
                 detail = incident.detail,
-                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteId),
-                routeName = normalizedRouteId,
+                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteName, scheduledTimeLabel),
+                routeName = normalizedRouteName,
                 dispatchedAt = now,
                 createdAt = now,
             )
