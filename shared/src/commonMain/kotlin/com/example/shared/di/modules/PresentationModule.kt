@@ -1,7 +1,7 @@
 package com.example.shared.di.modules
 
-import com.example.shared.presentation.auth.AuthViewModel
 import com.example.shared.presentation.admin.AdminCompanyViewModel
+import com.example.shared.presentation.auth.AuthViewModel
 import com.example.shared.presentation.company.CompanyListViewModel
 import com.example.shared.presentation.company.CompanyViewModel
 import com.example.shared.presentation.driver.DriverRouteViewModel
@@ -19,9 +19,9 @@ val presentationModule = module {
     viewModel { CompanyListViewModel(get()) }
     viewModel { LocationViewModel(get()) }
     viewModel { CompanyViewModel(get()) }
-    viewModel { RouteViewModel(get(), get(), get(), get()) }
+    viewModel { RouteViewModel(get(), get(), get(), get(), get()) }
     viewModel { DriverRouteViewModel(get(), get(), get(), get(), get()) }
-    viewModel { RouteAdministrativeDetailViewModel(get(), get()) }
-    viewModel { NotificationViewModel(get()) }
+    viewModel { RouteAdministrativeDetailViewModel(get(), get(), get()) }
+    viewModel { NotificationViewModel(get(), get()) }
     viewModel { RouteDetailViewModel(get(), get()) }
 }

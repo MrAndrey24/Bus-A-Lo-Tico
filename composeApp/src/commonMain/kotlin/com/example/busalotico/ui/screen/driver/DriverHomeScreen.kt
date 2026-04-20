@@ -21,10 +21,12 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.button.PillActionButton
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.shared.domain.entities.Coordinate
@@ -63,6 +66,7 @@ import com.example.shared.domain.entities.TripIncidentType
 import com.example.shared.presentation.driver.DriverTripHistoryRecord
 import com.example.shared.presentation.driver.DriverRouteViewModel
 import com.example.shared.util.currentCostaRicaTimeMinutes
+import com.example.shared.util.parseFlexibleTimeToMinutes
 import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -74,8 +78,8 @@ import kotlin.time.Clock
 private val DriverPageBackground = Color(0xFFF7F8FA)
 private val DriverCardBackground = Color.White
 private val DriverSoftPanelBackground = Color(0xFFFAFBFD)
-private val DriverSoftBorder = Color(0xFFE9EDF3)
-private val DriverBorderWidth = 0.75.dp
+private val DriverSoftBorder = Color.Transparent
+private val DriverBorderWidth = 0.dp
 private val DriverTabContainerBackground = Color(0xFFF1F3F6)
 
 private enum class DriverPanelTab {
@@ -126,9 +130,9 @@ fun DriverHomeScreen(
           modifier =
               Modifier
                   .fillMaxWidth()
-                  .padding(horizontal = 16.dp, vertical = 16.dp)
+                  .padding(horizontal = 16.dp, vertical = 12.dp)
                   .verticalScroll(rememberScrollState()),
-          verticalArrangement = Arrangement.spacedBy(14.dp),
+          verticalArrangement = Arrangement.spacedBy(12.dp),
       ) {
         when {
           uiState.isLoading -> DriverLoadingCard()
@@ -259,6 +263,7 @@ private fun DriverDashboardContent(
   val nextShiftStatusContainer = Color(0xFFFFF4CC)
   var incidentDialogContext by remember { mutableStateOf<IncidentDialogContext?>(null) }
   var showTransferDialog by remember { mutableStateOf(false) }
+  var showAllAssignedSchedules by remember(route.id) { mutableStateOf(false) }
   var incidentError by remember { mutableStateOf<String?>(null) }
 
   LaunchedEffect(activeTripExecutionId, currentTripStartedAt) {
@@ -365,15 +370,13 @@ private fun DriverDashboardContent(
         DriverNoMoreRoutesCard()
       }
 
-      DriverInfoStrip(
-          title = "Próxima salida",
-          value =
-              nextSchedule?.let { "${it.departureTime}  →  ${route.name.toDriverDisplayName()}" }
-                  ?: "No hay más rutas asignadas hoy",
-          iconTint = nextShiftStatusColor,
-          statusLabel = nextShiftStatusLabel,
-          statusColor = nextShiftStatusColor,
-          statusContainer = nextShiftStatusContainer,
+      DriverAssignedSchedulesCard(
+          schedules = schedules,
+          defaultSchedule = if (isTripRunning) nextSchedule else currentSchedule,
+          activeScheduleId = activeTripScheduleId,
+          completedScheduleIds = completedTodayScheduleIds,
+          showAll = showAllAssignedSchedules,
+          onToggleExpanded = { showAllAssignedSchedules = !showAllAssignedSchedules },
       )
 
       incidentError?.let { message ->
@@ -403,8 +406,6 @@ private fun DriverDashboardContent(
           onBreakdownClick = {
             if (activeTripExecutionId == null) {
               incidentError = "Inicia una ruta antes de reportar incidencias."
-            } else if (isTripDelayed) {
-              incidentError = "La ruta ya está detenida por una avería."
             } else {
               incidentError = null
               incidentDialogContext =
@@ -516,7 +517,7 @@ private fun DriverPanelTabs(
       border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(6.dp),
+        modifier = Modifier.fillMaxWidth().padding(5.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       DriverPanelTabButton(
@@ -548,7 +549,7 @@ private fun DriverPanelTabButton(
       color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
   ) {
     Box(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
       Text(
@@ -622,8 +623,8 @@ private fun DriverCurrentRouteCard(
       border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
       Row(
           modifier = Modifier.fillMaxWidth(),
@@ -652,7 +653,7 @@ private fun DriverCurrentRouteCard(
 
       Text(
           text = route.name.toDriverDisplayName(),
-          style = MaterialTheme.typography.titleLarge,
+          style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.Bold,
       )
@@ -663,13 +664,13 @@ private fun DriverCurrentRouteCard(
           verticalAlignment = Alignment.Top,
       ) {
         Surface(
-            modifier = Modifier.weight(1f).height(108.dp),
+            modifier = Modifier.weight(1f).height(96.dp),
             shape = RoundedCornerShape(16.dp),
             color = DriverSoftPanelBackground,
             border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
         ) {
           Row(
-              modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+              modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
               horizontalArrangement = Arrangement.spacedBy(8.dp),
               verticalAlignment = Alignment.Top,
           ) {
@@ -681,7 +682,7 @@ private fun DriverCurrentRouteCard(
             )
             DriverQuickInfo(
                 label = "Hora de salida",
-                value = schedule?.departureTime ?: "No disponible",
+                value = schedule?.departureTime?.toDisplayMeridiemTime() ?: "No disponible",
             )
           }
         }
@@ -693,7 +694,7 @@ private fun DriverCurrentRouteCard(
             tripCompleted = tripCompleted,
             startedAt = startedAt,
             endedAt = endedAt,
-            modifier = Modifier.weight(1f).height(108.dp),
+            modifier = Modifier.weight(1f).height(96.dp),
         )
       }
       PillActionButton(
@@ -718,7 +719,7 @@ private fun DriverCurrentRouteCard(
             modifier = Modifier.fillMaxWidth(),
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.primary,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
+            border = BorderStroke(0.dp, Color.Transparent),
             enabled = !isTransferringTrip && !isResumingTrip && !isEndingTrip,
         )
       }
@@ -798,7 +799,7 @@ private fun DriverQuickInfo(
     )
     Text(
         text = value,
-        style = MaterialTheme.typography.titleLarge,
+        style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurface,
         fontWeight = FontWeight.Bold,
     )
@@ -875,8 +876,8 @@ private fun DriverEmbeddedTripStatus(
       border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
       Text(
           text = "Recorrido",
@@ -886,7 +887,7 @@ private fun DriverEmbeddedTripStatus(
       )
       Text(
           text = elapsedTime,
-          style = MaterialTheme.typography.titleLarge,
+          style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onSurface,
           fontWeight = FontWeight.Bold,
       )
@@ -974,6 +975,145 @@ private fun DriverInfoStrip(
 }
 
 @Composable
+private fun DriverAssignedSchedulesCard(
+    schedules: List<RouteSchedule>,
+    defaultSchedule: RouteSchedule?,
+    activeScheduleId: String?,
+    completedScheduleIds: Set<String>,
+    showAll: Boolean,
+    onToggleExpanded: () -> Unit,
+) {
+  val visibleSchedules =
+      when {
+        schedules.isEmpty() -> emptyList()
+        showAll -> schedules
+        defaultSchedule != null -> listOf(defaultSchedule)
+        else -> listOf(schedules.first())
+      }
+
+  Surface(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(16.dp),
+      color = DriverCardBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+  ) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+            text = "HORARIOS ASIGNADOS",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold,
+        )
+        if (schedules.size > 1) {
+          TextButton(onClick = onToggleExpanded) {
+            Text(if (showAll) "Ocultar" else "Ver todos")
+          }
+        }
+      }
+
+      if (visibleSchedules.isEmpty()) {
+        Text(
+            text = "No hay más rutas asignadas hoy",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      } else {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          visibleSchedules.forEach { schedule ->
+            DriverAssignedScheduleRow(
+                schedule = schedule,
+                marker =
+                    when {
+                      activeScheduleId == schedule.id -> AssignedScheduleMarker.CURRENT
+                      completedScheduleIds.contains(schedule.id) -> AssignedScheduleMarker.COMPLETED
+                      defaultSchedule?.id == schedule.id -> AssignedScheduleMarker.NEXT
+                      else -> null
+                    },
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun DriverAssignedScheduleRow(
+    schedule: RouteSchedule,
+    marker: AssignedScheduleMarker?,
+) {
+  Surface(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(14.dp),
+      color = DriverSoftPanelBackground,
+      border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Row(
+          modifier = Modifier.weight(1f),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Icon(
+            imageVector = Icons.Default.AccessTime,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+            modifier = Modifier.size(15.dp),
+        )
+        Text(
+            text = "${schedule.departureTime.toDisplayMeridiemTime()} → ${schedule.arrivalTime.toDisplayMeridiemTime()}",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (marker == AssignedScheduleMarker.NEXT || marker == AssignedScheduleMarker.CURRENT) FontWeight.Bold else FontWeight.Medium,
+        )
+      }
+      marker?.let {
+        StatusChip(
+            label = it.label,
+            containerColor = it.containerColor,
+            contentColor = it.contentColor,
+            compact = true,
+        )
+      }
+    }
+  }
+}
+
+private enum class AssignedScheduleMarker(
+    val label: String,
+    val containerColor: Color,
+    val contentColor: Color,
+) {
+  COMPLETED(
+      label = "Completado",
+      containerColor = Color(0xFFE9EEF5),
+      contentColor = Color(0xFF6B7280),
+  ),
+  CURRENT(
+      label = "Actual",
+      containerColor = Color(0xFFE7F7EA),
+      contentColor = Color(0xFF2F8D46),
+  ),
+  NEXT(
+      label = "Próximo",
+      containerColor = Color(0xFFFFF4CC),
+      contentColor = Color(0xFF8A6B2B),
+  ),
+}
+
+@Composable
 private fun StatusChip(
     label: String,
     containerColor: Color,
@@ -1013,8 +1153,8 @@ private fun DriverIncidentCard(
       border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        modifier = Modifier.fillMaxWidth().padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
       Text(
           text = "REPORTE DE INCIDENCIAS",
@@ -1024,7 +1164,7 @@ private fun DriverIncidentCard(
       )
       Row(
           modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          horizontalArrangement = Arrangement.spacedBy(10.dp),
       ) {
         IncidentAction(
             label = "Accidente",
@@ -1079,53 +1219,86 @@ private fun IncidentReportDialog(
       containerColor = DriverCardBackground,
       tonalElevation = 0.dp,
       title = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Surface(
-              shape = RoundedCornerShape(999.dp),
-              color = DriverSoftPanelBackground,
-              border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.Top,
           ) {
-            Text(
-                text = "INCIDENCIA",
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold,
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+              Text(
+                  text = when (type) {
+                    TripIncidentType.ACCIDENT -> "Reportar accidente"
+                    TripIncidentType.BREAKDOWN -> "Reportar avería"
+                    TripIncidentType.SECURITY -> "Reportar seguridad"
+                  },
+                  style = MaterialTheme.typography.titleMedium,
+                  color = MaterialTheme.colorScheme.onSurface,
+                  fontWeight = FontWeight.Bold,
+              )
+              Text(
+                  text = when (type) {
+                    TripIncidentType.ACCIDENT -> "Completa los detalles de la incidencia vial"
+                    TripIncidentType.BREAKDOWN -> "Completa los detalles de la incidencia técnica"
+                    TripIncidentType.SECURITY -> "Completa los detalles de la incidencia de seguridad"
+                  },
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  fontWeight = FontWeight.Medium,
+              )
+            }
+
+            Surface(
+                modifier = Modifier.size(40.dp).clickable(enabled = !isSubmitting, onClick = onDismiss),
+                shape = CircleShape,
+                color = DriverSoftPanelBackground,
+            ) {
+              Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cerrar",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+              }
+            }
           }
-          Text(
-              text = when (type) {
-                TripIncidentType.ACCIDENT -> "Reportar accidente"
-                TripIncidentType.BREAKDOWN -> "Reportar avería"
-                TripIncidentType.SECURITY -> "Reportar seguridad"
-              },
-              style = MaterialTheme.typography.titleMedium,
-              color = MaterialTheme.colorScheme.onSurface,
-              fontWeight = FontWeight.Bold,
-          )
         }
       },
       text = {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
           Surface(
               modifier = Modifier.fillMaxWidth(),
-              shape = RoundedCornerShape(16.dp),
+              shape = RoundedCornerShape(18.dp),
               color = DriverSoftPanelBackground,
-              border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
           ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-              DriverIncidentContextRow(label = "Ruta", value = routeName)
-              DriverIncidentContextRow(label = "Hora", value = reportedAtLabel)
-              DriverIncidentContextRow(label = "Ubicación", value = locationLabel)
+              DriverIncidentContextRow(
+                  icon = Icons.Default.Flag,
+                  label = "Ruta actual",
+                  value = routeName,
+              )
+              DriverIncidentContextRow(
+                  icon = Icons.Default.AccessTime,
+                  label = "Fecha y hora",
+                  value = reportedAtLabel,
+              )
+              DriverIncidentContextRow(
+                  icon = Icons.Default.LocationOn,
+                  label = "Ubicación",
+                  value = locationLabel,
+              )
             }
           }
           Text(
-              text = "Puedes ajustar el mensaje antes de enviarlo.",
-              style = MaterialTheme.typography.bodySmall,
+              text = "MENSAJE DEL REPORTE",
+              style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
+              fontWeight = FontWeight.ExtraBold,
+              letterSpacing = 0.8.sp,
           )
           OutlinedTextField(
               value = detail,
@@ -1133,19 +1306,35 @@ private fun IncidentReportDialog(
               modifier = Modifier.fillMaxWidth(),
               minLines = 5,
               enabled = !isSubmitting,
-              label = { Text("Mensaje de alerta") },
-              placeholder = { Text("Agrega detalles relevantes para el equipo de apoyo") },
+              placeholder = { Text("Describe detalladamente el problema técnico observado en la unidad...") },
               shape = RoundedCornerShape(16.dp),
+              textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
               colors =
                   OutlinedTextFieldDefaults.colors(
-                      focusedContainerColor = DriverSoftPanelBackground,
-                      unfocusedContainerColor = DriverSoftPanelBackground,
-                      disabledContainerColor = DriverSoftPanelBackground,
-                      focusedBorderColor = DriverSoftBorder,
-                      unfocusedBorderColor = DriverSoftBorder,
-                      disabledBorderColor = DriverSoftBorder,
+                      focusedContainerColor = Color.White,
+                      unfocusedContainerColor = Color.White,
+                      disabledContainerColor = Color.White,
+                      focusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+                      unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.22f),
+                      disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
                   ),
           )
+          Row(
+              horizontalArrangement = Arrangement.spacedBy(6.dp),
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(14.dp),
+            )
+            Text(
+                text = "Puedes ajustar el mensaje antes de enviarlo.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
           errorMessage?.let {
             Text(
                 text = it,
@@ -1153,31 +1342,30 @@ private fun IncidentReportDialog(
                 color = MaterialTheme.colorScheme.error,
             )
           }
-          TextButton(
-              onClick = { detail = defaultMessage },
-              enabled = !isSubmitting,
-              modifier = Modifier.align(Alignment.End),
+          PillActionButton(
+              text = if (isSubmitting) "Enviando..." else "Enviar reporte",
+              onClick = { onSubmit(detail) },
+              enabled = !isSubmitting && detail.isNotBlank(),
+              modifier = Modifier.fillMaxWidth(),
+              containerColor = MaterialTheme.colorScheme.primary,
+              leadingIcon = Icons.Default.Send,
+          )
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.Center,
+              verticalAlignment = Alignment.CenterVertically,
           ) {
-            Text("Restaurar mensaje")
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isSubmitting,
+            ) {
+              Text("Cancelar")
+            }
           }
         }
       },
-      confirmButton = {
-        TextButton(
-            onClick = { onSubmit(detail) },
-            enabled = !isSubmitting,
-        ) {
-          Text(if (isSubmitting) "Enviando..." else "Enviar")
-        }
-      },
-      dismissButton = {
-        TextButton(
-            onClick = onDismiss,
-            enabled = !isSubmitting,
-        ) {
-          Text("Cancelar")
-        }
-      },
+      confirmButton = {},
+      dismissButton = {},
   )
 }
 
@@ -1555,21 +1743,46 @@ private fun DriverHistoryMetricColumn(
 
 @Composable
 private fun DriverIncidentContextRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     value: String,
+    modifier: Modifier = Modifier,
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
-    )
-    Text(
-        text = value,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurface,
-    )
+  Row(
+      modifier = modifier,
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      verticalAlignment = Alignment.Top,
+  ) {
+    Surface(
+        modifier = Modifier.size(32.dp),
+        shape = RoundedCornerShape(10.dp),
+        color = Color.White,
+        border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
+    ) {
+      Box(contentAlignment = Alignment.Center) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(18.dp),
+        )
+      }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+      Text(
+          text = label.uppercase(),
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          fontWeight = FontWeight.Bold,
+          letterSpacing = 0.5.sp,
+      )
+      Text(
+          text = value,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurface,
+          fontWeight = FontWeight.SemiBold,
+      )
+    }
   }
 }
 
@@ -1582,18 +1795,18 @@ private fun IncidentAction(
     onClick: () -> Unit,
 ) {
   Surface(
-      modifier = modifier.height(118.dp).clickable(onClick = onClick),
+      modifier = modifier.height(98.dp).clickable(onClick = onClick),
       shape = RoundedCornerShape(16.dp),
       color = DriverCardBackground,
       border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
   ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(12.dp),
+        modifier = Modifier.fillMaxSize().padding(10.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
       Surface(
-          modifier = Modifier.size(52.dp),
+          modifier = Modifier.size(42.dp),
           shape = CircleShape,
           color = DriverSoftPanelBackground,
           border = BorderStroke(DriverBorderWidth, DriverSoftBorder),
@@ -1608,11 +1821,11 @@ private fun IncidentAction(
       }
       Text(
           text = label.uppercase(),
-          style = MaterialTheme.typography.labelMedium,
+          style = MaterialTheme.typography.labelSmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           fontWeight = FontWeight.SemiBold,
           textAlign = TextAlign.Center,
-          modifier = Modifier.padding(top = 10.dp),
+          modifier = Modifier.padding(top = 8.dp),
       )
     }
   }
@@ -1705,11 +1918,7 @@ private fun DriverLoadingCard() {
 }
 
 private fun parseTimeToMinutes(time: String): Int {
-  val parts = time.split(":")
-  if (parts.size < 2) return Int.MAX_VALUE
-  val hour = parts[0].toIntOrNull() ?: return Int.MAX_VALUE
-  val minute = parts[1].toIntOrNull() ?: return Int.MAX_VALUE
-  return hour * 60 + minute
+  return parseFlexibleTimeToMinutes(time) ?: Int.MAX_VALUE
 }
 
 private fun formatShiftDuration(schedule: RouteSchedule): String {
@@ -1735,6 +1944,20 @@ private fun formatMinutes(totalMinutes: Int): String {
   val hours = clamped / 60
   val minutes = clamped % 60
   return "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}"
+}
+
+private fun String.toDisplayMeridiemTime(): String {
+  val totalMinutes = parseFlexibleTimeToMinutes(this) ?: return this
+  val hour24 = totalMinutes / 60
+  val minutes = totalMinutes % 60
+  val meridiem = if (hour24 >= 12) "PM" else "AM"
+  val hour12 =
+      when {
+        hour24 == 0 -> 12
+        hour24 > 12 -> hour24 - 12
+        else -> hour24
+      }
+  return "${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} $meridiem"
 }
 
 private fun initialElapsedSeconds(startedAtEpoch: Long?): Int {
