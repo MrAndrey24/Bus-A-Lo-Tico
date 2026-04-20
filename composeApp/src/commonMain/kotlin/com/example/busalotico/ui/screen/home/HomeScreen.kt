@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,7 +66,7 @@ fun HomeScreen(
 
     val favoriteRoutes = remember(uiState.routes, uiState.favoriteRouteIds) {
         uiState.routes.filter { uiState.favoriteRouteIds.contains(it.id) }
-            .map { it.toRouteListItemUi(uiState.favoriteRouteIds) }
+            .map { it.toRouteListItemUi(uiState.favoriteRouteIds, uiState.routeRuntimeById) }
     }
 
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -78,6 +79,7 @@ fun HomeScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 220.dp,
+        sheetContainerColor = Color(0xFFF1F3F6),
         sheetContent = {
             // Bottom Section: Favorites / Subscribed Routes
             Column(

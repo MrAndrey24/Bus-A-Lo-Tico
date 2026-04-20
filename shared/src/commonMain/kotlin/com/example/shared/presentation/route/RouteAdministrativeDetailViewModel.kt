@@ -4,16 +4,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.shared.data.repository.driver.IDriverRepository
 import com.example.shared.data.repository.route.IRouteRepository
+import com.example.shared.data.repository.trip.ITripExecutionRepository
+import com.example.shared.domain.entities.Route
+import com.example.shared.domain.entities.RouteSchedule
+import com.example.shared.domain.entities.TripExecution
+import com.example.shared.domain.entities.TripExecutionStatus
+import com.example.shared.util.currentCostaRicaTimeMinutes
+import com.example.shared.util.parseFlexibleTimeToMinutes
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 class RouteAdministrativeDetailViewModel(
     private val routeRepository: IRouteRepository,
     private val driverRepository: IDriverRepository,
+    private val tripExecutionRepository: ITripExecutionRepository,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(RouteAdministrativeDetailUiState())
@@ -52,9 +63,22 @@ class RouteAdministrativeDetailViewModel(
                           .mapNotNull { (driverId, name) -> name?.let { driverId to it } }
                           .toMap()
 
+                  val tripExecutions =
+                      driverIds
+                          .map { driverId ->
+                            async { tripExecutionRepository.getTripExecutionsByDriver(driverId) }
+                          }
+                          .awaitAll()
+                          .flatten()
+
+                  val runtimeSnapshot = buildRuntimeSnapshot(route, tripExecutions)
+
                   RouteAdministrativeDetailUiState(
                       route = route,
                       driverNamesById = driverNamesById,
+                      routeRuntimeStatus = runtimeSnapshot.routeStatus,
+                      scheduleStatusesById = runtimeSnapshot.scheduleStatusesById,
+                      highlightedScheduleId = runtimeSnapshot.highlightedScheduleId,
                   )
                 } else {
                   RouteAdministrativeDetailUiState(
@@ -70,4 +94,102 @@ class RouteAdministrativeDetailViewModel(
           }
     }
   }
+
+  private data class RuntimeSnapshot(
+      val routeStatus: AdministrativeRouteRuntimeStatus,
+      val scheduleStatusesById: Map<String, AdministrativeScheduleRuntimeStatus>,
+      val highlightedScheduleId: String?,
+  )
+
+  private fun buildRuntimeSnapshot(route: Route, tripExecutions: List<TripExecution>): RuntimeSnapshot {
+    val todayKey = todayDateKey()
+    val routeScheduleIds = route.schedules.map { it.id }.toSet()
+    val routeExecutionsToday =
+        tripExecutions
+            .filter { it.routeId == route.id && it.scheduleId in routeScheduleIds }
+            .filter { dateKey(it.startedAt) == todayKey }
+
+    val latestBySchedule =
+        routeExecutionsToday
+            .groupBy { it.scheduleId }
+            .mapValues { (_, executions) -> executions.maxByOrNull { it.startedAt } }
+            .mapNotNull { (scheduleId, execution) -> execution?.let { scheduleId to it } }
+            .toMap()
+
+    val scheduleStatusesById =
+        latestBySchedule.mapValues { (_, execution) ->
+          when (execution.status) {
+            TripExecutionStatus.IN_PROGRESS -> AdministrativeScheduleRuntimeStatus.ACTIVE
+            TripExecutionStatus.DELAYED -> AdministrativeScheduleRuntimeStatus.DELAYED
+            TripExecutionStatus.COMPLETED,
+            TripExecutionStatus.TRANSFERRED -> AdministrativeScheduleRuntimeStatus.COMPLETED
+            TripExecutionStatus.PENDING,
+            TripExecutionStatus.CANCELLED -> AdministrativeScheduleRuntimeStatus.SCHEDULED
+          }
+        }
+
+    val currentExecution =
+        routeExecutionsToday
+            .filter {
+              it.status == TripExecutionStatus.IN_PROGRESS || it.status == TripExecutionStatus.DELAYED
+            }
+            .maxByOrNull { it.startedAt }
+
+    val routeStatus =
+        when (currentExecution?.status) {
+          TripExecutionStatus.IN_PROGRESS ->
+              AdministrativeRouteRuntimeStatus(
+                  state = AdministrativeRouteStatus.ACTIVE,
+                  detail = "Viaje iniciado por el conductor",
+              )
+          TripExecutionStatus.DELAYED ->
+              AdministrativeRouteRuntimeStatus(
+                  state = AdministrativeRouteStatus.DELAYED,
+                  detail = "Ruta detenida por incidencia reportada",
+              )
+          else -> {
+            val hasCompletedTrip =
+                routeExecutionsToday.any {
+                  it.status == TripExecutionStatus.COMPLETED || it.status == TripExecutionStatus.TRANSFERRED
+                }
+            AdministrativeRouteRuntimeStatus(
+                state = AdministrativeRouteStatus.IDLE,
+                detail = if (hasCompletedTrip) "Último viaje completado" else "Esperando inicio del conductor",
+            )
+          }
+        }
+
+    val highlightedScheduleId =
+        currentExecution?.scheduleId
+            ?: chooseNextSchedule(route.schedules, scheduleStatusesById)?.id
+
+    return RuntimeSnapshot(
+        routeStatus = routeStatus,
+        scheduleStatusesById = scheduleStatusesById,
+        highlightedScheduleId = highlightedScheduleId,
+    )
+  }
+
+  private fun chooseNextSchedule(
+      schedules: List<RouteSchedule>,
+      scheduleStatusesById: Map<String, AdministrativeScheduleRuntimeStatus>,
+  ): RouteSchedule? {
+    val currentMinutes = currentCostaRicaTimeMinutes()
+    val remainingSchedules =
+        schedules
+            .filter { scheduleStatusesById[it.id] != AdministrativeScheduleRuntimeStatus.COMPLETED }
+            .sortedBy { parseFlexibleTimeToMinutes(it.departureTime) ?: Int.MAX_VALUE }
+
+    return remainingSchedules.firstOrNull { (parseFlexibleTimeToMinutes(it.departureTime) ?: Int.MAX_VALUE) >= currentMinutes }
+        ?: remainingSchedules.firstOrNull()
+  }
+
+  private fun dateKey(epochMilliseconds: Long): String {
+    val dateTime =
+        kotlin.time.Instant.fromEpochMilliseconds(epochMilliseconds)
+            .toLocalDateTime(TimeZone.of("America/Costa_Rica"))
+    return "${dateTime.year}-${dateTime.monthNumber}-${dateTime.dayOfMonth}"
+  }
+
+  private fun todayDateKey(): String = dateKey(Clock.System.now().toEpochMilliseconds())
 }
