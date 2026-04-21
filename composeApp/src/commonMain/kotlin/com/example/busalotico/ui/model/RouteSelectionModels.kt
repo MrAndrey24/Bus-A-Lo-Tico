@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.model
 
 import androidx.compose.runtime.Immutable
@@ -5,6 +9,7 @@ import com.example.shared.domain.entities.geo.Canton as SharedCanton
 import com.example.shared.domain.entities.geo.Province as SharedProvince
 
 typealias Province = SharedProvince
+
 typealias Canton = SharedCanton
 
 @Immutable

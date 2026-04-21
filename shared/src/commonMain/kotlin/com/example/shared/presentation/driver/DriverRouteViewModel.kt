@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.driver
 
 import androidx.lifecycle.ViewModel
@@ -8,24 +12,22 @@ import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.data.repository.trip.ITripExecutionRepository
 import com.example.shared.data.repository.user.IUserRepository
 import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.entities.Driver
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.RouteSchedule
 import com.example.shared.domain.entities.TripExecution
+import com.example.shared.domain.entities.TripExecutionStatus
 import com.example.shared.domain.entities.TripIncident
 import com.example.shared.domain.entities.TripIncidentType
-import com.example.shared.domain.entities.TripExecutionStatus
 import com.example.shared.domain.entities.UserIncidentNotification
 import com.example.shared.presentation.notification.toNotificationDisplayLabel
 import com.example.shared.presentation.notification.toNotificationMessage
-import com.example.shared.util.formatTimeToMeridiem
 import com.example.shared.util.currentCostaRicaTimeMinutes
-import com.example.shared.util.parseFlexibleTimeToMinutes
+import com.example.shared.util.formatTimeToMeridiem
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -89,7 +91,11 @@ class DriverRouteViewModel(
           }
           .onSuccess { tripExecution ->
             refreshDriverData()
-            _uiState.value = _uiState.value.copy(isStartingTrip = false, activeTripExecutionId = tripExecution.id)
+            _uiState.value =
+                _uiState.value.copy(
+                    isStartingTrip = false,
+                    activeTripExecutionId = tripExecution.id,
+                )
             onSuccess(tripExecution)
           }
           .onFailure {
@@ -113,10 +119,12 @@ class DriverRouteViewModel(
 
     viewModelScope.launch {
       runCatching {
-            val existingTrip = tripExecutionRepository.getTripExecution(tripExecutionId)
-                ?: error("No se encontró el viaje activo.")
+            val existingTrip =
+                tripExecutionRepository.getTripExecution(tripExecutionId)
+                    ?: error("No se encontró el viaje activo.")
             val endedAt = Clock.System.now().toEpochMilliseconds()
-            val durationSeconds = ((endedAt - existingTrip.startedAt).coerceAtLeast(0L) / 1000L).toInt()
+            val durationSeconds =
+                ((endedAt - existingTrip.startedAt).coerceAtLeast(0L) / 1000L).toInt()
             tripExecutionRepository.updateTripExecution(
                 existingTrip.copy(
                     endedAt = endedAt,
@@ -192,18 +200,18 @@ class DriverRouteViewModel(
     _uiState.value = _uiState.value.copy(isReportingIncident = true)
 
     viewModelScope.launch {
-          runCatching {
+      runCatching {
             val incident =
                 tripExecutionRepository.addIncident(
-                tripExecutionId = tripExecutionId,
-                incident =
-                    TripIncident(
-                        type = type,
-                        detail = detail.trim(),
-                        createdAt = Clock.System.now().toEpochMilliseconds(),
-                        location = location,
-                    )
-            )
+                    tripExecutionId = tripExecutionId,
+                    incident =
+                        TripIncident(
+                            type = type,
+                            detail = detail.trim(),
+                            createdAt = Clock.System.now().toEpochMilliseconds(),
+                            location = location,
+                        ),
+                )
             val existingTrip =
                 tripExecutionRepository.getTripExecution(tripExecutionId)
                     ?: error("No se encontró el viaje activo.")
@@ -217,7 +225,7 @@ class DriverRouteViewModel(
             )
             Triple(incident, existingTrip.routeId, route.name)
           }
-            .onSuccess { (incident, routeId, routeName) ->
+          .onSuccess { (incident, routeId, routeName) ->
             refreshDriverData()
             _uiState.value = _uiState.value.copy(isReportingIncident = false)
             dispatchIncidentNotifications(
@@ -281,7 +289,8 @@ class DriverRouteViewModel(
           }
           .onSuccess {
             refreshDriverData()
-            _uiState.value = _uiState.value.copy(isTransferringTrip = false, activeTripExecutionId = null)
+            _uiState.value =
+                _uiState.value.copy(isTransferringTrip = false, activeTripExecutionId = null)
             onSuccess()
           }
           .onFailure {
@@ -306,15 +315,19 @@ class DriverRouteViewModel(
     }
 
     val tripExecutions = tripExecutionRepository.getTripExecutionsByDriver(driverId)
-    val currentTripExecution = tripExecutions
-        .filter {
-          it.status == TripExecutionStatus.IN_PROGRESS || it.status == TripExecutionStatus.DELAYED
-        }
-        .maxByOrNull { it.startedAt }
+    val currentTripExecution =
+        tripExecutions
+            .filter {
+              it.status == TripExecutionStatus.IN_PROGRESS ||
+                  it.status == TripExecutionStatus.DELAYED
+            }
+            .maxByOrNull { it.startedAt }
     val routeCache = assignedRoutes.associateBy { it.id }.toMutableMap()
     val selectedRoute =
         currentTripExecution
-            ?.let { execution -> routeCache[execution.routeId] ?: routeRepository.getRoute(execution.routeId) }
+            ?.let { execution ->
+              routeCache[execution.routeId] ?: routeRepository.getRoute(execution.routeId)
+            }
             ?.also { route -> routeCache[route.id] = route }
             ?: chooseNextAssignedRoute(
                 assignedRoutes = routeCache.values.toList(),
@@ -330,15 +343,16 @@ class DriverRouteViewModel(
     val completedTodayScheduleIds =
         tripExecutions
             .filter {
-              (it.status == TripExecutionStatus.COMPLETED || it.status == TripExecutionStatus.TRANSFERRED) &&
-                  it.routeId == selectedRoute.id
+              (it.status == TripExecutionStatus.COMPLETED ||
+                  it.status == TripExecutionStatus.TRANSFERRED) && it.routeId == selectedRoute.id
             }
             .filter { execution -> dateKey(execution.startedAt) == todayKey }
             .map { it.scheduleId }
             .toSet()
 
     val transferDrivers =
-        currentDriver?.companyId
+        currentDriver
+            ?.companyId
             ?.let { companyId -> driverRepository.getDriversByCompany(companyId) }
             .orEmpty()
             .filter { it.id != driverId }
@@ -352,11 +366,14 @@ class DriverRouteViewModel(
             }
             .sortedByDescending { it.startedAt }
             .map { execution ->
-              val executionRoute = routeCache.getOrPut(execution.routeId) {
-                routeRepository.getRoute(execution.routeId) ?: selectedRoute
-              }
+              val executionRoute =
+                  routeCache.getOrPut(execution.routeId) {
+                    routeRepository.getRoute(execution.routeId) ?: selectedRoute
+                  }
               val departureTime =
-                  executionRoute.schedules.firstOrNull { it.id == execution.scheduleId }?.departureTime ?: "--:--"
+                  executionRoute.schedules
+                      .firstOrNull { it.id == execution.scheduleId }
+                      ?.departureTime ?: "--:--"
               val latestIncident =
                   if (execution.hadIncidents) {
                     tripExecutionRepository.getIncidents(execution.id).firstOrNull()
@@ -371,7 +388,8 @@ class DriverRouteViewModel(
                   endedAtLabel =
                       when {
                         execution.endedAt != null -> formatCostaRicaDateTimeLabel(execution.endedAt)
-                        execution.transferredAt != null -> formatCostaRicaDateTimeLabel(execution.transferredAt)
+                        execution.transferredAt != null ->
+                            formatCostaRicaDateTimeLabel(execution.transferredAt)
                         else -> "--"
                       },
                   statusLabel = execution.status.toHistoryStatusLabel(),
@@ -427,37 +445,44 @@ class DriverRouteViewModel(
         val departureMinutes: Int,
     )
 
-    val completedByRoute = tripExecutions
-        .filter {
-          (it.status == TripExecutionStatus.COMPLETED || it.status == TripExecutionStatus.TRANSFERRED) &&
-              dateKey(it.startedAt) == todayKey
+    val completedByRoute =
+        tripExecutions
+            .filter {
+              (it.status == TripExecutionStatus.COMPLETED ||
+                  it.status == TripExecutionStatus.TRANSFERRED) && dateKey(it.startedAt) == todayKey
+            }
+            .groupBy { it.routeId }
+            .mapValues { (_, executions) -> executions.map { it.scheduleId }.toSet() }
+
+    val candidates =
+        assignedRoutes.mapNotNull { route ->
+          val completedSchedules = completedByRoute[route.id].orEmpty()
+          val remainingSchedules =
+              route.schedules
+                  .filter { it.driverId == driverId && it.id !in completedSchedules }
+                  .sortedBy { parseTimeToMinutes(it.departureTime) }
+
+          val preferredSchedule =
+              remainingSchedules.firstOrNull {
+                parseTimeToMinutes(it.departureTime) >= currentMinutes
+              } ?: remainingSchedules.firstOrNull() ?: return@mapNotNull null
+
+          Candidate(
+              route = route,
+              schedule = preferredSchedule,
+              departureMinutes = parseTimeToMinutes(preferredSchedule.departureTime),
+          )
         }
-        .groupBy { it.routeId }
-        .mapValues { (_, executions) -> executions.map { it.scheduleId }.toSet() }
-
-    val candidates = assignedRoutes.mapNotNull { route ->
-      val completedSchedules = completedByRoute[route.id].orEmpty()
-      val remainingSchedules = route.schedules
-          .filter { it.driverId == driverId && it.id !in completedSchedules }
-          .sortedBy { parseTimeToMinutes(it.departureTime) }
-
-      val preferredSchedule =
-          remainingSchedules.firstOrNull { parseTimeToMinutes(it.departureTime) >= currentMinutes }
-              ?: remainingSchedules.firstOrNull()
-              ?: return@mapNotNull null
-
-      Candidate(
-          route = route,
-          schedule = preferredSchedule,
-          departureMinutes = parseTimeToMinutes(preferredSchedule.departureTime),
-      )
-    }
 
     return candidates
         .sortedWith(
             compareBy<Candidate> { if (it.departureMinutes >= currentMinutes) 0 else 1 }
-                .thenBy { if (it.departureMinutes >= currentMinutes) it.departureMinutes else Int.MAX_VALUE }
-                .thenBy { if (it.departureMinutes < currentMinutes) it.departureMinutes else Int.MAX_VALUE }
+                .thenBy {
+                  if (it.departureMinutes >= currentMinutes) it.departureMinutes else Int.MAX_VALUE
+                }
+                .thenBy {
+                  if (it.departureMinutes < currentMinutes) it.departureMinutes else Int.MAX_VALUE
+                }
         )
         .firstOrNull()
         ?.route
@@ -500,7 +525,9 @@ class DriverRouteViewModel(
       val scheduledTimeLabel =
           tripExecution
               ?.scheduleId
-              ?.let { scheduleId -> route?.schedules?.firstOrNull { it.id == scheduleId }?.departureTime }
+              ?.let { scheduleId ->
+                route?.schedules?.firstOrNull { it.id == scheduleId }?.departureTime
+              }
               ?.let(::formatTimeToMeridiem)
       val targets =
           (userRepository.getPassengerIdsByFavoriteRoute(normalizedRouteId))
@@ -509,14 +536,15 @@ class DriverRouteViewModel(
 
       targets.forEach { userId ->
         val normalizedRouteName = routeName.trim()
-          notificationRepository.addNotification(
+        notificationRepository.addNotification(
             UserIncidentNotification(
                 userId = userId,
                 tripExecutionId = tripExecutionId,
                 routeId = normalizedRouteId,
                 incidentType = incident.type.toNotificationDisplayLabel(),
                 detail = incident.detail,
-                sanitizedDetail = incident.type.toNotificationMessage(normalizedRouteName, scheduledTimeLabel),
+                sanitizedDetail =
+                    incident.type.toNotificationMessage(normalizedRouteName, scheduledTimeLabel),
                 routeName = normalizedRouteName,
                 dispatchedAt = now,
                 createdAt = now,

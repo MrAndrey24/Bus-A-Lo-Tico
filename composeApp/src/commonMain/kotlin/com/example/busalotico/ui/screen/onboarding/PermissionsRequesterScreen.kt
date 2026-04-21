@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.screen.onboarding
 
 import androidx.compose.animation.Crossfade
@@ -35,111 +39,115 @@ fun PermissionsRequesterScreen(
     permissions: List<PermissionRequest>,
     snackBarHostState: SnackbarHostState,
     onAllPermissionsGranted: () -> Unit = {},
-    content: @Composable (PermissionsController, Boolean) -> Unit
+    content: @Composable (PermissionsController, Boolean) -> Unit,
 ) {
-    val factory = rememberPermissionsControllerFactory()
-    val controller = remember(factory) { factory.createPermissionsController() }
-    val scope = rememberCoroutineScope()
-    val lifecycleOwner = LocalLifecycleOwner.current
-    
-    BindEffect(controller)
+  val factory = rememberPermissionsControllerFactory()
+  val controller = remember(factory) { factory.createPermissionsController() }
+  val scope = rememberCoroutineScope()
+  val lifecycleOwner = LocalLifecycleOwner.current
 
-    var permissionStates by remember {
-        mutableStateOf(permissions.associate { it.permission to PermissionState.NotDetermined })
+  BindEffect(controller)
+
+  var permissionStates by remember {
+    mutableStateOf(permissions.associate { it.permission to PermissionState.NotDetermined })
+  }
+  var isSkipped by remember { mutableStateOf(false) }
+  var isRequesting by remember { mutableStateOf(false) }
+  var isCheckingPermissions by remember { mutableStateOf(true) }
+
+  val refreshPermissions = {
+    scope.launch {
+      val states =
+          permissions.associate { req ->
+            req.permission to controller.getPermissionState(req.permission)
+          }
+      permissionStates = states
+      isCheckingPermissions = false
     }
-    var isSkipped by remember { mutableStateOf(false) }
-    var isRequesting by remember { mutableStateOf(false) }
-    var isCheckingPermissions by remember { mutableStateOf(true) }
+  }
 
-    val refreshPermissions = {
-        scope.launch {
-            val states = permissions.associate { req ->
-                req.permission to controller.getPermissionState(req.permission)
-            }
-            permissionStates = states
-            isCheckingPermissions = false
-        }
-    }
-
-    val onRequestPermissionsClick: () -> Unit = {
-        scope.launch {
-            isRequesting = true
+  val onRequestPermissionsClick: () -> Unit = {
+    scope.launch {
+      isRequesting = true
+      try {
+        for (req in permissions) {
+          val currentState = controller.getPermissionState(req.permission)
+          if (currentState != PermissionState.Granted) {
             try {
-                for (req in permissions) {
-                    val currentState = controller.getPermissionState(req.permission)
-                    if (currentState != PermissionState.Granted) {
-                        try {
-                            controller.providePermission(req.permission)
-                        } catch (e: DeniedAlwaysException) {
-                            // Handled by the UI transition to LocationRequiredScreen
-                        } catch (e: DeniedException) {
-                            val result = snackBarHostState.showSnackbar(
-                                message = "${req.title} es necesario para continuar.",
-                                actionLabel = "Reintentar",
-                                duration = SnackbarDuration.Short
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                try { controller.providePermission(req.permission) } catch (e: Exception) {}
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            } finally {
-                refreshPermissions()
-                isRequesting = false
+              controller.providePermission(req.permission)
+            } catch (e: DeniedAlwaysException) {
+              // Handled by the UI transition to LocationRequiredScreen
+            } catch (e: DeniedException) {
+              val result =
+                  snackBarHostState.showSnackbar(
+                      message = "${req.title} es necesario para continuar.",
+                      actionLabel = "Reintentar",
+                      duration = SnackbarDuration.Short,
+                  )
+              if (result == SnackbarResult.ActionPerformed) {
+                try {
+                  controller.providePermission(req.permission)
+                } catch (e: Exception) {}
+              }
             }
+          }
         }
+      } catch (e: Exception) {
+        e.printStackTrace()
+      } finally {
+        refreshPermissions()
+        isRequesting = false
+      }
     }
+  }
 
-    LaunchedEffect(Unit) { refreshPermissions() }
+  LaunchedEffect(Unit) { refreshPermissions() }
 
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && !isRequesting) {
-                refreshPermissions()
-            }
+  DisposableEffect(lifecycleOwner) {
+    val observer = LifecycleEventObserver { _, event ->
+      if (event == Lifecycle.Event.ON_RESUME && !isRequesting) {
+        refreshPermissions()
+      }
+    }
+    lifecycleOwner.lifecycle.addObserver(observer)
+    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+  }
+
+  val allGranted = permissionStates.values.all { it == PermissionState.Granted }
+  val anyPermanentlyDenied = permissionStates.values.any { it == PermissionState.DeniedAlways }
+
+  LaunchedEffect(allGranted) { if (allGranted) onAllPermissionsGranted() }
+
+  Crossfade(
+      targetState = Triple(isCheckingPermissions, allGranted, isSkipped || anyPermanentlyDenied)
+  ) { (loading, granted, required) ->
+    when {
+      loading || isRequesting -> {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+      }
+      granted -> {
+        content(controller, true)
+      }
+      required -> {
+        LocationRequiredScreen(
+            onRetryClick = {
+              if (anyPermanentlyDenied) {
+                controller.openAppSettings()
+              } else {
+                isSkipped = false
+                onRequestPermissionsClick()
+              }
+            }
+        )
+      }
+      else -> {
+        EnableLocationScreen(
+            onAllowClick = { onRequestPermissionsClick() },
+            onDenyClick = { isSkipped = true },
+        )
+      }
     }
-
-    val allGranted = permissionStates.values.all { it == PermissionState.Granted }
-    val anyPermanentlyDenied = permissionStates.values.any { it == PermissionState.DeniedAlways }
-
-    LaunchedEffect(allGranted) {
-        if (allGranted) onAllPermissionsGranted()
-    }
-
-    Crossfade(targetState = Triple(isCheckingPermissions, allGranted, isSkipped || anyPermanentlyDenied)) { (loading, granted, required) ->
-        when {
-            loading || isRequesting -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-            }
-            granted -> {
-                content(controller, true)
-            }
-            required -> {
-                LocationRequiredScreen(
-                    onRetryClick = {
-                        if (anyPermanentlyDenied) {
-                            controller.openAppSettings()
-                        } else {
-                            isSkipped = false
-                            onRequestPermissionsClick()
-                        }
-                    }
-                )
-            }
-            else -> {
-                EnableLocationScreen(
-                    onAllowClick = { onRequestPermissionsClick() },
-                    onDenyClick = { isSkipped = true }
-                )
-            }
-        }
-    }
+  }
 }

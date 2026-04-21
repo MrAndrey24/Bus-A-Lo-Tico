@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.domain.entities
 
 data class Route(
@@ -22,5 +26,5 @@ data class Route(
     val isFavorite: Boolean,
     val stops: List<RouteStop>,
     val schedules: List<RouteSchedule>,
-    val polylinePoints: List<Coordinate>
+    val polylinePoints: List<Coordinate>,
 )

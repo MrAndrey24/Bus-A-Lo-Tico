@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.components.input
 
 import androidx.compose.foundation.BorderStroke
@@ -45,24 +49,26 @@ fun SearchableCompanySelectField(
     label: String = "Empresa",
     showCompanyId: Boolean = true,
     containerColor: Color = Color.White,
-    border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
+    border: BorderStroke? =
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)),
 ) {
   var showDialog by remember { mutableStateOf(false) }
   var query by remember { mutableStateOf("") }
 
-  val filteredCompanies = remember(query, companies) {
-    val normalizedQuery = query.trim()
-    if (normalizedQuery.isBlank()) {
-      companies.sortedBy { it.name.lowercase() }
-    } else {
-      companies
-          .filter { company ->
-            company.name.contains(normalizedQuery, ignoreCase = true) ||
-                company.id.contains(normalizedQuery, ignoreCase = true)
-          }
-          .sortedBy { it.name.lowercase() }
-    }
-  }
+  val filteredCompanies =
+      remember(query, companies) {
+        val normalizedQuery = query.trim()
+        if (normalizedQuery.isBlank()) {
+          companies.sortedBy { it.name.lowercase() }
+        } else {
+          companies
+              .filter { company ->
+                company.name.contains(normalizedQuery, ignoreCase = true) ||
+                    company.id.contains(normalizedQuery, ignoreCase = true)
+              }
+              .sortedBy { it.name.lowercase() }
+        }
+      }
 
   Surface(
       modifier = modifier.fillMaxWidth().clickable(enabled = enabled) { showDialog = true },
@@ -117,7 +123,9 @@ fun SearchableCompanySelectField(
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null) },
+                leadingIcon = {
+                  Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                },
                 placeholder = { Text("Buscar por nombre") },
                 shape = RoundedCornerShape(14.dp),
                 colors =
@@ -126,7 +134,8 @@ fun SearchableCompanySelectField(
                         unfocusedContainerColor = Color.White,
                         disabledContainerColor = Color.White,
                         focusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.75f),
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f),
+                        unfocusedBorderColor =
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.45f),
                     ),
             )
 
@@ -153,7 +162,8 @@ fun SearchableCompanySelectField(
                       color = Color(0xFFE9EDF2),
                   ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                        modifier =
+                            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                       Text(
@@ -176,11 +186,7 @@ fun SearchableCompanySelectField(
             }
           }
         },
-        confirmButton = {
-          TextButton(onClick = { showDialog = false }) {
-            Text("Cerrar")
-          }
-        },
+        confirmButton = { TextButton(onClick = { showDialog = false }) { Text("Cerrar") } },
     )
   }
 }

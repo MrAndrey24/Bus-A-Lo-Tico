@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.route
 
 import androidx.lifecycle.ViewModel
@@ -12,11 +16,11 @@ import com.example.shared.domain.entities.TripExecutionStatus
 import com.example.shared.util.currentCostaRicaTimeMinutes
 import com.example.shared.util.parseFlexibleTimeToMinutes
 import kotlin.time.Clock
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -101,7 +105,10 @@ class RouteAdministrativeDetailViewModel(
       val highlightedScheduleId: String?,
   )
 
-  private fun buildRuntimeSnapshot(route: Route, tripExecutions: List<TripExecution>): RuntimeSnapshot {
+  private fun buildRuntimeSnapshot(
+      route: Route,
+      tripExecutions: List<TripExecution>,
+  ): RuntimeSnapshot {
     val todayKey = todayDateKey()
     val routeScheduleIds = route.schedules.map { it.id }.toSet()
     val routeExecutionsToday =
@@ -131,7 +138,8 @@ class RouteAdministrativeDetailViewModel(
     val currentExecution =
         routeExecutionsToday
             .filter {
-              it.status == TripExecutionStatus.IN_PROGRESS || it.status == TripExecutionStatus.DELAYED
+              it.status == TripExecutionStatus.IN_PROGRESS ||
+                  it.status == TripExecutionStatus.DELAYED
             }
             .maxByOrNull { it.startedAt }
 
@@ -150,11 +158,14 @@ class RouteAdministrativeDetailViewModel(
           else -> {
             val hasCompletedTrip =
                 routeExecutionsToday.any {
-                  it.status == TripExecutionStatus.COMPLETED || it.status == TripExecutionStatus.TRANSFERRED
+                  it.status == TripExecutionStatus.COMPLETED ||
+                      it.status == TripExecutionStatus.TRANSFERRED
                 }
             AdministrativeRouteRuntimeStatus(
                 state = AdministrativeRouteStatus.IDLE,
-                detail = if (hasCompletedTrip) "Último viaje completado" else "Esperando inicio del conductor",
+                detail =
+                    if (hasCompletedTrip) "Último viaje completado"
+                    else "Esperando inicio del conductor",
             )
           }
         }
@@ -180,8 +191,9 @@ class RouteAdministrativeDetailViewModel(
             .filter { scheduleStatusesById[it.id] != AdministrativeScheduleRuntimeStatus.COMPLETED }
             .sortedBy { parseFlexibleTimeToMinutes(it.departureTime) ?: Int.MAX_VALUE }
 
-    return remainingSchedules.firstOrNull { (parseFlexibleTimeToMinutes(it.departureTime) ?: Int.MAX_VALUE) >= currentMinutes }
-        ?: remainingSchedules.firstOrNull()
+    return remainingSchedules.firstOrNull {
+      (parseFlexibleTimeToMinutes(it.departureTime) ?: Int.MAX_VALUE) >= currentMinutes
+    } ?: remainingSchedules.firstOrNull()
   }
 
   private fun dateKey(epochMilliseconds: Long): String {

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 plugins {
   alias(libs.plugins.androidApplication) apply false
   alias(libs.plugins.androidLibrary) apply false
@@ -12,8 +16,6 @@ plugins {
 }
 
 spotless {
-  ratchetFrom("origin/main")
-
   kotlin {
     target("**/src/**/*.kt")
     targetExclude("**/build/**", "**/generated/**")

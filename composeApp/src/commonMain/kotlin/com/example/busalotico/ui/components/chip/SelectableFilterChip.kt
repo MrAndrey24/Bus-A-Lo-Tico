@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.components.chip
 
 import androidx.compose.foundation.BorderStroke
@@ -25,36 +29,32 @@ fun SelectableFilterChip(
     modifier: Modifier = Modifier,
     border: BorderStroke? = null,
 ) {
-    val shape = RoundedCornerShape(999.dp)
-    val backgroundColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    val textColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+  val shape = RoundedCornerShape(999.dp)
+  val backgroundColor =
+      if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+  val textColor =
+      if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
-    Surface(
-        modifier = modifier
-            .clip(shape)
-            .clickable(onClick = onClick),
-        shape = shape,
-        color = backgroundColor,
-        border = border
+  Surface(
+      modifier = modifier.clip(shape).clickable(onClick = onClick),
+      shape = shape,
+      color = backgroundColor,
+      border = border,
+  ) {
+    Row(
+        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                color = textColor
-            )
+      Text(text = text, style = MaterialTheme.typography.labelMedium, color = textColor)
 
-            if (showChevron) {
-                Spacer(modifier = Modifier.size(4.dp))
-                Text(
-                    text = "▾",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = textColor.copy(alpha = if (selected) 0.9f else 0.75f)
-                )
-            }
-        }
+      if (showChevron) {
+        Spacer(modifier = Modifier.size(4.dp))
+        Text(
+            text = "▾",
+            style = MaterialTheme.typography.labelSmall,
+            color = textColor.copy(alpha = if (selected) 0.9f else 0.75f),
+        )
+      }
     }
+  }
 }
