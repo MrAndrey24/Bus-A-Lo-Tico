@@ -1,25 +1,27 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.data.repository.driver
 
 import com.example.shared.data.remote.driver.IDriverRemoteDataSource
 import com.example.shared.domain.entities.Driver
 
-class DriverRepository(
-    private val remoteDataSource: IDriverRemoteDataSource
-) : IDriverRepository {
+class DriverRepository(private val remoteDataSource: IDriverRemoteDataSource) : IDriverRepository {
 
-    override suspend fun getDriver(driverId: String): Driver? {
-        return remoteDataSource.getDriver(driverId)
-    }
+  override suspend fun getDriver(driverId: String): Driver? {
+    return remoteDataSource.getDriver(driverId)
+  }
 
-    override suspend fun getDriversByCompany(companyId: String): List<Driver> {
-        return remoteDataSource.getDriversByCompany(companyId)
-    }
+  override suspend fun getDriversByCompany(companyId: String): List<Driver> {
+    return remoteDataSource.getDriversByCompany(companyId)
+  }
 
-    override suspend fun upsertDriver(driverId: String, name: String, companyId: String?): Driver {
-        return remoteDataSource.upsertDriver(driverId, name, companyId)
-    }
+  override suspend fun upsertDriver(driverId: String, name: String, companyId: String?): Driver {
+    return remoteDataSource.upsertDriver(driverId, name, companyId)
+  }
 
-    override suspend fun deleteDriver(driverId: String) {
-        remoteDataSource.deleteDriver(driverId)
-    }
+  override suspend fun deleteDriver(driverId: String) {
+    remoteDataSource.deleteDriver(driverId)
+  }
 }

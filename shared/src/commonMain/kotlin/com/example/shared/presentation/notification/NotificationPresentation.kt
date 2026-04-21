@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.notification
 
 import com.example.shared.domain.entities.TripIncidentType
@@ -31,7 +35,10 @@ internal fun TripIncidentType.toNotificationMessage(
     TripIncidentType.BREAKDOWN ->
         routeName.buildNotificationMessage("Se ha reportado una avería", scheduledTimeLabel)
     TripIncidentType.SECURITY ->
-        routeName.buildNotificationMessage("Se ha reportado un incidente de seguridad", scheduledTimeLabel)
+        routeName.buildNotificationMessage(
+            "Se ha reportado un incidente de seguridad",
+            scheduledTimeLabel,
+        )
   }
 }
 
@@ -44,7 +51,10 @@ internal fun String.toNotificationDisplayLabel(): String {
   }
 }
 
-internal fun String.toNotificationMessage(originalIncidentType: String, routeName: String = ""): String {
+internal fun String.toNotificationMessage(
+    originalIncidentType: String,
+    routeName: String = "",
+): String {
   val scheduleSuffix = extractScheduleSuffix()
   return when (originalIncidentType.toNotificationTypeKey()) {
     NotificationTypeKey.ACCIDENT ->
@@ -54,13 +64,22 @@ internal fun String.toNotificationMessage(originalIncidentType: String, routeNam
         else routeName.buildNotificationMessage("Se ha reportado una avería", scheduleSuffix)
     NotificationTypeKey.SECURITY ->
         if (routeName.isBlank() && trim().isNotBlank()) trim()
-        else routeName.buildNotificationMessage("Se ha reportado un incidente de seguridad", scheduleSuffix)
+        else
+            routeName.buildNotificationMessage(
+                "Se ha reportado un incidente de seguridad",
+                scheduleSuffix,
+            )
     NotificationTypeKey.UNKNOWN ->
-        trim().ifBlank { routeName.buildNotificationMessage("Se ha reportado un incidente", scheduleSuffix) }
+        trim().ifBlank {
+          routeName.buildNotificationMessage("Se ha reportado un incidente", scheduleSuffix)
+        }
   }
 }
 
-private fun String.buildNotificationMessage(prefix: String, scheduledTimeLabel: String? = null): String {
+private fun String.buildNotificationMessage(
+    prefix: String,
+    scheduledTimeLabel: String? = null,
+): String {
   val routeLabel = trim()
   val scheduleSuffix =
       scheduledTimeLabel
@@ -77,9 +96,12 @@ private fun String.buildNotificationMessage(prefix: String, scheduledTimeLabel: 
 
 private fun String.toNotificationTypeKey(): NotificationTypeKey {
   return when (trim().normalizeNotificationToken()) {
-    "ACCIDENT", "ACCIDENTE" -> NotificationTypeKey.ACCIDENT
-    "BREAKDOWN", "AVERIA" -> NotificationTypeKey.BREAKDOWN
-    "SECURITY", "SEGURIDAD" -> NotificationTypeKey.SECURITY
+    "ACCIDENT",
+    "ACCIDENTE" -> NotificationTypeKey.ACCIDENT
+    "BREAKDOWN",
+    "AVERIA" -> NotificationTypeKey.BREAKDOWN
+    "SECURITY",
+    "SEGURIDAD" -> NotificationTypeKey.SECURITY
     else -> NotificationTypeKey.UNKNOWN
   }
 }

@@ -1,5 +1,16 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CircularProgressIndicator
@@ -17,15 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -105,14 +107,18 @@ fun AppContent(
   }
 
   LaunchedEffect(isAuthenticated, currentUser?.role) {
-    if (isAuthenticated &&
-        (currentUser?.role == UserRole.ADMIN || currentUser?.role == UserRole.DRIVER)) {
+    if (
+        isAuthenticated &&
+            (currentUser?.role == UserRole.ADMIN || currentUser?.role == UserRole.DRIVER)
+    ) {
       companyListViewModel.loadCompanies()
     }
   }
 
-  if ((currentUser?.role == UserRole.ADMIN || currentUser?.role == UserRole.DRIVER) &&
-      currentUser.companyId.isNullOrBlank()) {
+  if (
+      (currentUser?.role == UserRole.ADMIN || currentUser?.role == UserRole.DRIVER) &&
+          currentUser.companyId.isNullOrBlank()
+  ) {
     AdminCompanyAssignmentScreen(
         role = currentUser?.role ?: UserRole.ADMIN,
         companies = companyListUiState.companies,
@@ -144,28 +150,27 @@ fun AppContent(
 
     DisposableEffect(Unit) { onDispose { viewModel.stopTracking() } }
 
-      RoleBasedNavigation(
-          role = currentUser?.role ?: UserRole.PASSENGER,
-          coordinate = coordinate,
-          userId = currentUser?.id.orEmpty(),
-          userName = currentUser?.name.orEmpty(),
-          userEmail = currentUser?.email.orEmpty(),
-          userRoleLabel = currentUser?.role?.toDisplayName().orEmpty(),
-          companyId = currentUser?.companyId,
-          companies = companyListUiState.companies,
-          companiesLoading = companyListUiState.isLoading,
-          companyLoadError = companyListUiState.errorMessage,
-          onUpdateCompany = authViewModel::updateCurrentUserCompany,
-          onSignOut =
-              if (DevSessionConfig.BYPASS_AUTH) {
-                {}
-              } else {
-                authViewModel::signOut
-              },
-      )
-    }
+    RoleBasedNavigation(
+        role = currentUser?.role ?: UserRole.PASSENGER,
+        coordinate = coordinate,
+        userId = currentUser?.id.orEmpty(),
+        userName = currentUser?.name.orEmpty(),
+        userEmail = currentUser?.email.orEmpty(),
+        userRoleLabel = currentUser?.role?.toDisplayName().orEmpty(),
+        companyId = currentUser?.companyId,
+        companies = companyListUiState.companies,
+        companiesLoading = companyListUiState.isLoading,
+        companyLoadError = companyListUiState.errorMessage,
+        onUpdateCompany = authViewModel::updateCurrentUserCompany,
+        onSignOut =
+            if (DevSessionConfig.BYPASS_AUTH) {
+              {}
+            } else {
+              authViewModel::signOut
+            },
+    )
   }
-
+}
 
 private fun UserRole.toDisplayName(): String {
   return when (this) {
@@ -226,12 +231,12 @@ private fun AdminCompanyAssignmentScreen(
           } else {
             SearchableCompanySelectField(
                 value = selectedCompanyName,
-                placeholder = if (companies.isEmpty()) "No hay empresas disponibles" else "Selecciona una empresa",
+                placeholder =
+                    if (companies.isEmpty()) "No hay empresas disponibles"
+                    else "Selecciona una empresa",
                 enabled = companies.isNotEmpty() && !isLoading,
                 companies = companies,
-                onSelect = { company ->
-                  selectedCompanyId = company.id
-                },
+                onSelect = { company -> selectedCompanyId = company.id },
                 showCompanyId = false,
             )
           }

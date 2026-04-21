@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.screen.auth
 
 import androidx.compose.foundation.BorderStroke
@@ -52,7 +56,8 @@ fun AuthScreen(
     companies: List<com.example.shared.domain.entities.Company>,
     companiesLoading: Boolean,
     onSignIn: (email: String, password: String) -> Unit,
-    onSignUp: (name: String, email: String, password: String, role: UserRole, companyId: String?) -> Unit,
+    onSignUp:
+        (name: String, email: String, password: String, role: UserRole, companyId: String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
   var isRegisterMode by remember { mutableStateOf(false) }
@@ -74,7 +79,8 @@ fun AuthScreen(
           horizontalAlignment = Alignment.CenterHorizontally,
       ) {
         Box(
-            modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primary, CircleShape),
+            modifier =
+                Modifier.size(64.dp).background(MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
           Icon(
@@ -166,9 +172,7 @@ fun AuthScreen(
                   SelectableFilterChip(
                       text = role.toDisplayName(),
                       selected = selectedRole == role,
-                      onClick = {
-                        selectedRole = role
-                      },
+                      onClick = { selectedRole = role },
                       showChevron = false,
                       border = null,
                   )
@@ -228,7 +232,10 @@ fun AuthScreen(
                   verticalAlignment = Alignment.CenterVertically,
                   horizontalArrangement = Arrangement.spacedBy(10.dp),
               ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.outline,
+                )
                 Text(
                     text = "O CONTINUA CON",
                     style =
@@ -238,7 +245,10 @@ fun AuthScreen(
                             fontWeight = FontWeight.SemiBold,
                         ),
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = MaterialTheme.colorScheme.outline,
+                )
               }
             }
 
@@ -313,7 +323,9 @@ private fun AuthTextField(
       onValueChange = onValueChange,
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
-      placeholder = { Text(text = placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+      placeholder = {
+        Text(text = placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant)
+      },
       shape = RoundedCornerShape(16.dp),
       visualTransformation =
           if (isPassword && !passwordVisible) {
@@ -326,7 +338,8 @@ private fun AuthTextField(
             {
               Icon(
                   imageVector =
-                      if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                      if (passwordVisible) Icons.Outlined.Visibility
+                      else Icons.Outlined.VisibilityOff,
                   contentDescription =
                       if (passwordVisible) "Contraseña visible" else "Contraseña oculta",
                   tint = MaterialTheme.colorScheme.onSurfaceVariant,

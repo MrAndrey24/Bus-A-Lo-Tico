@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.data.remote.trip.dto
 
 import com.example.shared.domain.entities.TripExecution
@@ -17,36 +21,38 @@ data class TripExecutionDto(
     val transferredToDriverId: String? = null,
     val transferredAt: Long? = null,
 ) {
-    fun toDomain(documentId: String): TripExecution {
-        return TripExecution(
-            id = documentId,
-            scheduleId = scheduleId,
-            routeId = routeId,
-            driverId = driverId,
-            startedAt = startedAt,
-            endedAt = endedAt,
-            durationSeconds = durationSeconds,
-            status = TripExecutionStatus.entries.firstOrNull { it.name == status } ?: TripExecutionStatus.IN_PROGRESS,
-            hadIncidents = hadIncidents,
-            transferredToDriverId = transferredToDriverId,
-            transferredAt = transferredAt,
-        )
-    }
+  fun toDomain(documentId: String): TripExecution {
+    return TripExecution(
+        id = documentId,
+        scheduleId = scheduleId,
+        routeId = routeId,
+        driverId = driverId,
+        startedAt = startedAt,
+        endedAt = endedAt,
+        durationSeconds = durationSeconds,
+        status =
+            TripExecutionStatus.entries.firstOrNull { it.name == status }
+                ?: TripExecutionStatus.IN_PROGRESS,
+        hadIncidents = hadIncidents,
+        transferredToDriverId = transferredToDriverId,
+        transferredAt = transferredAt,
+    )
+  }
 
-    companion object {
-        fun fromDomain(tripExecution: TripExecution): TripExecutionDto {
-            return TripExecutionDto(
-                scheduleId = tripExecution.scheduleId,
-                routeId = tripExecution.routeId,
-                driverId = tripExecution.driverId,
-                startedAt = tripExecution.startedAt,
-                endedAt = tripExecution.endedAt,
-                durationSeconds = tripExecution.durationSeconds,
-                status = tripExecution.status.name,
-                hadIncidents = tripExecution.hadIncidents,
-                transferredToDriverId = tripExecution.transferredToDriverId,
-                transferredAt = tripExecution.transferredAt,
-            )
-        }
+  companion object {
+    fun fromDomain(tripExecution: TripExecution): TripExecutionDto {
+      return TripExecutionDto(
+          scheduleId = tripExecution.scheduleId,
+          routeId = tripExecution.routeId,
+          driverId = tripExecution.driverId,
+          startedAt = tripExecution.startedAt,
+          endedAt = tripExecution.endedAt,
+          durationSeconds = tripExecution.durationSeconds,
+          status = tripExecution.status.name,
+          hadIncidents = tripExecution.hadIncidents,
+          transferredToDriverId = tripExecution.transferredToDriverId,
+          transferredAt = tripExecution.transferredAt,
+      )
     }
+  }
 }

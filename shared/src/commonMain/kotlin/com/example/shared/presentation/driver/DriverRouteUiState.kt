@@ -1,8 +1,12 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.driver
 
+import com.example.shared.domain.entities.Driver
 import com.example.shared.domain.entities.Route
 import com.example.shared.domain.entities.TripExecution
-import com.example.shared.domain.entities.Driver
 
 data class DriverRouteUiState(
     val route: Route? = null,

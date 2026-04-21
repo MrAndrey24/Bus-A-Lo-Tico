@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.auth
 
 import androidx.lifecycle.ViewModel
@@ -66,19 +70,26 @@ class AuthViewModel(
     }
   }
 
-  fun signUp(name: String, email: String, password: String, role: UserRole, companyId: String? = null) {
+  fun signUp(
+      name: String,
+      email: String,
+      password: String,
+      role: UserRole,
+      companyId: String? = null,
+  ) {
     viewModelScope.launch {
       runCatching {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             val normalizedCompanyId = companyId?.trim().takeUnless { it.isNullOrBlank() }
             val userId = authRepository.signUp(email, password)
-            val profile = userRepository.upsertUserProfile(
-                userId = userId,
-                email = email,
-                name = name,
-                role = role,
-                companyId = normalizedCompanyId,
-            )
+            val profile =
+                userRepository.upsertUserProfile(
+                    userId = userId,
+                    email = email,
+                    name = name,
+                    role = role,
+                    companyId = normalizedCompanyId,
+                )
             if (role == UserRole.DRIVER) {
               driverRepository.upsertDriver(
                   driverId = userId,
@@ -106,13 +117,14 @@ class AuthViewModel(
     viewModelScope.launch {
       runCatching {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            val updatedProfile = userRepository.upsertUserProfile(
-                userId = currentUser.id,
-                email = currentUser.email,
-                name = currentUser.name,
-                role = currentUser.role,
-                companyId = companyId.trim(),
-            )
+            val updatedProfile =
+                userRepository.upsertUserProfile(
+                    userId = currentUser.id,
+                    email = currentUser.email,
+                    name = currentUser.name,
+                    role = currentUser.role,
+                    companyId = companyId.trim(),
+                )
             if (currentUser.role == UserRole.DRIVER) {
               driverRepository.upsertDriver(
                   driverId = currentUser.id,
@@ -123,7 +135,8 @@ class AuthViewModel(
             updatedProfile
           }
           .onSuccess { profile ->
-            _uiState.value = _uiState.value.copy(isLoading = false, currentUser = profile, errorMessage = null)
+            _uiState.value =
+                _uiState.value.copy(isLoading = false, currentUser = profile, errorMessage = null)
           }
           .onFailure { error ->
             _uiState.value =

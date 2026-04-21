@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.components.mapview.details
 
 import androidx.compose.runtime.Composable
@@ -13,6 +17,5 @@ actual fun MapViewDetail(
     zoomOutTrigger: Int,
     stops: List<RouteStop>,
     polylinePoints: List<Coordinate>,
-    busLocation: Coordinate?
-) {
-}
+    busLocation: Coordinate?,
+) {}

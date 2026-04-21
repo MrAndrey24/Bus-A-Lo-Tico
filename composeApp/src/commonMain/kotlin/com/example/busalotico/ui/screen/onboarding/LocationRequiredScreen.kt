@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.screen.onboarding
 
 import androidx.compose.foundation.background
@@ -28,101 +32,93 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun LocationRequiredScreen(
-    onRetryClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 32.dp, vertical = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(24.dp))
+fun LocationRequiredScreen(onRetryClick: () -> Unit) {
+  Column(
+      modifier =
+          Modifier.fillMaxSize()
+              .background(MaterialTheme.colorScheme.background)
+              .padding(horizontal = 32.dp, vertical = 48.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Spacer(modifier = Modifier.height(24.dp))
 
-        Box(
-            modifier = Modifier
-                .size(120.dp)
+    Box(
+        modifier =
+            Modifier.size(120.dp)
                 .background(
                     color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(32.dp)
+                    shape = RoundedCornerShape(32.dp),
                 ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-        }
+        contentAlignment = Alignment.Center,
+    ) {
+      Icon(
+          imageVector = Icons.Default.Settings,
+          contentDescription = null,
+          modifier = Modifier.size(64.dp),
+          tint = MaterialTheme.colorScheme.error,
+      )
+    }
 
-        Spacer(modifier = Modifier.height(40.dp))
+    Spacer(modifier = Modifier.height(40.dp))
 
-        Text(
-            text = "Acceso Requerido",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
-        )
+    Text(
+        text = "Acceso Requerido",
+        style = MaterialTheme.typography.headlineMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onBackground,
+        textAlign = TextAlign.Center,
+    )
 
-        Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Para que Bus-A-Lo-Tico funcione correctamente, necesitamos saber tu ubicación.\n\nPor favor, ve a los ajustes de tu dispositivo y permite el acceso a la ubicación.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 24.sp
-        )
+    Text(
+        text =
+            "Para que Bus-A-Lo-Tico funcione correctamente, necesitamos saber tu ubicación.\n\nPor favor, ve a los ajustes de tu dispositivo y permite el acceso a la ubicación.",
+        style = MaterialTheme.typography.bodyLarge,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        lineHeight = 24.sp,
+    )
 
-        Spacer(modifier = Modifier.weight(1f))
+    Spacer(modifier = Modifier.weight(1f))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors =
+            CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             ),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "¿Cómo activar?",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Ajustes > Aplicaciones > Bus-A-Lo-Tico > Permisos > Ubicación",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = onRetryClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Text(
-                "Abrir Ajustes",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        shape = RoundedCornerShape(16.dp),
+    ) {
+      Column(
+          modifier = Modifier.padding(16.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+      ) {
+        Text(
+            text = "¿Cómo activar?",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Ajustes > Aplicaciones > Bus-A-Lo-Tico > Permisos > Ubicación",
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
     }
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Button(
+        onClick = onRetryClick,
+        modifier = Modifier.fillMaxWidth().height(60.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+    ) {
+      Text("Abrir Ajustes", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+    }
+  }
 }

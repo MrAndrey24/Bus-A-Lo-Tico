@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.notification
 
 import androidx.lifecycle.ViewModel
@@ -5,10 +9,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.shared.data.repository.notification.INotificationRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.domain.entities.UserIncidentNotification
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 data class NotificationUiState(
@@ -39,8 +43,7 @@ class NotificationViewModel(
         val displayNotifications =
             notifications.map { notification ->
               val resolvedRouteName =
-                  notification.routeName
-                      .takeIf { it.isNotBlank() }
+                  notification.routeName.takeIf { it.isNotBlank() }
                       ?: routeNameCache.getOrPut(notification.routeId) {
                         routeRepository.getRoute(notification.routeId)?.name.orEmpty()
                       }
