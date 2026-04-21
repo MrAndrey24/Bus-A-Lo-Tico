@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.company
 
 import androidx.lifecycle.ViewModel
@@ -12,30 +16,32 @@ class CompanyListViewModel(
     private val companyRepository: ICompanyRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CompanyListUiState(isLoading = true))
-    val uiState: StateFlow<CompanyListUiState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(CompanyListUiState(isLoading = true))
+  val uiState: StateFlow<CompanyListUiState> = _uiState.asStateFlow()
 
-    init {
-        loadCompanies()
-    }
+  init {
+    loadCompanies()
+  }
 
-    fun loadCompanies() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            runCatching { companyRepository.getCompanies() }
-                .onSuccess { companies ->
-                    _uiState.value = CompanyListUiState(
-                        isLoading = false,
-                        companies = companies,
-                    )
-                }
-                .onFailure { error ->
-                    _uiState.value = CompanyListUiState(
-                        isLoading = false,
-                        companies = emptyList(),
-                        errorMessage = error.message ?: "No se pudieron cargar las empresas.",
-                    )
-                }
-        }
+  fun loadCompanies() {
+    viewModelScope.launch {
+      _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+      runCatching { companyRepository.getCompanies() }
+          .onSuccess { companies ->
+            _uiState.value =
+                CompanyListUiState(
+                    isLoading = false,
+                    companies = companies,
+                )
+          }
+          .onFailure { error ->
+            _uiState.value =
+                CompanyListUiState(
+                    isLoading = false,
+                    companies = emptyList(),
+                    errorMessage = error.message ?: "No se pudieron cargar las empresas.",
+                )
+          }
     }
+  }
 }

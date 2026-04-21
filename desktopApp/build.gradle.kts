@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 plugins {
   alias(libs.plugins.kotlinMultiplatform)
   alias(libs.plugins.composeMultiplatform)
@@ -26,7 +30,5 @@ kotlin {
 }
 
 compose.desktop {
-  application {
-    mainClass = "com.example.busalotico.desktop.CompanyAdminDesktopKt"
-  }
+  application { mainClass = "com.example.busalotico.desktop.CompanyAdminDesktopKt" }
 }

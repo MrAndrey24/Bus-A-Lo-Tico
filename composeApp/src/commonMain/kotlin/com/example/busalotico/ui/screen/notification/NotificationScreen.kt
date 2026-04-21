@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.screen.notification
 
 import androidx.compose.foundation.background
@@ -17,9 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ReportProblem
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -60,19 +64,19 @@ fun NotificationScreen(
 
   Scaffold(
       topBar = {
-          ScreenHeader(
-              title = "Notificaciones",
-              subtitle = "Lista de notificaciones recibidas",
-              leadingContent = {
-                  IconButton(onClick = onBack) {
-                      Icon(
-                          imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                          contentDescription = "Back",
-                          tint = MaterialTheme.colorScheme.onSurface,
-                      )
-                  }
+        ScreenHeader(
+            title = "Notificaciones",
+            subtitle = "Lista de notificaciones recibidas",
+            leadingContent = {
+              IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
               }
-          )
+            },
+        )
       },
       content = { paddingValues ->
         if (uiState.isLoading) {
@@ -132,11 +136,7 @@ fun NotificationItem(
   val isUnread = notification.readAt == null
   Card(
       modifier =
-          Modifier
-              .fillMaxWidth()
-              .clickable(enabled = isUnread) {
-                onMarkAsRead(notification.id)
-              },
+          Modifier.fillMaxWidth().clickable(enabled = isUnread) { onMarkAsRead(notification.id) },
       shape = RoundedCornerShape(18.dp),
       colors = CardDefaults.cardColors(containerColor = Color.White),
       elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -211,8 +211,7 @@ fun NotificationItem(
               if (isUnread) {
                 Box(
                     modifier =
-                        Modifier
-                            .size(8.dp)
+                        Modifier.size(8.dp)
                             .background(
                                 color = accent.barColor,
                                 shape = RoundedCornerShape(999.dp),
@@ -246,33 +245,39 @@ private data class NotificationAccent(
 
 private fun UserIncidentNotification.notificationAccent(): NotificationAccent {
   return when (incidentType.trim().uppercase()) {
-    "ACCIDENTE" -> NotificationAccent(
-        barColor = Color(0xFFE04B4B),
-        iconBackground = Color(0xFFFDECEC),
-        icon = Icons.Default.ReportProblem,
-    )
-    "AVERÍA", "AVERIA" -> NotificationAccent(
-        barColor = Color(0xFFFFA07A),
-        iconBackground = Color(0xFFFFF0EA),
-        icon = Icons.Default.Build,
-    )
-    "SEGURIDAD" -> NotificationAccent(
-        barColor = Color(0xFF1F4B8F),
-        iconBackground = Color(0xFFEAF0FB),
-        icon = Icons.Default.Security,
-    )
-    else -> NotificationAccent(
-        barColor = Color(0xFF51677F),
-        iconBackground = Color(0xFFEAF0F5),
-        icon = Icons.Default.ReportProblem,
-    )
+    "ACCIDENTE" ->
+        NotificationAccent(
+            barColor = Color(0xFFE04B4B),
+            iconBackground = Color(0xFFFDECEC),
+            icon = Icons.Default.ReportProblem,
+        )
+    "AVERÍA",
+    "AVERIA" ->
+        NotificationAccent(
+            barColor = Color(0xFFFFA07A),
+            iconBackground = Color(0xFFFFF0EA),
+            icon = Icons.Default.Build,
+        )
+    "SEGURIDAD" ->
+        NotificationAccent(
+            barColor = Color(0xFF1F4B8F),
+            iconBackground = Color(0xFFEAF0FB),
+            icon = Icons.Default.Security,
+        )
+    else ->
+        NotificationAccent(
+            barColor = Color(0xFF51677F),
+            iconBackground = Color(0xFFEAF0F5),
+            icon = Icons.Default.ReportProblem,
+        )
   }
 }
 
 private fun UserIncidentNotification.notificationTitle(): String {
   return when (incidentType.trim().uppercase()) {
     "ACCIDENTE" -> "Incidente de tránsito reportado"
-    "AVERÍA", "AVERIA" -> "Unidad fuera de servicio"
+    "AVERÍA",
+    "AVERIA" -> "Unidad fuera de servicio"
     "SEGURIDAD" -> "Incidente de seguridad"
     else -> "Actualización de ruta"
   }

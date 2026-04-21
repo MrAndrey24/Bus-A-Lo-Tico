@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.components.mapview
 
 import androidx.compose.runtime.Composable
@@ -30,7 +34,7 @@ actual fun MapViewComponent(
     stops: List<RouteStop>,
     polylinePoints: List<Coordinate>,
     busLocation: Coordinate?,
-    flyToLocation: Coordinate?
+    flyToLocation: Coordinate?,
 ) {
 
   val currentPoint = Point.fromLngLat(coordinate.longitude, coordinate.latitude)

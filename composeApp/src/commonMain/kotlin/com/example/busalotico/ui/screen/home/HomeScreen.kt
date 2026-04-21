@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.screen.home
 
 import androidx.compose.foundation.background
@@ -58,142 +62,121 @@ fun HomeScreen(
     polylinePoints: List<Coordinate> = emptyList(),
     stops: List<RouteStop> = emptyList(),
     busLocation: Coordinate? = null,
-    flyToLocation: Coordinate? = null
+    flyToLocation: Coordinate? = null,
 ) {
-    var recenterTrigger by remember { mutableIntStateOf(0) }
-    var zoomInTrigger by remember { mutableIntStateOf(0) }
-    var zoomOutTrigger by remember { mutableIntStateOf(0) }
+  var recenterTrigger by remember { mutableIntStateOf(0) }
+  var zoomInTrigger by remember { mutableIntStateOf(0) }
+  var zoomOutTrigger by remember { mutableIntStateOf(0) }
 
-    val favoriteRoutes = remember(uiState.routes, uiState.favoriteRouteIds) {
-        uiState.routes.filter { uiState.favoriteRouteIds.contains(it.id) }
+  val favoriteRoutes =
+      remember(uiState.routes, uiState.favoriteRouteIds) {
+        uiState.routes
+            .filter { uiState.favoriteRouteIds.contains(it.id) }
             .map { it.toRouteListItemUi(uiState.favoriteRouteIds, uiState.routeRuntimeById) }
-    }
+      }
 
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberStandardBottomSheetState(
-            initialValue = SheetValue.PartiallyExpanded,
-            skipHiddenState = true,
-        )
-    )
+  val scaffoldState =
+      rememberBottomSheetScaffoldState(
+          bottomSheetState =
+              rememberStandardBottomSheetState(
+                  initialValue = SheetValue.PartiallyExpanded,
+                  skipHiddenState = true,
+              )
+      )
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetPeekHeight = 220.dp,
-        sheetContainerColor = Color(0xFFF1F3F6),
-        sheetContent = {
-            // Bottom Section: Favorites / Subscribed Routes
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "MIS RUTAS",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        letterSpacing = 1.2.sp
-                    )
-                    
-                    TextButton(onClick = onSelectRouteClick) {
-                        Text("Ver todas", style = MaterialTheme.typography.labelLarge)
-                    }
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                if (favoriteRoutes.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "No tienes rutas favoritas aún",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Button(onClick = onSelectRouteClick) {
-                                Text("Explorar rutas")
-                            }
-                        }
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(bottom = 24.dp)
-                    ) {
-                        items(favoriteRoutes, key = { it.id }) { route ->
-                            RouteSelectionCard(
-                                route = route,
-                                onClick = { 
-                                    uiState.routes.find { it.id == route.id }?.let { onRouteSelected(it) }
-                                },
-                                onToggleFavorite = { 
-                                    onToggleFavorite(route.id, !route.isFavorite)
-                                },
-                                onShowAdministrativeDetail = { 
-                                    onAdministrativeDetailClick(route.id)
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        modifier = modifier.fillMaxSize()
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            MapViewComponent(
-                coordinate = coordinate,
-                recenterTrigger = recenterTrigger,
-                zoomInTrigger = zoomInTrigger,
-                zoomOutTrigger = zoomOutTrigger,
-                polylinePoints = polylinePoints,
-                stops = stops,
-                busLocation = busLocation,
-                flyToLocation = flyToLocation
+  BottomSheetScaffold(
+      scaffoldState = scaffoldState,
+      sheetPeekHeight = 220.dp,
+      sheetContainerColor = Color(0xFFF1F3F6),
+      sheetContent = {
+        // Bottom Section: Favorites / Subscribed Routes
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(
+                text = "MIS RUTAS",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = 1.2.sp,
             )
 
-            // Overlays on Map
-            SearchBar(
-                query = uiState.searchQuery,
-                onQueryChange = onSearchQueryChange,
-                isSearching = uiState.isSearching,
-                searchResults = uiState.searchResults,
-                onRouteSelected = onRouteSelected,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 16.dp)
-            )
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 240.dp, end = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                ZoomControls(
-                    onZoomIn = { zoomInTrigger++ },
-                    onZoomOut = { zoomOutTrigger++ }
-                )
-                RecenterButton(
-                    onClick = { recenterTrigger++ }
-                )
+            TextButton(onClick = onSelectRouteClick) {
+              Text("Ver todas", style = MaterialTheme.typography.labelLarge)
             }
+          }
+
+          Spacer(Modifier.height(12.dp))
+
+          if (favoriteRoutes.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth().height(200.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+              Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "No tienes rutas favoritas aún",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = onSelectRouteClick) { Text("Explorar rutas") }
+              }
+            }
+          } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
+            ) {
+              items(favoriteRoutes, key = { it.id }) { route ->
+                RouteSelectionCard(
+                    route = route,
+                    onClick = {
+                      uiState.routes.find { it.id == route.id }?.let { onRouteSelected(it) }
+                    },
+                    onToggleFavorite = { onToggleFavorite(route.id, !route.isFavorite) },
+                    onShowAdministrativeDetail = { onAdministrativeDetailClick(route.id) },
+                )
+              }
+            }
+          }
         }
+      },
+      modifier = modifier.fillMaxSize(),
+  ) { padding ->
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+      MapViewComponent(
+          coordinate = coordinate,
+          recenterTrigger = recenterTrigger,
+          zoomInTrigger = zoomInTrigger,
+          zoomOutTrigger = zoomOutTrigger,
+          polylinePoints = polylinePoints,
+          stops = stops,
+          busLocation = busLocation,
+          flyToLocation = flyToLocation,
+      )
+
+      // Overlays on Map
+      SearchBar(
+          query = uiState.searchQuery,
+          onQueryChange = onSearchQueryChange,
+          isSearching = uiState.isSearching,
+          searchResults = uiState.searchResults,
+          onRouteSelected = onRouteSelected,
+          modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
+      )
+
+      Column(
+          modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 240.dp, end = 16.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        ZoomControls(onZoomIn = { zoomInTrigger++ }, onZoomOut = { zoomOutTrigger++ })
+        RecenterButton(onClick = { recenterTrigger++ })
+      }
     }
+  }
 }

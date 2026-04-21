@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.components.input
 
 import androidx.compose.foundation.clickable
@@ -39,72 +43,69 @@ fun DropdownSelectField(
     enabled: Boolean,
     options: List<String>,
     onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var textFieldSize by remember { mutableStateOf(IntSize.Zero) }
-    val density = LocalDensity.current
+  var expanded by remember { mutableStateOf(false) }
+  var textFieldSize by remember { mutableStateOf(IntSize.Zero) }
+  val density = LocalDensity.current
 
-    Box(modifier = modifier.fillMaxWidth()) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
+  Box(modifier = modifier.fillMaxWidth()) {
+    Surface(
+        modifier =
+            Modifier.fillMaxWidth()
                 .height(50.dp)
-                .onGloballyPositioned { coordinates ->
-                    textFieldSize = coordinates.size
-                }
+                .onGloballyPositioned { coordinates -> textFieldSize = coordinates.size }
                 .clickable(enabled = enabled) { expanded = true },
-            shape = RoundedCornerShape(16.dp),
-            color = if (enabled) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = if (value.isBlank()) placeholder else value,
-                    color = if (value.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                    fontSize = 15.sp
-                )
-                Icon(
-                    imageVector = Icons.Filled.ArrowDropDown,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        DropdownMenu(
-            modifier = Modifier.width(with(density) { textFieldSize.width.toDp() }),
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(14.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 0.dp,
-            shadowElevation = 4.dp
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = option,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    },
-                    colors = MenuDefaults.itemColors(
-                        textColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    onClick = {
-                        onSelect(option)
-                        expanded = false
-                    }
-                )
-            }
-        }
+        shape = RoundedCornerShape(16.dp),
+        color =
+            if (enabled) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+    ) {
+      Row(
+          modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween,
+      ) {
+        Text(
+            text = if (value.isBlank()) placeholder else value,
+            color =
+                if (value.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.onSurface,
+            fontSize = 15.sp,
+        )
+        Icon(
+            imageVector = Icons.Filled.ArrowDropDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
     }
+
+    DropdownMenu(
+        modifier = Modifier.width(with(density) { textFieldSize.width.toDp() }),
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+        shape = RoundedCornerShape(14.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 4.dp,
+    ) {
+      options.forEach { option ->
+        DropdownMenuItem(
+            text = {
+              Text(
+                  text = option,
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+            },
+            colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.onSurface),
+            onClick = {
+              onSelect(option)
+              expanded = false
+            },
+        )
+      }
+    }
+  }
 }

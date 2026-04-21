@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.theme
 
 import androidx.compose.material3.Typography
@@ -14,24 +18,16 @@ import org.jetbrains.compose.resources.Font
 
 @Composable
 fun appTypography(): Typography {
-    val fontFamily = FontFamily(
-        Font(Res.font.plus_jakarta_sans_regular, FontWeight.Normal),
-        Font(Res.font.plus_jakarta_sans_medium, FontWeight.Medium),
-        Font(Res.font.plus_jakarta_sans_bold, FontWeight.Bold)
-    )
-    return androidx.compose.material3.Typography(
-        titleLarge = TextStyle(
-            fontFamily = fontFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 22.sp
-        ),
-        bodyLarge = TextStyle(
-            fontFamily = fontFamily,
-            fontSize = 16.sp
-        ),
-        bodyMedium = TextStyle(
-            fontFamily = fontFamily,
-            fontSize = 14.sp
-        ),
-    )
+  val fontFamily =
+      FontFamily(
+          Font(Res.font.plus_jakarta_sans_regular, FontWeight.Normal),
+          Font(Res.font.plus_jakarta_sans_medium, FontWeight.Medium),
+          Font(Res.font.plus_jakarta_sans_bold, FontWeight.Bold),
+      )
+  return androidx.compose.material3.Typography(
+      titleLarge =
+          TextStyle(fontFamily = fontFamily, fontWeight = FontWeight.Bold, fontSize = 22.sp),
+      bodyLarge = TextStyle(fontFamily = fontFamily, fontSize = 16.sp),
+      bodyMedium = TextStyle(fontFamily = fontFamily, fontSize = 14.sp),
+  )
 }
