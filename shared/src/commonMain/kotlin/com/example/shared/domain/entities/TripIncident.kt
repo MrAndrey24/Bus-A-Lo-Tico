@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.domain.entities
 
 data class TripIncident(
@@ -9,7 +13,7 @@ data class TripIncident(
 )
 
 enum class TripIncidentType {
-    ACCIDENT,
-    BREAKDOWN,
-    SECURITY,
+  ACCIDENT,
+  BREAKDOWN,
+  SECURITY,
 }

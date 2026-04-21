@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.components.searchBar
 
 import androidx.compose.foundation.clickable
@@ -72,7 +76,10 @@ fun SearchBar(
               onValueChange = onQueryChange,
               modifier = Modifier.weight(1f).padding(vertical = 12.dp),
               singleLine = true,
-              textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+              textStyle =
+                  MaterialTheme.typography.bodyMedium.copy(
+                      color = MaterialTheme.colorScheme.onSurface
+                  ),
               decorationBox = { innerTextField ->
                 Box {
                   if (query.isEmpty()) {
@@ -159,7 +166,10 @@ fun SearchBar(
 @Composable
 private fun SearchResultItem(route: Route, onClick: () -> Unit) {
   Row(
-      modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp),
+      modifier =
+          Modifier.fillMaxWidth()
+              .clickable(onClick = onClick)
+              .padding(horizontal = 16.dp, vertical = 12.dp),
       horizontalArrangement = Arrangement.spacedBy(12.dp),
       verticalAlignment = Alignment.CenterVertically,
   ) {

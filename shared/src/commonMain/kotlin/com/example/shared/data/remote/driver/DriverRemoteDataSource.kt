@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.data.remote.driver
 
 import com.example.shared.data.remote.driver.dto.DriverDto
@@ -8,57 +12,51 @@ import dev.gitlive.firebase.firestore.where
 
 class DriverRemoteDataSource : IDriverRemoteDataSource {
 
-    override suspend fun getDriver(driverId: String): Driver? {
-        val snapshot = Firebase.firestore
-            .collection(DRIVERS_COLLECTION)
-            .document(driverId)
-            .get()
+  override suspend fun getDriver(driverId: String): Driver? {
+    val snapshot = Firebase.firestore.collection(DRIVERS_COLLECTION).document(driverId).get()
 
-        if (!snapshot.exists) return null
+    if (!snapshot.exists) return null
 
-        val dto = snapshot.data(DriverDto.serializer())
-        return dto.toDomain(snapshot.id)
-    }
+    val dto = snapshot.data(DriverDto.serializer())
+    return dto.toDomain(snapshot.id)
+  }
 
-    override suspend fun getDriversByCompany(companyId: String): List<Driver> {
-        return runCatching {
-            Firebase.firestore
-                .collection(DRIVERS_COLLECTION)
-                .where { "companyId" equalTo companyId }
-                .get()
-                .documents
-                .map { snapshot -> snapshot.data(DriverDto.serializer()).toDomain(snapshot.id) }
-        }.getOrElse {
-            Firebase.firestore
-                .collection(DRIVERS_COLLECTION)
-                .get()
-                .documents
-                .map { snapshot -> snapshot.data(DriverDto.serializer()).toDomain(snapshot.id) }
-                .filter { it.companyId == companyId }
+  override suspend fun getDriversByCompany(companyId: String): List<Driver> {
+    return runCatching {
+          Firebase.firestore
+              .collection(DRIVERS_COLLECTION)
+              .where { "companyId" equalTo companyId }
+              .get()
+              .documents
+              .map { snapshot -> snapshot.data(DriverDto.serializer()).toDomain(snapshot.id) }
         }
-    }
+        .getOrElse {
+          Firebase.firestore
+              .collection(DRIVERS_COLLECTION)
+              .get()
+              .documents
+              .map { snapshot -> snapshot.data(DriverDto.serializer()).toDomain(snapshot.id) }
+              .filter { it.companyId == companyId }
+        }
+  }
 
-    override suspend fun upsertDriver(driverId: String, name: String, companyId: String?): Driver {
-        val driverRef = Firebase.firestore
-            .collection(DRIVERS_COLLECTION)
-            .document(driverId)
+  override suspend fun upsertDriver(driverId: String, name: String, companyId: String?): Driver {
+    val driverRef = Firebase.firestore.collection(DRIVERS_COLLECTION).document(driverId)
 
-        val dto = DriverDto(
+    val dto =
+        DriverDto(
             name = name,
             companyId = companyId,
         )
-        driverRef.set(dto)
-        return dto.toDomain(driverId)
-    }
+    driverRef.set(dto)
+    return dto.toDomain(driverId)
+  }
 
-    override suspend fun deleteDriver(driverId: String) {
-        Firebase.firestore
-            .collection(DRIVERS_COLLECTION)
-            .document(driverId)
-            .delete()
-    }
+  override suspend fun deleteDriver(driverId: String) {
+    Firebase.firestore.collection(DRIVERS_COLLECTION).document(driverId).delete()
+  }
 
-    private companion object {
-        const val DRIVERS_COLLECTION = "drivers"
-    }
+  private companion object {
+    const val DRIVERS_COLLECTION = "drivers"
+  }
 }

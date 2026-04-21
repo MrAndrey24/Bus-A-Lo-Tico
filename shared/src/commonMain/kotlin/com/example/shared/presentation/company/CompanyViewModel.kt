@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.company
 
 import androidx.lifecycle.ViewModel
@@ -9,16 +13,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class CompanyViewModel(
-    private val getCompanyUseCase: GetCompanyUseCase
-) : ViewModel() {
+class CompanyViewModel(private val getCompanyUseCase: GetCompanyUseCase) : ViewModel() {
 
-    private val _company = MutableStateFlow<Company?>(null)
-    val company: StateFlow<Company?> = _company.asStateFlow()
+  private val _company = MutableStateFlow<Company?>(null)
+  val company: StateFlow<Company?> = _company.asStateFlow()
 
-    fun loadCompany(companyId: String) {
-        viewModelScope.launch {
-            _company.value = getCompanyUseCase(companyId)
-        }
-    }
+  fun loadCompany(companyId: String) {
+    viewModelScope.launch { _company.value = getCompanyUseCase(companyId) }
+  }
 }

@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.components
 
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,27 +24,28 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SelectRouteButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.padding(bottom = 72.dp),
-        shape = RoundedCornerShape(50.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-        elevation = ButtonDefaults.buttonElevation(6.dp),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Place,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Seleccione una ruta",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
+  Button(
+      onClick = onClick,
+      modifier = Modifier.padding(bottom = 72.dp),
+      shape = RoundedCornerShape(50.dp),
+      colors =
+          ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.primary,
+              contentColor = MaterialTheme.colorScheme.onPrimary,
+          ),
+      elevation = ButtonDefaults.buttonElevation(6.dp),
+      contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
+  ) {
+    Icon(
+        imageVector = Icons.Default.Place,
+        contentDescription = null,
+        modifier = Modifier.size(18.dp),
+    )
+    Spacer(modifier = Modifier.width(8.dp))
+    Text(
+        text = "Seleccione una ruta",
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+    )
+  }
 }

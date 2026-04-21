@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.data.remote.datasource.notification
 
 import com.example.shared.data.remote.dto.UserIncidentNotificationDto
@@ -12,13 +16,17 @@ class NotificationRemoteDataSource : INotificationRemoteDataSource {
   override fun listenToUserNotifications(userId: String): Flow<List<UserIncidentNotificationDto>> {
     val normalizedUserId = userId.trim()
     val query =
-        Firebase.firestore.collection("users").document(normalizedUserId).collection("notifications")
+        Firebase.firestore
+            .collection("users")
+            .document(normalizedUserId)
+            .collection("notifications")
 
     return query.snapshots().map { querySnapshot ->
       querySnapshot.documents
           .mapNotNull { doc ->
             try {
-              // Always use the Firestore document id to support legacy documents without `id` field.
+              // Always use the Firestore document id to support legacy documents without `id`
+              // field.
               doc.data<UserIncidentNotificationDto>().copy(id = doc.id)
             } catch (e: Exception) {
               null
@@ -39,9 +47,9 @@ class NotificationRemoteDataSource : INotificationRemoteDataSource {
 
     Firebase.firestore
         .collection("users")
-      .document(normalizedUserId)
+        .document(normalizedUserId)
         .collection("notifications")
-      .document(normalizedNotificationId)
+        .document(normalizedNotificationId)
         .update("readAt" to Clock.System.now().toEpochMilliseconds())
   }
 
@@ -56,9 +64,9 @@ class NotificationRemoteDataSource : INotificationRemoteDataSource {
 
     Firebase.firestore
         .collection("users")
-      .document(normalizedUserId)
+        .document(normalizedUserId)
         .collection("notifications")
-      .document(normalizedNotificationId)
+        .document(normalizedNotificationId)
         .delete()
   }
 

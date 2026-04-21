@@ -1,9 +1,11 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.screen.profile
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Badge
@@ -40,8 +43,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.busalotico.ui.components.button.PillActionButton
-import com.example.busalotico.ui.components.input.SearchableCompanySelectField
 import com.example.busalotico.ui.components.header.ScreenHeader
+import com.example.busalotico.ui.components.input.SearchableCompanySelectField
 import com.example.shared.domain.entities.Company
 
 @Composable
@@ -58,9 +61,8 @@ fun ProfileScreen(
     onOpenNotifications: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-  var selectedCompanyId by remember(currentCompanyId, companies) {
-    mutableStateOf(currentCompanyId.orEmpty())
-  }
+  var selectedCompanyId by
+      remember(currentCompanyId, companies) { mutableStateOf(currentCompanyId.orEmpty()) }
   val selectedCompanyName = companies.firstOrNull { it.id == selectedCompanyId }?.name.orEmpty()
   val showCompanyEditor = onUpdateCompany != null
   val showPassengerNotifications = userRole.equals("Pasajero", ignoreCase = true)
@@ -167,10 +169,12 @@ fun ProfileScreen(
                   modifier = Modifier.fillMaxWidth(),
                   shape = RoundedCornerShape(24.dp),
                   color = profileCardBackground,
-                  border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
+                  border =
+                      BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
               ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
+                    modifier =
+                        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 14.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                   Row(
@@ -199,44 +203,45 @@ fun ProfileScreen(
                           color = MaterialTheme.colorScheme.onSurfaceVariant,
                           fontWeight = FontWeight.SemiBold,
                       )
-                      selectedCompanyName.takeIf { it.isNotBlank() }?.let { companyName ->
-                        Text(
-                            text = companyName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                      }
+                      selectedCompanyName
+                          .takeIf { it.isNotBlank() }
+                          ?.let { companyName ->
+                            Text(
+                                text = companyName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                          }
                     }
                   }
 
-                  selectedCompanyName.takeIf { it.isNotBlank() }?.let {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                      Box(
-                          modifier =
-                              Modifier.size(7.dp)
-                                  .background(Color(0xFF37B24D), CircleShape)
-                      )
-                      Text(
-                          text = "Verificada",
-                          style = MaterialTheme.typography.labelSmall,
-                          color = MaterialTheme.colorScheme.onSurfaceVariant,
-                          fontWeight = FontWeight.SemiBold,
-                      )
-                    }
-                  }
+                  selectedCompanyName
+                      .takeIf { it.isNotBlank() }
+                      ?.let {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                          Box(
+                              modifier =
+                                  Modifier.size(7.dp).background(Color(0xFF37B24D), CircleShape)
+                          )
+                          Text(
+                              text = "Verificada",
+                              style = MaterialTheme.typography.labelSmall,
+                              color = MaterialTheme.colorScheme.onSurfaceVariant,
+                              fontWeight = FontWeight.SemiBold,
+                          )
+                        }
+                      }
 
                   SearchableCompanySelectField(
                       value = selectedCompanyName,
                       placeholder = if (companiesLoading) "Cargando empresas..." else "Empresa",
                       enabled = companies.isNotEmpty() && !companiesLoading,
                       companies = companies,
-                      onSelect = { company ->
-                        selectedCompanyId = company.id
-                      },
+                      onSelect = { company -> selectedCompanyId = company.id },
                       containerColor = inputBackground,
                       border = null,
                   )

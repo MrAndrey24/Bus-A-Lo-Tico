@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.route
 
 import com.example.shared.domain.entities.Route
@@ -18,14 +22,14 @@ data class AdministrativeRouteRuntimeStatus(
 )
 
 enum class AdministrativeRouteStatus {
-    IDLE,
-    ACTIVE,
-    DELAYED,
+  IDLE,
+  ACTIVE,
+  DELAYED,
 }
 
 enum class AdministrativeScheduleRuntimeStatus {
-    SCHEDULED,
-    ACTIVE,
-    DELAYED,
-    COMPLETED,
+  SCHEDULED,
+  ACTIVE,
+  DELAYED,
+  COMPLETED,
 }
