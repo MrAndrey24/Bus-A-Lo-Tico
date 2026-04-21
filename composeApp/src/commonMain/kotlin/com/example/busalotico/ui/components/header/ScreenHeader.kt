@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.ui.components.header
 
 import androidx.compose.foundation.layout.Arrangement
@@ -25,47 +29,39 @@ fun ScreenHeader(
     leadingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
     sideSlotWidth: Dp = 48.dp,
-    showDivider: Boolean = true
+    showDivider: Boolean = true,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.width(sideSlotWidth),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                leadingContent?.invoke()
-            }
+  Column(modifier = modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(modifier = Modifier.width(sideSlotWidth), contentAlignment = Alignment.CenterStart) {
+        leadingContent?.invoke()
+      }
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
 
-            Box(
-                modifier = Modifier.width(sideSlotWidth),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                trailingContent?.invoke()
-            }
-        }
-
-        if (showDivider) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-        }
+      Box(modifier = Modifier.width(sideSlotWidth), contentAlignment = Alignment.CenterEnd) {
+        trailingContent?.invoke()
+      }
     }
+
+    if (showDivider) {
+      HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+    }
+  }
 }

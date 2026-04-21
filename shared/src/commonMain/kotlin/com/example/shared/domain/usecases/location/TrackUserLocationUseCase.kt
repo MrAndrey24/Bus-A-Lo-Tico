@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.domain.usecases.location
 
 import com.example.shared.data.repository.location.ILocationRepository
@@ -6,7 +10,7 @@ import com.example.shared.domain.location.PlatformLocationTracker
 import kotlinx.coroutines.flow.Flow
 
 class TrackUserLocationUseCase(private val repository: ILocationRepository) {
-    operator fun invoke(tracker: PlatformLocationTracker): Flow<Coordinate> {
-        return repository.getLocationUpdates(tracker)
-    }
+  operator fun invoke(tracker: PlatformLocationTracker): Flow<Coordinate> {
+    return repository.getLocationUpdates(tracker)
+  }
 }

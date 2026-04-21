@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.domain.entities
 
 data class TripExecution(
@@ -15,10 +19,10 @@ data class TripExecution(
 )
 
 enum class TripExecutionStatus {
-    PENDING,
-    IN_PROGRESS,
-    DELAYED,
-    TRANSFERRED,
-    COMPLETED,
-    CANCELLED,
+  PENDING,
+  IN_PROGRESS,
+  DELAYED,
+  TRANSFERRED,
+  COMPLETED,
+  CANCELLED,
 }

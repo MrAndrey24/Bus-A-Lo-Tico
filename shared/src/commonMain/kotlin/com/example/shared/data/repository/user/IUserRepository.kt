@@ -1,18 +1,26 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.data.repository.user
 
 import com.example.shared.domain.entities.UserProfile
 import com.example.shared.domain.entities.UserRole
 
 interface IUserRepository {
-    suspend fun getUserProfile(userId: String): UserProfile?
-    suspend fun getFavoriteRouteIds(userId: String): Set<String>
-    suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String>
-    suspend fun upsertUserProfile(
-        userId: String,
-        email: String,
-        name: String,
-        role: UserRole,
-        companyId: String? = null,
-    ): UserProfile
-    suspend fun setRouteFavorite(userId: String, routeId: String, isFavorite: Boolean)
+  suspend fun getUserProfile(userId: String): UserProfile?
+
+  suspend fun getFavoriteRouteIds(userId: String): Set<String>
+
+  suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String>
+
+  suspend fun upsertUserProfile(
+      userId: String,
+      email: String,
+      name: String,
+      role: UserRole,
+      companyId: String? = null,
+  ): UserProfile
+
+  suspend fun setRouteFavorite(userId: String, routeId: String, isFavorite: Boolean)
 }
