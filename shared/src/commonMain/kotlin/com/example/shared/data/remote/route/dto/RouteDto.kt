@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.data.remote.route.dto
 
 import com.example.shared.domain.entities.Route
@@ -26,55 +30,55 @@ data class RouteDto(
     val isLive: Boolean = true,
     val isFavorite: Boolean = false,
 ) {
-    fun toDomain(documentId: String, stops: List<RouteStop>, schedules: List<RouteSchedule>): Route {
-        return Route(
-            id = documentId,
-            code = code,
-            name = name,
-            companyId = companyId,
-            operator = operator,
-            startLocation = startLocation.toDomain(),
-            endLocation = endLocation.toDomain(),
-            distanceKm = distanceKm,
-            slopeCategory = slopeCategory,
-            pavedPercentage = pavedPercentage,
-            surveyYear = surveyYear,
-            fareCrc = fareCrc,
-            acceptsCardPayment = acceptsCardPayment,
-            statusText = statusText,
-            etaText = etaText,
-            frequencyText = frequencyText,
-            isActive = isActive,
-            isLive = isLive,
-            isFavorite = isFavorite,
-            stops = stops,
-            schedules = schedules,
-            polylinePoints = emptyList()
-        )
-    }
+  fun toDomain(documentId: String, stops: List<RouteStop>, schedules: List<RouteSchedule>): Route {
+    return Route(
+        id = documentId,
+        code = code,
+        name = name,
+        companyId = companyId,
+        operator = operator,
+        startLocation = startLocation.toDomain(),
+        endLocation = endLocation.toDomain(),
+        distanceKm = distanceKm,
+        slopeCategory = slopeCategory,
+        pavedPercentage = pavedPercentage,
+        surveyYear = surveyYear,
+        fareCrc = fareCrc,
+        acceptsCardPayment = acceptsCardPayment,
+        statusText = statusText,
+        etaText = etaText,
+        frequencyText = frequencyText,
+        isActive = isActive,
+        isLive = isLive,
+        isFavorite = isFavorite,
+        stops = stops,
+        schedules = schedules,
+        polylinePoints = emptyList(),
+    )
+  }
 
-    companion object {
-        fun fromDomain(route: Route): RouteDto {
-            return RouteDto(
-                code = route.code,
-                name = route.name,
-                companyId = route.companyId,
-                operator = route.operator,
-                startLocation = RouteLocationDto.fromDomain(route.startLocation),
-                endLocation = RouteLocationDto.fromDomain(route.endLocation),
-                distanceKm = route.distanceKm,
-                slopeCategory = route.slopeCategory,
-                pavedPercentage = route.pavedPercentage,
-                surveyYear = route.surveyYear,
-                fareCrc = route.fareCrc,
-                acceptsCardPayment = route.acceptsCardPayment,
-                statusText = route.statusText,
-                etaText = route.etaText,
-                frequencyText = route.frequencyText,
-                isActive = route.isActive,
-                isLive = route.isLive,
-                isFavorite = route.isFavorite,
-            )
-        }
+  companion object {
+    fun fromDomain(route: Route): RouteDto {
+      return RouteDto(
+          code = route.code,
+          name = route.name,
+          companyId = route.companyId,
+          operator = route.operator,
+          startLocation = RouteLocationDto.fromDomain(route.startLocation),
+          endLocation = RouteLocationDto.fromDomain(route.endLocation),
+          distanceKm = route.distanceKm,
+          slopeCategory = route.slopeCategory,
+          pavedPercentage = route.pavedPercentage,
+          surveyYear = route.surveyYear,
+          fareCrc = route.fareCrc,
+          acceptsCardPayment = route.acceptsCardPayment,
+          statusText = route.statusText,
+          etaText = route.etaText,
+          frequencyText = route.frequencyText,
+          isActive = route.isActive,
+          isLive = route.isLive,
+          isFavorite = route.isFavorite,
+      )
     }
+  }
 }

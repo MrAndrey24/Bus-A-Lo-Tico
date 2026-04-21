@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.route
 
 import androidx.lifecycle.ViewModel
@@ -6,6 +10,7 @@ import com.example.shared.data.repository.mapbox.IMapboxRepository
 import com.example.shared.data.repository.route.IRouteRepository
 import com.example.shared.domain.entities.Coordinate
 import com.example.shared.domain.entities.RouteStop
+import kotlin.time.Clock
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,11 +20,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
 class RouteDetailViewModel(
-  private val mapboxRepository: IMapboxRepository,
-  private val routeRepository: IRouteRepository,
+    private val mapboxRepository: IMapboxRepository,
+    private val routeRepository: IRouteRepository,
 ) : ViewModel() {
 
   private val _selectedRouteId = MutableStateFlow("")
@@ -61,9 +65,8 @@ class RouteDetailViewModel(
           _routeName.value = route.name
           _currentStopIndex.value = 0
 
-          val coordinates = route.stops
-            .map { Coordinate(it.latitude, it.longitude) }
-            .toMutableList()
+          val coordinates =
+              route.stops.map { Coordinate(it.latitude, it.longitude) }.toMutableList()
 
           loadMapboxLine(coordinates)
           loadEtas(route.stops.map { Coordinate(it.latitude, it.longitude) })
@@ -115,18 +118,19 @@ class RouteDetailViewModel(
     simulationJob?.cancel()
     _isSimulationCompleted.value = false
 
-    simulationJob = viewModelScope.launch {
-      if (points.isEmpty()) return@launch
+    simulationJob =
+        viewModelScope.launch {
+          if (points.isEmpty()) return@launch
 
-      for (point in points) {
-        if (!isActive) break
-        _busLocation.value = point
-        updateCurrentStop(point)
-        delay(3000)
-      }
+          for (point in points) {
+            if (!isActive) break
+            _busLocation.value = point
+            updateCurrentStop(point)
+            delay(3000)
+          }
 
-      _isSimulationCompleted.value = true
-    }
+          _isSimulationCompleted.value = true
+        }
   }
 
   private fun updateCurrentStop(busLocation: Coordinate) {

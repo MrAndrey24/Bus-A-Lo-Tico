@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.di.modules
 
 import com.example.shared.presentation.admin.AdminCompanyViewModel
@@ -14,14 +18,14 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val presentationModule = module {
-    viewModel { AdminCompanyViewModel(get(), get(), get(), get()) }
-    viewModel { AuthViewModel(get(), get(), get()) }
-    viewModel { CompanyListViewModel(get()) }
-    viewModel { LocationViewModel(get()) }
-    viewModel { CompanyViewModel(get()) }
-    viewModel { RouteViewModel(get(), get(), get(), get(), get()) }
-    viewModel { DriverRouteViewModel(get(), get(), get(), get(), get()) }
-    viewModel { RouteAdministrativeDetailViewModel(get(), get(), get()) }
-    viewModel { NotificationViewModel(get(), get()) }
-    viewModel { RouteDetailViewModel(get(), get()) }
+  viewModel { AdminCompanyViewModel(get(), get(), get(), get()) }
+  viewModel { AuthViewModel(get(), get(), get()) }
+  viewModel { CompanyListViewModel(get()) }
+  viewModel { LocationViewModel(get()) }
+  viewModel { CompanyViewModel(get()) }
+  viewModel { RouteViewModel(get(), get(), get(), get(), get()) }
+  viewModel { DriverRouteViewModel(get(), get(), get(), get(), get()) }
+  viewModel { RouteAdministrativeDetailViewModel(get(), get(), get()) }
+  viewModel { NotificationViewModel(get(), get()) }
+  viewModel { RouteDetailViewModel(get(), get()) }
 }

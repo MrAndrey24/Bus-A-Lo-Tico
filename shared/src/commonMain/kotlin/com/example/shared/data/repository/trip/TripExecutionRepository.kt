@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.data.repository.trip
 
 import com.example.shared.data.remote.trip.ITripExecutionRemoteDataSource
@@ -8,31 +12,31 @@ class TripExecutionRepository(
     private val remoteDataSource: ITripExecutionRemoteDataSource,
 ) : ITripExecutionRepository {
 
-    override suspend fun createTripExecution(tripExecution: TripExecution): TripExecution {
-        return remoteDataSource.createTripExecution(tripExecution)
-    }
+  override suspend fun createTripExecution(tripExecution: TripExecution): TripExecution {
+    return remoteDataSource.createTripExecution(tripExecution)
+  }
 
-    override suspend fun updateTripExecution(tripExecution: TripExecution): TripExecution {
-        return remoteDataSource.updateTripExecution(tripExecution)
-    }
+  override suspend fun updateTripExecution(tripExecution: TripExecution): TripExecution {
+    return remoteDataSource.updateTripExecution(tripExecution)
+  }
 
-    override suspend fun getTripExecution(tripExecutionId: String): TripExecution? {
-        return remoteDataSource.getTripExecution(tripExecutionId)
-    }
+  override suspend fun getTripExecution(tripExecutionId: String): TripExecution? {
+    return remoteDataSource.getTripExecution(tripExecutionId)
+  }
 
-    override suspend fun getTripExecutionsByDriver(driverId: String): List<TripExecution> {
-        return remoteDataSource.getTripExecutionsByDriver(driverId)
-    }
+  override suspend fun getTripExecutionsByDriver(driverId: String): List<TripExecution> {
+    return remoteDataSource.getTripExecutionsByDriver(driverId)
+  }
 
-    override suspend fun addIncident(tripExecutionId: String, incident: TripIncident): TripIncident {
-        return remoteDataSource.addIncident(tripExecutionId, incident)
-    }
+  override suspend fun addIncident(tripExecutionId: String, incident: TripIncident): TripIncident {
+    return remoteDataSource.addIncident(tripExecutionId, incident)
+  }
 
-    override suspend fun getIncidents(tripExecutionId: String): List<TripIncident> {
-        return remoteDataSource.getIncidents(tripExecutionId)
-    }
+  override suspend fun getIncidents(tripExecutionId: String): List<TripIncident> {
+    return remoteDataSource.getIncidents(tripExecutionId)
+  }
 
-    override suspend fun deleteIncident(tripExecutionId: String, incidentId: String) {
-        remoteDataSource.deleteIncident(tripExecutionId, incidentId)
-    }
+  override suspend fun deleteIncident(tripExecutionId: String, incidentId: String) {
+    remoteDataSource.deleteIncident(tripExecutionId, incidentId)
+  }
 }

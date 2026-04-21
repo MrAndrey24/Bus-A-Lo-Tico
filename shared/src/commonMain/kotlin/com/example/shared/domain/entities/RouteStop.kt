@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.domain.entities
 
 data class RouteStop(
@@ -5,5 +9,5 @@ data class RouteStop(
     val name: String,
     val latitude: Double,
     val longitude: Double,
-    val order: Int
+    val order: Int,
 )

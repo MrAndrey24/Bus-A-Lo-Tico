@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.busalotico.data
 
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -7,5 +11,5 @@ data class PermissionRequest(
     val permission: Permission,
     val title: String,
     val description: String,
-    val icon: ImageVector
+    val icon: ImageVector,
 )

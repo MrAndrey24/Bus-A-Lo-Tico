@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.presentation.route
 
 import com.example.shared.domain.entities.Route
@@ -10,7 +14,7 @@ data class RouteUiState(
     val errorMessage: String? = null,
     val searchQuery: String = "",
     val searchResults: List<Route> = emptyList(),
-    val isSearching: Boolean = false
+    val isSearching: Boolean = false,
 )
 
 data class RouteRuntimeSummary(
@@ -19,7 +23,7 @@ data class RouteRuntimeSummary(
 )
 
 enum class RouteRuntimeStatus {
-    IDLE,
-    ACTIVE,
-    DELAYED,
+  IDLE,
+  ACTIVE,
+  DELAYED,
 }

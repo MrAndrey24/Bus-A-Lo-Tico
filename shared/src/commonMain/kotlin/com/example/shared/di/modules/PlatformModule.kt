@@ -1,5 +1,7 @@
+/**
+ * Copyright (c) 2026 Andrey Acosta Ramirez, Fabiana Milanés Sánchez, Isaac Felipe Castro Sanabria, Maureen León Castro
+ * All Rights Reserved.
+ */
 package com.example.shared.di.modules
 
-import org.koin.core.module.Module
-
-//expect fun platformModule() : Module
+// expect fun platformModule() : Module
