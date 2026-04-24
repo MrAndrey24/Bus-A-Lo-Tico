@@ -34,6 +34,8 @@ El proyecto está organizado en módulos que facilitan la reutilización de cód
 
 * **[/iosApp](./iosApp/iosApp)**: Punto de entrada para la plataforma iOS, actuando como el contenedor nativo necesario para desplegar la aplicación en dispositivos Apple.
 
+## Arquitectura
+
 ![Arquitectura](./docs/figure/figure0.png)
 
 ## 🛠️ Características Principales
@@ -44,6 +46,15 @@ El proyecto está organizado en módulos que facilitan la reutilización de cód
 - **🔖 Mis Rutas**: Acceso rápido a las líneas de autobús guardadas como favoritas por el usuario.
 - **📊 Datos de Operación**: Información sobre empresas autobuseras, frecuencias estimadas y alertas de servicio.
 - **👤 Perfil de Usuario**: Gestión de preferencias personales y sincronización de datos entre plataformas.
+
+## Diagrama de Secuencia Seguimiento de Ruta
+![Seguimiento de Ruta](./docs/figure/figure1.png)
+
+## Diagrama de Secuencia Detalle de Ruta
+![Detalle Ruta](./docs/figure/figure2.png)
+
+## Diagrama de Secuencia Auth
+![Auth](./docs/figure/figure2.png)
 
 ## ⚙️ Guía de Configuración
 
