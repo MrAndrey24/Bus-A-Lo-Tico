@@ -34,6 +34,8 @@ El proyecto está organizado en módulos que facilitan la reutilización de cód
 
 * **[/iosApp](./iosApp/iosApp)**: Punto de entrada para la plataforma iOS, actuando como el contenedor nativo necesario para desplegar la aplicación en dispositivos Apple.
 
+![Arquitectura](./docs/figure/figure0.png)
+
 ## 🛠️ Características Principales
 
 - **🗺️ Geoposición de Rutas**: Integración con **Mapbox** para visualizar el recorrido exacto de las líneas de bus y la ubicación de las paradas.
