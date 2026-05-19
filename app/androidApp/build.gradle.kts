@@ -26,8 +26,8 @@ kotlin {
   compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
 
   dependencies {
-    implementation(projects.composeApp)
-    implementation(projects.shared)
+    implementation(projects.app.shared)
+    implementation(projects.app.shared)
 
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.androidx.activity.compose)
@@ -41,7 +41,7 @@ kotlin {
   }
 }
 
-// To get more info: https://developer.android.com/build/build-variants
+
 android {
   namespace = "com.example.busalotico"
   compileSdk = libs.versions.android.compileSdk.get().toInt()
