@@ -21,27 +21,49 @@ plugins {
 }
 
 kotlin {
-  jvm("desktop")
+  iosArm64()
+  iosSimulatorArm64()
 
-  // Target declarations
-  androidLibrary {
-    namespace = "com.example.shared"
-    compileSdk = 36
+  android {
+    namespace = "com.example.busalotico.sharedLogic"
+    compileSdk {
+      version = release(36) {
+        minorApiLevel = 1
+      }
+    }
     minSdk = 24
 
-    withHostTestBuilder {}
+    withHostTestBuilder {
+    }
 
-    withDeviceTestBuilder { sourceSetTreeName = "test" }
-        .configure { instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+    withDeviceTestBuilder {
+      sourceSetTreeName = "test"
+    }.configure {
+      instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
   }
 
-  val xcfName = "sharedKit"
+  jvm("desktop")
 
-  iosX64 { binaries.framework { baseName = xcfName } }
+  val xcfName = "sharedLogicKit"
 
-  iosArm64 { binaries.framework { baseName = xcfName } }
+  iosX64 {
+    binaries.framework {
+      baseName = xcfName
+    }
+  }
 
-  iosSimulatorArm64 { binaries.framework { baseName = xcfName } }
+  iosArm64 {
+    binaries.framework {
+      baseName = xcfName
+    }
+  }
+
+  iosSimulatorArm64 {
+    binaries.framework {
+      baseName = xcfName
+    }
+  }
 
   sourceSets {
     commonMain {
@@ -81,11 +103,9 @@ kotlin {
 
     androidMain {
       dependencies {
-        // --- AQUÍ ESTÁ EL ARREGLO PARA EL ERROR ---
-        // Motor de Ktor para Android (OkHttp es el recomendado)
         implementation(libs.ktor.client.okhttp)
 
-        // Requerido por GitLive Firebase Android artifacts
+        // GitLive Firebase
         implementation(project.dependencies.platform(libs.firebase.bom))
 
         // Koin & Coroutines Android
@@ -104,7 +124,7 @@ kotlin {
 
     iosMain {
       dependencies {
-        // Motor de Ktor para iOS (Darwin)
+        // Darwin
         implementation(libs.ktor.client.darwin)
       }
     }

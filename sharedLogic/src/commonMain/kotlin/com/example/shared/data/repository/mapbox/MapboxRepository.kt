@@ -35,6 +35,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.http.encodeURLPath
 import kotlinx.serialization.Serializable
+import com.example.shared.AppSecrets
 
 class MapboxRepository(private val httpClient: HttpClient) : IMapboxRepository {
 

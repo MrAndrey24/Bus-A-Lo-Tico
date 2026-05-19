@@ -32,7 +32,7 @@ El proyecto está organizado en módulos que facilitan la reutilización de cód
   - `data`: Implementa la persistencia de datos y el consumo de servicios (Ktor, Firebase).
   - `presentation`: Maneja el estado de la aplicación mediante ViewModels compartidos.
 
-* **[/iosApp](./iosApp/iosApp)**: Punto de entrada para la plataforma iOS, actuando como el contenedor nativo necesario para desplegar la aplicación en dispositivos Apple.
+* **[/iosApp](app/iosApp/iosApp)**: Punto de entrada para la plataforma iOS, actuando como el contenedor nativo necesario para desplegar la aplicación en dispositivos Apple.
 
 ## Arquitectura
 

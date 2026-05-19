@@ -23,18 +23,31 @@ plugins {
 }
 
 kotlin {
-  android {
-    namespace = "com.example.busalotico.library"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
-
-    androidResources { enable = true }
+  listOf(
+    iosArm64(),
+    iosSimulatorArm64()
+  ).forEach { iosTarget ->
+    iosTarget.binaries.framework {
+      baseName = "Shared"
+      isStatic = true
+    }
   }
 
-  listOf(iosArm64(), iosSimulatorArm64()).forEach { iosTarget ->
-    iosTarget.binaries.framework {
-      baseName = "ComposeApp"
-      isStatic = true
+  jvm()
+
+  android {
+    namespace = "com.example.busalotico.app.shared"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    minSdk = libs.versions.android.minSdk.get().toInt()
+
+    compilerOptions {
+      jvmTarget = JvmTarget.JVM_11
+    }
+    androidResources {
+      enable = true
+    }
+    withHostTest {
+      isIncludeAndroidResources = true
     }
   }
 
@@ -59,8 +72,8 @@ kotlin {
       implementation(libs.material.icons.core)
       implementation(libs.material.icons.extended)
 
-      // Shared Module
-      implementation(projects.shared)
+      // Shared Logic Module
+      implementation(projects.sharedLogic)
 
       // Koin
       implementation(project.dependencies.platform(libs.koin.bom))
