@@ -49,8 +49,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import busalotico.composeapp.generated.resources.Res
-import busalotico.composeapp.generated.resources.logo
+import busalotico.app.shared.generated.resources.Res
+import busalotico.app.shared.generated.resources.logo
 import org.jetbrains.compose.resources.painterResource
 
 @Composable

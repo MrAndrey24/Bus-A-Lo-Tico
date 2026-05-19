@@ -21,10 +21,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import busalotico.composeapp.generated.resources.Res
-import busalotico.composeapp.generated.resources.plus_jakarta_sans_bold
-import busalotico.composeapp.generated.resources.plus_jakarta_sans_medium
-import busalotico.composeapp.generated.resources.plus_jakarta_sans_regular
+import busalotico.app.shared.generated.resources.Res
+import busalotico.app.shared.generated.resources.plus_jakarta_sans_bold
+import busalotico.app.shared.generated.resources.plus_jakarta_sans_medium
+import busalotico.app.shared.generated.resources.plus_jakarta_sans_regular
 import org.jetbrains.compose.resources.Font
 
 @Composable

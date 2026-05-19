@@ -51,10 +51,10 @@ import com.example.busalotico.ui.screen.home.HomeScreen
 import com.example.busalotico.ui.screen.notification.NotificationScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
 import com.example.busalotico.ui.screen.routes.RouteAdministrativeDetailScreen
-import com.example.shared.domain.entities.Coordinate
-import com.example.shared.presentation.notification.NotificationViewModel
-import com.example.shared.presentation.route.RouteDetailViewModel
-import com.example.shared.presentation.route.RouteViewModel
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.presentation.notification.NotificationViewModel
+import com.example.sharedlogic.presentation.route.RouteDetailViewModel
+import com.example.sharedlogic.presentation.route.RouteViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

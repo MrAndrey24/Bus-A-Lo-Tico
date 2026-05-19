@@ -33,7 +33,8 @@ kotlin {
     }
   }
 
-  jvm()
+//  jvm("desktop")
+
 
   android {
     namespace = "com.example.busalotico.app.shared"

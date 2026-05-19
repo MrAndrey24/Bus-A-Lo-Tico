@@ -16,7 +16,7 @@
 package com.example.busalotico
 
 import android.app.Application
-import com.example.shared.di.initKoin
+import com.example.sharedlogic.di.initKoin
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 

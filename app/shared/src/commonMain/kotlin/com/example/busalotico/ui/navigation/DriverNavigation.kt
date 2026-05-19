@@ -34,8 +34,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.busalotico.ui.screen.driver.DriverHomeScreen
 import com.example.busalotico.ui.screen.profile.ProfileScreen
-import com.example.shared.domain.entities.Company
-import com.example.shared.domain.entities.Coordinate
+import com.example.sharedlogic.domain.entities.Company
+import com.example.sharedlogic.domain.entities.Coordinate
 
 @Composable
 fun DriverNavigation(

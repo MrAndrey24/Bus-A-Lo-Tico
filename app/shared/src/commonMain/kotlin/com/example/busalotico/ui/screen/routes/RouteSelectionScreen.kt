@@ -67,7 +67,7 @@ import com.example.busalotico.ui.model.Province
 import com.example.busalotico.ui.model.RouteFiltersState
 import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
-import com.example.shared.domain.entities.geo.costaRicaGeoData
+import com.example.sharedlogic.domain.entities.geo.costaRicaGeoData
 
 @Composable
 fun RouteSelectionScreen(

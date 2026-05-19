@@ -16,8 +16,8 @@
 package com.example.busalotico.ui.components.mapview
 
 import androidx.compose.runtime.Composable
-import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.location.PlatformLocationTracker
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.domain.location.PlatformLocationTracker
 import dev.icerock.moko.geo.LocationTracker
 import dev.icerock.moko.permissions.PermissionsController
 import kotlinx.coroutines.flow.Flow

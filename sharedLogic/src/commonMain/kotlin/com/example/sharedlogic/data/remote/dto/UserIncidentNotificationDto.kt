@@ -1,0 +1,65 @@
+/**
+ * Copyright 2026 (Andrey Acosta Ramirez, Isaac Felipe Castro Sanabria, Kevin A. Hernández Rostrán, Maureen León Castro, Fabiana Milanés Sánchez)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.example.sharedlogic.data.remote.dto
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class UserIncidentNotificationDto(
+    val id: String = "",
+    val userId: String = "",
+    val tripExecutionId: String = "",
+    val routeId: String = "",
+    val incidentType: String = "",
+    val detail: String = "",
+    val sanitizedDetail: String = "",
+    val routeName: String = "",
+    val dispatchedAt: Long = 0L,
+    val readAt: Long? = null,
+    val createdAt: Long = 0L,
+) {
+  fun toEntity() =
+      com.example.sharedlogic.domain.entities.UserIncidentNotification(
+          id = id,
+          userId = userId,
+          tripExecutionId = tripExecutionId,
+          routeId = routeId,
+          incidentType = incidentType,
+          detail = detail,
+          sanitizedDetail = sanitizedDetail,
+          routeName = routeName,
+          dispatchedAt = dispatchedAt,
+          readAt = readAt,
+          createdAt = createdAt,
+      )
+
+  companion object {
+    fun fromEntity(entity: com.example.sharedlogic.domain.entities.UserIncidentNotification) =
+        UserIncidentNotificationDto(
+            id = entity.id,
+            userId = entity.userId,
+            tripExecutionId = entity.tripExecutionId,
+            routeId = entity.routeId,
+            incidentType = entity.incidentType,
+            detail = entity.detail,
+            sanitizedDetail = entity.sanitizedDetail,
+            routeName = entity.routeName,
+            dispatchedAt = entity.dispatchedAt,
+            readAt = entity.readAt,
+            createdAt = entity.createdAt,
+        )
+  }
+}

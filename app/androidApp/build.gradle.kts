@@ -26,8 +26,7 @@ kotlin {
   compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
 
   dependencies {
-    implementation(projects.app.shared)
-    implementation(projects.app.shared)
+    implementation(projects.sharedLogic)
 
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.androidx.activity.compose)

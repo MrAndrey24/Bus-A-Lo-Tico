@@ -16,7 +16,7 @@
 package com.example.busalotico.ui.components.mapview
 
 import androidx.compose.runtime.Composable
-import com.example.shared.domain.location.PlatformLocationTracker
+import com.example.sharedlogic.domain.location.PlatformLocationTracker
 import dev.icerock.moko.permissions.PermissionsController
 
 expect fun getLocationTracker(permissionsController: PermissionsController): PlatformLocationTracker

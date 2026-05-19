@@ -58,13 +58,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.button.PillActionButton
 import com.example.busalotico.ui.components.chip.SelectableFilterChip
-import com.example.shared.domain.entities.UserRole
-import com.example.shared.presentation.auth.AuthUiState
+import com.example.sharedlogic.domain.entities.UserRole
+import com.example.sharedlogic.presentation.auth.AuthUiState
 
 @Composable
 fun AuthScreen(
     uiState: AuthUiState,
-    companies: List<com.example.shared.domain.entities.Company>,
+    companies: List<com.example.sharedlogic.domain.entities.Company>,
     companiesLoading: Boolean,
     onSignIn: (email: String, password: String) -> Unit,
     onSignUp:

@@ -54,10 +54,10 @@ import com.example.busalotico.ui.components.mapview.MapViewComponent
 import com.example.busalotico.ui.components.route.RouteSelectionCard
 import com.example.busalotico.ui.components.searchBar.SearchBar
 import com.example.busalotico.ui.model.mapper.toRouteListItemUi
-import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.entities.Route
-import com.example.shared.domain.entities.RouteStop
-import com.example.shared.presentation.route.RouteUiState
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.domain.entities.Route
+import com.example.sharedlogic.domain.entities.RouteStop
+import com.example.sharedlogic.presentation.route.RouteUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

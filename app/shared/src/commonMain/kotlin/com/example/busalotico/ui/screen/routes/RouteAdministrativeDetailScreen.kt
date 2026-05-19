@@ -17,7 +17,6 @@ package com.example.busalotico.ui.screen.routes
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,14 +58,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.header.ScreenHeader
-import com.example.shared.domain.entities.Route
-import com.example.shared.domain.entities.RouteSchedule
-import com.example.shared.presentation.route.AdministrativeRouteRuntimeStatus
-import com.example.shared.presentation.route.AdministrativeRouteStatus
-import com.example.shared.presentation.route.AdministrativeScheduleRuntimeStatus
-import com.example.shared.presentation.route.RouteAdministrativeDetailViewModel
-import com.example.shared.util.currentCostaRicaTimeMinutes
-import com.example.shared.util.parseFlexibleTimeToMinutes
+import com.example.sharedlogic.domain.entities.Route
+import com.example.sharedlogic.domain.entities.RouteSchedule
+import com.example.sharedlogic.presentation.route.AdministrativeRouteRuntimeStatus
+import com.example.sharedlogic.presentation.route.AdministrativeRouteStatus
+import com.example.sharedlogic.presentation.route.AdministrativeScheduleRuntimeStatus
+import com.example.sharedlogic.presentation.route.RouteAdministrativeDetailViewModel
+import com.example.sharedlogic.util.currentCostaRicaTimeMinutes
+import com.example.sharedlogic.util.parseFlexibleTimeToMinutes
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

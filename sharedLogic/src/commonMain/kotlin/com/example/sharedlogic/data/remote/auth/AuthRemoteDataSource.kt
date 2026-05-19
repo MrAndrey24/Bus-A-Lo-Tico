@@ -1,0 +1,40 @@
+/**
+ * Copyright 2026 (Andrey Acosta Ramirez, Isaac Felipe Castro Sanabria, Kevin A. Hernández Rostrán, Maureen León Castro, Fabiana Milanés Sánchez)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.example.sharedlogic.data.remote.auth
+
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
+
+class AuthRemoteDataSource : IAuthRemoteDataSource {
+
+  override suspend fun signIn(email: String, password: String): String {
+    val result = Firebase.auth.signInWithEmailAndPassword(email, password)
+    return result.user?.uid ?: error("No se pudo obtener el uid del usuario autenticado")
+  }
+
+  override suspend fun signUp(email: String, password: String): String {
+    val result = Firebase.auth.createUserWithEmailAndPassword(email, password)
+    return result.user?.uid ?: error("No se pudo obtener el uid del usuario registrado")
+  }
+
+  override suspend fun signOut() {
+    Firebase.auth.signOut()
+  }
+
+  override fun getCurrentUserId(): String? {
+    return Firebase.auth.currentUser?.uid
+  }
+}
