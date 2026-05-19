@@ -16,8 +16,8 @@
 package com.example.busalotico.ui.components.mapview.route
 
 import androidx.compose.runtime.Composable
-import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.entities.RouteStop
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.domain.entities.RouteStop
 
 @Composable
 actual fun RouteAnnotations(

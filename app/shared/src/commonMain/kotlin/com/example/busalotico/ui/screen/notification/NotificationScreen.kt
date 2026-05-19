@@ -56,8 +56,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.header.ScreenHeader
-import com.example.shared.domain.entities.UserIncidentNotification
-import com.example.shared.presentation.notification.NotificationViewModel
+import com.example.sharedlogic.domain.entities.UserIncidentNotification
+import com.example.sharedlogic.presentation.notification.NotificationViewModel
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime

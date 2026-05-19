@@ -16,8 +16,8 @@
 package com.example.busalotico.ui.model
 
 import androidx.compose.runtime.Immutable
-import com.example.shared.domain.entities.geo.Canton as SharedCanton
-import com.example.shared.domain.entities.geo.Province as SharedProvince
+import com.example.sharedlogic.domain.entities.geo.Canton as SharedCanton
+import com.example.sharedlogic.domain.entities.geo.Province as SharedProvince
 
 typealias Province = SharedProvince
 

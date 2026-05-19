@@ -35,7 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.busalotico.ui.screen.profile.ProfileScreen
-import com.example.shared.domain.entities.Company
+import com.example.sharedlogic.domain.entities.Company
 
 @Composable
 fun AdminNavigation(

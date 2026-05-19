@@ -16,9 +16,9 @@
 package com.example.busalotico.ui.navigation
 
 import androidx.compose.runtime.Composable
-import com.example.shared.domain.entities.Company
-import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.entities.UserRole
+import com.example.sharedlogic.domain.entities.Company
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.domain.entities.UserRole
 
 @Composable
 fun RoleBasedNavigation(

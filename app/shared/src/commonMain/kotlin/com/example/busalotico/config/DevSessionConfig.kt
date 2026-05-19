@@ -15,8 +15,8 @@
  */
 package com.example.busalotico.config
 
-import com.example.shared.domain.entities.UserProfile
-import com.example.shared.domain.entities.UserRole
+import com.example.sharedlogic.domain.entities.UserProfile
+import com.example.sharedlogic.domain.entities.UserRole
 
 object DevSessionConfig {
 

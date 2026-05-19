@@ -71,9 +71,9 @@ import com.example.busalotico.ui.components.RecenterButton
 import com.example.busalotico.ui.components.ZoomControls
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.busalotico.ui.components.mapview.details.MapViewDetail
-import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.entities.RouteStop
-import com.example.shared.presentation.route.RouteDetailViewModel
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.domain.entities.RouteStop
+import com.example.sharedlogic.presentation.route.RouteDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

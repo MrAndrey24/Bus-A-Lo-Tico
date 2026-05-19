@@ -53,11 +53,11 @@ import com.example.busalotico.ui.screen.auth.AuthScreen
 import com.example.busalotico.ui.screen.onboarding.PermissionsRequesterScreen
 import com.example.busalotico.ui.screen.splash.SplashScreen
 import com.example.busalotico.ui.theme.AppTheme
-import com.example.shared.domain.entities.Company
-import com.example.shared.domain.entities.UserRole
-import com.example.shared.presentation.auth.AuthViewModel
-import com.example.shared.presentation.company.CompanyListViewModel
-import com.example.shared.presentation.location.LocationViewModel
+import com.example.sharedlogic.domain.entities.Company
+import com.example.sharedlogic.domain.entities.UserRole
+import com.example.sharedlogic.presentation.auth.AuthViewModel
+import com.example.sharedlogic.presentation.company.CompanyListViewModel
+import com.example.sharedlogic.presentation.location.LocationViewModel
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.location.LOCATION
 import kotlinx.coroutines.delay

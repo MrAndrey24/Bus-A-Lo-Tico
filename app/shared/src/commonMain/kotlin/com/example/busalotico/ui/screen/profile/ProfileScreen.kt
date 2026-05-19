@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.example.busalotico.ui.components.button.PillActionButton
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.busalotico.ui.components.input.SearchableCompanySelectField
-import com.example.shared.domain.entities.Company
+import com.example.sharedlogic.domain.entities.Company
 
 @Composable
 fun ProfileScreen(

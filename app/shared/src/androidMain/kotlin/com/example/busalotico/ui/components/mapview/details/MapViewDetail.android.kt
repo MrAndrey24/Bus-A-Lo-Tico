@@ -19,8 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.example.busalotico.ui.components.mapview.route.RouteAnnotations
-import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.entities.RouteStop
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.domain.entities.RouteStop
 import com.mapbox.maps.Style
 import com.mapbox.maps.dsl.cameraOptions
 import com.mapbox.maps.extension.compose.MapboxMap

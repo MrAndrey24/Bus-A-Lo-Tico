@@ -19,8 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.example.busalotico.ui.components.mapview.icon.BusIcon
 import com.example.busalotico.ui.components.mapview.icon.StopIcon
-import com.example.shared.domain.entities.Coordinate
-import com.example.shared.domain.entities.RouteStop
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.domain.entities.RouteStop
 import com.mapbox.geojson.Point
 import com.mapbox.maps.ViewAnnotationOptions
 import com.mapbox.maps.extension.compose.annotation.ViewAnnotation

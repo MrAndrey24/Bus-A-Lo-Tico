@@ -51,7 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import busalotico.composeapp.generated.resources.logo
+import busalotico.app.shared.generated.resources.logo
 import com.example.busalotico.ui.model.RouteListItemUi
 import org.jetbrains.compose.resources.painterResource
 
@@ -154,7 +154,7 @@ fun RouteSelectionCard(
 
           Icon(
               painter =
-                  painterResource(busalotico.composeapp.generated.resources.Res.drawable.logo),
+                  painterResource(busalotico.app.shared.generated.resources.Res.drawable.logo),
               contentDescription = null,
               modifier = Modifier.size(14.dp).alpha(0.0f),
           )
