@@ -15,6 +15,7 @@
  */
 package com.example.sharedlogic.data.repository.mapbox
 
+import com.example.sharedlogic.AppSecrets
 import com.example.sharedlogic.data.repository.mapbox.MapboxConstants.DIRECTIONS_BASE_URL
 import com.example.sharedlogic.data.repository.mapbox.MapboxConstants.GEOCODING_BASE_URL
 import com.example.sharedlogic.data.repository.mapbox.MapboxConstants.PARAM_ACCESS_TOKEN
@@ -35,7 +36,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.http.encodeURLPath
 import kotlinx.serialization.Serializable
-import com.example.sharedlogic.AppSecrets
 
 class MapboxRepository(private val httpClient: HttpClient) : IMapboxRepository {
 

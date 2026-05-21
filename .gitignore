@@ -1,8 +1,6 @@
 *.iml
 .kotlin
 .gradle
-/.gradle-local/
-**/.gradle-local/
 **/build/
 xcuserdata
 !src/**/build/
@@ -20,9 +18,10 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 **/AppSecrets.kt
-androidApp/google-services.json
-androidApp/src/debug/google-services.json
 **/firebase.properties
-
+**/google-services.json
+app/androidApp/google-services.json
+app/androidApp/src/debug/google-services.json
+app/desktopApp/src/main/resources/firebase.properties
 # Firebase logs
 firebase-debug.log
