@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.busalotico.desktop
+package com.example.busalotico
 
 import android.app.Application
 import androidx.compose.foundation.BorderStroke
@@ -107,20 +107,20 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import com.example.shared.di.initKoin
-import com.example.shared.domain.entities.Driver
-import com.example.shared.domain.entities.Route
-import com.example.shared.domain.entities.RouteLocation
-import com.example.shared.domain.entities.RouteSchedule
-import com.example.shared.domain.entities.RouteStop
-import com.example.shared.domain.entities.TripIncidentType
-import com.example.shared.domain.entities.UserRole
-import com.example.shared.domain.entities.geo.costaRicaGeoData
-import com.example.shared.presentation.admin.AdminCompanyViewModel
-import com.example.shared.presentation.auth.AuthViewModel
-import com.example.shared.presentation.company.CompanyListViewModel
-import com.example.shared.util.normalizeTimeTo24Hour
-import com.example.shared.util.parseFlexibleTimeToMinutes
+import com.example.sharedlogic.di.initKoin
+import com.example.sharedlogic.domain.entities.Driver
+import com.example.sharedlogic.domain.entities.Route
+import com.example.sharedlogic.domain.entities.RouteLocation
+import com.example.sharedlogic.domain.entities.RouteSchedule
+import com.example.sharedlogic.domain.entities.RouteStop
+import com.example.sharedlogic.domain.entities.TripIncidentType
+import com.example.sharedlogic.domain.entities.UserRole
+import com.example.sharedlogic.domain.entities.geo.costaRicaGeoData
+import com.example.sharedlogic.presentation.admin.AdminCompanyViewModel
+import com.example.sharedlogic.presentation.auth.AuthViewModel
+import com.example.sharedlogic.presentation.company.CompanyListViewModel
+import com.example.sharedlogic.util.normalizeTimeTo24Hour
+import com.example.sharedlogic.util.parseFlexibleTimeToMinutes
 import com.google.firebase.FirebasePlatform
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.FirebaseOptions
@@ -959,7 +959,7 @@ private fun DesktopFeedbackCard(
 
 @Composable
 private fun AdminOverviewSection(
-    uiState: com.example.shared.presentation.admin.AdminCompanyUiState,
+    uiState: com.example.sharedlogic.presentation.admin.AdminCompanyUiState,
     onDeleteIncident: (String, String) -> Unit,
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -1144,7 +1144,7 @@ private fun incidentIcon(type: TripIncidentType): ImageVector =
 
 @Composable
 private fun RouteManagementSection(
-    uiState: com.example.shared.presentation.admin.AdminCompanyUiState,
+    uiState: com.example.sharedlogic.presentation.admin.AdminCompanyUiState,
     selectedTab: RouteEditorTab,
     onTabSelected: (RouteEditorTab) -> Unit,
     routeForm: RouteFormState,
@@ -1872,7 +1872,7 @@ private fun RouteStopsEditor(
 
 @Composable
 private fun DriverManagementSection(
-    uiState: com.example.shared.presentation.admin.AdminCompanyUiState,
+    uiState: com.example.sharedlogic.presentation.admin.AdminCompanyUiState,
     driverForm: DriverFormState,
     onDriverFormChange: (DriverFormState) -> Unit,
     onSelectDriver: (Driver) -> Unit,

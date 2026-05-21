@@ -22,24 +22,23 @@ plugins {
   alias(libs.plugins.googleServices)
 }
 
-kotlin {
-  compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
+kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_11) } }
 
-  dependencies {
-    implementation(projects.sharedLogic)
+dependencies {
+  implementation(projects.app.shared)
+  implementation(projects.sharedLogic)
 
-    implementation(libs.compose.uiToolingPreview)
-    implementation(libs.androidx.activity.compose)
+  implementation(libs.compose.uiToolingPreview)
+  implementation(libs.androidx.activity.compose)
 
-    // MapBox
-    implementation(libs.mapbox.android)
-    implementation(libs.mapbox.compose.android)
+  // MapBox
+  implementation(libs.mapbox.android)
+  implementation(libs.mapbox.compose.android)
 
-    implementation(project.dependencies.platform(libs.koin.bom))
-    implementation(libs.koin.android)
-  }
+  // Koin
+  implementation(project.dependencies.platform(libs.koin.bom))
+  implementation(libs.koin.android)
 }
-
 
 android {
   namespace = "com.example.busalotico"

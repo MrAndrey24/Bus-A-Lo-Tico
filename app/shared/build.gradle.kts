@@ -23,33 +23,23 @@ plugins {
 }
 
 kotlin {
-  listOf(
-    iosArm64(),
-    iosSimulatorArm64()
-  ).forEach { iosTarget ->
+  listOf(iosArm64(), iosSimulatorArm64()).forEach { iosTarget ->
     iosTarget.binaries.framework {
       baseName = "Shared"
       isStatic = true
     }
   }
 
-//  jvm("desktop")
-
+  jvm()
 
   android {
     namespace = "com.example.busalotico.app.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     minSdk = libs.versions.android.minSdk.get().toInt()
 
-    compilerOptions {
-      jvmTarget = JvmTarget.JVM_11
-    }
-    androidResources {
-      enable = true
-    }
-    withHostTest {
-      isIncludeAndroidResources = true
-    }
+    compilerOptions { jvmTarget = JvmTarget.JVM_11 }
+    androidResources { enable = true }
+    withHostTest { isIncludeAndroidResources = true }
   }
 
   sourceSets {
