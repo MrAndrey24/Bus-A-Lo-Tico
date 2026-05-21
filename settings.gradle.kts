@@ -66,10 +66,10 @@ dependencyResolutionManagement {
   }
 }
 
-include(":androidApp")
+include(":app:androidApp")
 
-include(":composeApp")
+include(":app:desktopApp")
 
-include(":desktopApp")
+include(":app:shared")
 
-include(":shared")
+include(":sharedLogic")

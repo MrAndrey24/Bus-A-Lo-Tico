@@ -1,0 +1,46 @@
+/**
+ * Copyright 2026 (Andrey Acosta Ramirez, Isaac Felipe Castro Sanabria, Kevin A. Hernández Rostrán, Maureen León Castro, Fabiana Milanés Sánchez)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.example.busalotico.ui.components.mapview
+
+import androidx.compose.runtime.Composable
+import com.example.sharedlogic.domain.entities.Coordinate
+import com.example.sharedlogic.domain.location.PlatformLocationTracker
+import dev.icerock.moko.geo.LocationTracker
+import dev.icerock.moko.permissions.PermissionsController
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+
+private class IosPlatformLocationTracker(private val delegate: LocationTracker) :
+    PlatformLocationTracker {
+  override fun getLocationUpdates(): Flow<Coordinate> = emptyFlow()
+
+  override suspend fun startTracking() {
+    delegate.startTracking()
+  }
+
+  override suspend fun stopTracking() {
+    delegate.stopTracking()
+  }
+}
+
+actual fun getLocationTracker(
+    permissionsController: PermissionsController
+): PlatformLocationTracker {
+  return IosPlatformLocationTracker(LocationTracker(permissionsController = permissionsController))
+}
+
+@Composable
+actual fun BindPlatformLocationTrackerEffect(locationTracker: PlatformLocationTracker) = Unit
