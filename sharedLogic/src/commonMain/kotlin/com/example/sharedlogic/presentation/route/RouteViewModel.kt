@@ -25,6 +25,7 @@ import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.TripExecutionStatus
 import com.example.sharedlogic.domain.usecases.route.SearchRoutesByLocationUseCase
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 
 class RouteViewModel(
@@ -90,7 +92,7 @@ class RouteViewModel(
 
     searchJob =
         viewModelScope.launch {
-          delay(500)
+          delay(500.milliseconds)
           _uiState.value = _uiState.value.copy(isSearching = true)
 
           try {
@@ -232,7 +234,7 @@ class RouteViewModel(
     val dateTime =
         kotlin.time.Instant.fromEpochMilliseconds(epochMilliseconds)
             .toLocalDateTime(TimeZone.of("America/Costa_Rica"))
-    return "${dateTime.year}-${dateTime.monthNumber}-${dateTime.dayOfMonth}"
+    return "${dateTime.year}-${dateTime.month.number}-${dateTime.day}"
   }
 
   private fun todayDateKey(): String = dateKey(Clock.System.now().toEpochMilliseconds())

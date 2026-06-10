@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.sharedlogic.presentation.route
+package com.example.sharedlogic.presentation.route.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +27,7 @@ import com.example.sharedlogic.domain.entities.TripExecutionStatus
 import com.example.sharedlogic.util.currentCostaRicaTimeMinutes
 import com.example.sharedlogic.util.parseFlexibleTimeToMinutes
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 
 class RouteAdministrativeDetailViewModel(
@@ -209,9 +211,9 @@ class RouteAdministrativeDetailViewModel(
 
   private fun dateKey(epochMilliseconds: Long): String {
     val dateTime =
-        kotlin.time.Instant.fromEpochMilliseconds(epochMilliseconds)
+        Instant.fromEpochMilliseconds(epochMilliseconds)
             .toLocalDateTime(TimeZone.of("America/Costa_Rica"))
-    return "${dateTime.year}-${dateTime.monthNumber}-${dateTime.dayOfMonth}"
+    return "${dateTime.year}-${dateTime.month.number}-${dateTime.day}"
   }
 
   private fun todayDateKey(): String = dateKey(Clock.System.now().toEpochMilliseconds())

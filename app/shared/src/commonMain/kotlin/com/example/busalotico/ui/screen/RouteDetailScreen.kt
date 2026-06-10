@@ -73,7 +73,7 @@ import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.busalotico.ui.components.mapview.details.MapViewDetail
 import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.domain.entities.RouteStop
-import com.example.sharedlogic.presentation.route.RouteDetailViewModel
+import com.example.sharedlogic.presentation.route.admin.RouteDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

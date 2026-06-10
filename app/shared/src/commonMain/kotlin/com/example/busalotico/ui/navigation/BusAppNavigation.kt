@@ -53,8 +53,8 @@ import com.example.busalotico.ui.screen.profile.ProfileScreen
 import com.example.busalotico.ui.screen.routes.RouteAdministrativeDetailScreen
 import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.presentation.notification.NotificationViewModel
-import com.example.sharedlogic.presentation.route.RouteDetailViewModel
 import com.example.sharedlogic.presentation.route.RouteViewModel
+import com.example.sharedlogic.presentation.route.admin.RouteDetailViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -210,11 +210,10 @@ fun BusAppNavigation(
       }
 
       composable(route = BusAppScreen.Detail.name) {
-        val currentCoord = coordinate
-        if (currentCoord != null) {
+        if (coordinate != null) {
           RouteDetailScreen(
               routeId = selectedId,
-              coordinate = currentCoord,
+              coordinate = coordinate,
               viewModel = detailViewModel,
               onBackClick = { navController.popBackStack() },
               navigateToMapOnComplete = true, // 👈 cambiá a false para ver versión sin navegación

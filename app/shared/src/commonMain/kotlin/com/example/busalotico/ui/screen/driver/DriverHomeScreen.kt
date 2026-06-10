@@ -82,9 +82,11 @@ import com.example.sharedlogic.presentation.driver.DriverTripHistoryRecord
 import com.example.sharedlogic.util.currentCostaRicaTimeMinutes
 import com.example.sharedlogic.util.parseFlexibleTimeToMinutes
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
@@ -309,14 +311,14 @@ private fun DriverDashboardContent(
 
   LaunchedEffect(isTripRunning, currentTripStartedAt) {
     while (isTripRunning) {
-      delay(1000)
+      delay(1000.milliseconds)
       tripElapsedSeconds = initialElapsedSeconds(currentTripStartedAt)
     }
   }
 
   LaunchedEffect(routeNotice) {
     if (routeNotice != null) {
-      delay(2200)
+      delay(2200.milliseconds)
       routeNotice = null
     }
   }
@@ -2029,8 +2031,8 @@ private fun initialElapsedSeconds(startedAtEpoch: Long?): Int {
 private fun currentCostaRicaDateTimeLabel(): String {
   val now = Clock.System.now()
   val local = now.toLocalDateTime(TimeZone.of("America/Costa_Rica"))
-  val day = local.dayOfMonth.toString().padStart(2, '0')
-  val month = local.monthNumber.toString().padStart(2, '0')
+  val day = local.day.toString().padStart(2, '0')
+  val month = local.month.number.toString().padStart(2, '0')
   val year = local.year.toString()
   val hour = local.hour.toString().padStart(2, '0')
   val minute = local.minute.toString().padStart(2, '0')
@@ -2069,8 +2071,8 @@ private fun formatCompactDuration(totalSeconds: Long): String {
 
   return when {
     hours > 0 -> "${hours}h ${minutes}m"
-    minutes > 0 -> "${minutes} min"
-    else -> "${remainingSeconds} s"
+    minutes > 0 -> "$minutes min"
+    else -> "$remainingSeconds s"
   }
 }
 

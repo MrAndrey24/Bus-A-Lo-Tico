@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.sharedlogic.presentation.route
+package com.example.sharedlogic.presentation.route.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,6 +22,7 @@ import com.example.sharedlogic.data.repository.route.IRouteRepository
 import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.domain.entities.RouteStop
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -137,7 +138,7 @@ class RouteDetailViewModel(
             if (!isActive) break
             _busLocation.value = point
             updateCurrentStop(point)
-            delay(3000)
+            delay(3000.milliseconds)
           }
 
           _isSimulationCompleted.value = true
