@@ -60,6 +60,7 @@ import com.example.sharedlogic.presentation.company.CompanyListViewModel
 import com.example.sharedlogic.presentation.location.LocationViewModel
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.location.LOCATION
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -97,7 +98,7 @@ fun AppContent(
   val isAuthenticated = DevSessionConfig.BYPASS_AUTH || authUiState.isAuthenticated
 
   LaunchedEffect(Unit) {
-    delay(1300)
+    delay(1300.milliseconds)
     showSplash = false
   }
 

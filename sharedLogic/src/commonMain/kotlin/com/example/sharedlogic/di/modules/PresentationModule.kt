@@ -22,9 +22,9 @@ import com.example.sharedlogic.presentation.company.CompanyViewModel
 import com.example.sharedlogic.presentation.driver.DriverRouteViewModel
 import com.example.sharedlogic.presentation.location.LocationViewModel
 import com.example.sharedlogic.presentation.notification.NotificationViewModel
-import com.example.sharedlogic.presentation.route.RouteAdministrativeDetailViewModel
-import com.example.sharedlogic.presentation.route.RouteDetailViewModel
 import com.example.sharedlogic.presentation.route.RouteViewModel
+import com.example.sharedlogic.presentation.route.admin.RouteAdministrativeDetailViewModel
+import com.example.sharedlogic.presentation.route.admin.RouteDetailViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 

@@ -60,10 +60,10 @@ import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.RouteSchedule
-import com.example.sharedlogic.presentation.route.AdministrativeRouteRuntimeStatus
-import com.example.sharedlogic.presentation.route.AdministrativeRouteStatus
-import com.example.sharedlogic.presentation.route.AdministrativeScheduleRuntimeStatus
-import com.example.sharedlogic.presentation.route.RouteAdministrativeDetailViewModel
+import com.example.sharedlogic.presentation.route.admin.AdministrativeRouteRuntimeStatus
+import com.example.sharedlogic.presentation.route.admin.AdministrativeRouteStatus
+import com.example.sharedlogic.presentation.route.admin.AdministrativeScheduleRuntimeStatus
+import com.example.sharedlogic.presentation.route.admin.RouteAdministrativeDetailViewModel
 import com.example.sharedlogic.util.currentCostaRicaTimeMinutes
 import com.example.sharedlogic.util.parseFlexibleTimeToMinutes
 import org.koin.compose.viewmodel.koinViewModel

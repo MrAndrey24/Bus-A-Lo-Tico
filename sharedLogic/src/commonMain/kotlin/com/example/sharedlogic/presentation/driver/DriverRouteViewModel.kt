@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 
 class DriverRouteViewModel(
@@ -424,8 +425,8 @@ class DriverRouteViewModel(
   private fun formatCostaRicaDateTimeLabel(epochMilliseconds: Long): String {
     val instant = kotlin.time.Instant.fromEpochMilliseconds(epochMilliseconds)
     val dateTime = instant.toLocalDateTime(TimeZone.of("America/Costa_Rica"))
-    val day = dateTime.dayOfMonth.toString().padStart(2, '0')
-    val month = dateTime.monthNumber.toString().padStart(2, '0')
+    val day = dateTime.day.toString().padStart(2, '0')
+    val month = dateTime.month.number.toString().padStart(2, '0')
     val year = dateTime.year.toString()
     val hour = dateTime.hour.toString().padStart(2, '0')
     val minute = dateTime.minute.toString().padStart(2, '0')
@@ -437,7 +438,7 @@ class DriverRouteViewModel(
     val dateTime =
         kotlin.time.Instant.fromEpochMilliseconds(epochMilliseconds)
             .toLocalDateTime(TimeZone.of("America/Costa_Rica"))
-    return "${dateTime.year}-${dateTime.monthNumber}-${dateTime.dayOfMonth}"
+    return "${dateTime.year}-${dateTime.month.number}-${dateTime.day}"
   }
 
   private fun todayDateKey(): String = dateKey(Clock.System.now().toEpochMilliseconds())

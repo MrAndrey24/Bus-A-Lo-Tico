@@ -30,8 +30,6 @@ kotlin {
     }
   }
 
-  jvm()
-
   android {
     namespace = "com.example.busalotico.app.shared"
     compileSdk = libs.versions.android.compileSdk.get().toInt()

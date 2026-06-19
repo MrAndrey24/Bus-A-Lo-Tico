@@ -78,7 +78,7 @@ fun DropdownSelectField(
           horizontalArrangement = Arrangement.SpaceBetween,
       ) {
         Text(
-            text = if (value.isBlank()) placeholder else value,
+            text = value.ifBlank { placeholder },
             color =
                 if (value.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant
                 else MaterialTheme.colorScheme.onSurface,

@@ -58,7 +58,7 @@ import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.header.ScreenHeader
 import com.example.sharedlogic.domain.entities.UserIncidentNotification
 import com.example.sharedlogic.presentation.notification.NotificationViewModel
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
