@@ -15,8 +15,8 @@
  */
 package com.example.sharedlogic.presentation.notification
 
-import com.example.sharedlogic.domain.entities.TripIncidentType
 import com.example.sharedlogic.domain.entities.UserIncidentNotification
+import com.example.sharedlogic.domain.entities.enums.TripIncidentType
 
 internal fun UserIncidentNotification.toDisplayNotification(): UserIncidentNotification {
   val normalizedType = incidentType.toNotificationDisplayLabel()

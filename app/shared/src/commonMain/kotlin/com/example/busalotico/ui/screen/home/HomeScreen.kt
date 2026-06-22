@@ -57,7 +57,7 @@ import com.example.busalotico.ui.model.mapper.toRouteListItemUi
 import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.RouteStop
-import com.example.sharedlogic.presentation.route.RouteUiState
+import com.example.sharedlogic.presentation.route.uistate.RouteUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

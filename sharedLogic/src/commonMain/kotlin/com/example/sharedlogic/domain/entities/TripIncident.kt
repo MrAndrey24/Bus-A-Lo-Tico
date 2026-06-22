@@ -15,6 +15,8 @@
  */
 package com.example.sharedlogic.domain.entities
 
+import com.example.sharedlogic.domain.entities.enums.TripIncidentType
+
 data class TripIncident(
     val id: String = "",
     val type: TripIncidentType,
@@ -22,9 +24,3 @@ data class TripIncident(
     val createdAt: Long,
     val location: Coordinate? = null,
 )
-
-enum class TripIncidentType {
-  ACCIDENT,
-  BREAKDOWN,
-  SECURITY,
-}
