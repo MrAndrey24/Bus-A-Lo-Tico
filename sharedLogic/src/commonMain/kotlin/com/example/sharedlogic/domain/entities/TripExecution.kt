@@ -15,6 +15,8 @@
  */
 package com.example.sharedlogic.domain.entities
 
+import com.example.sharedlogic.domain.entities.enums.TripExecutionStatus
+
 data class TripExecution(
     val id: String = "",
     val scheduleId: String,
@@ -28,12 +30,3 @@ data class TripExecution(
     val transferredToDriverId: String? = null,
     val transferredAt: Long? = null,
 )
-
-enum class TripExecutionStatus {
-  PENDING,
-  IN_PROGRESS,
-  DELAYED,
-  TRANSFERRED,
-  COMPLETED,
-  CANCELLED,
-}

@@ -26,10 +26,10 @@ import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.RouteSchedule
 import com.example.sharedlogic.domain.entities.TripExecution
-import com.example.sharedlogic.domain.entities.TripExecutionStatus
 import com.example.sharedlogic.domain.entities.TripIncident
-import com.example.sharedlogic.domain.entities.TripIncidentType
 import com.example.sharedlogic.domain.entities.UserIncidentNotification
+import com.example.sharedlogic.domain.entities.enums.TripExecutionStatus
+import com.example.sharedlogic.domain.entities.enums.TripIncidentType
 import com.example.sharedlogic.presentation.notification.toNotificationDisplayLabel
 import com.example.sharedlogic.presentation.notification.toNotificationMessage
 import com.example.sharedlogic.util.currentCostaRicaTimeMinutes

@@ -23,7 +23,7 @@ import com.example.sharedlogic.data.repository.trip.ITripExecutionRepository
 import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.RouteSchedule
 import com.example.sharedlogic.domain.entities.TripExecution
-import com.example.sharedlogic.domain.entities.TripExecutionStatus
+import com.example.sharedlogic.domain.entities.enums.TripExecutionStatus
 import com.example.sharedlogic.util.currentCostaRicaTimeMinutes
 import com.example.sharedlogic.util.parseFlexibleTimeToMinutes
 import kotlin.time.Clock

@@ -75,8 +75,8 @@ import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.domain.entities.Driver
 import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.RouteSchedule
-import com.example.sharedlogic.domain.entities.TripExecutionStatus
-import com.example.sharedlogic.domain.entities.TripIncidentType
+import com.example.sharedlogic.domain.entities.enums.TripExecutionStatus
+import com.example.sharedlogic.domain.entities.enums.TripIncidentType
 import com.example.sharedlogic.presentation.driver.DriverRouteViewModel
 import com.example.sharedlogic.presentation.driver.DriverTripHistoryRecord
 import com.example.sharedlogic.util.currentCostaRicaTimeMinutes

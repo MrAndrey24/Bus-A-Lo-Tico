@@ -18,12 +18,13 @@ package com.example.busalotico.ui.model.mapper
 import com.example.busalotico.ui.model.RouteListItemUi
 import com.example.busalotico.ui.model.RouteSelectionUiState
 import com.example.sharedlogic.domain.entities.Route
-import com.example.sharedlogic.presentation.route.RouteRuntimeStatus
-import com.example.sharedlogic.presentation.route.RouteUiState
+import com.example.sharedlogic.presentation.route.uistate.RouteRuntimeStatus
+import com.example.sharedlogic.presentation.route.uistate.RouteRuntimeSummary
+import com.example.sharedlogic.presentation.route.uistate.RouteUiState
 
 fun Route.toRouteListItemUi(
     favoriteRouteIds: Set<String>,
-    runtimeByRouteId: Map<String, com.example.sharedlogic.presentation.route.RouteRuntimeSummary> =
+    runtimeByRouteId: Map<String, RouteRuntimeSummary> =
         emptyMap(),
 ): RouteListItemUi {
   val runtime = runtimeByRouteId[id]

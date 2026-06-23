@@ -13,34 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.sharedlogic.presentation.route
+package com.example.sharedlogic.presentation.route.uistate
 
 import com.example.sharedlogic.domain.entities.Route
 
-data class RouteAdministrativeDetailUiState(
-    val route: Route? = null,
-    val driverNamesById: Map<String, String> = emptyMap(),
-    val routeRuntimeStatus: AdministrativeRouteRuntimeStatus = AdministrativeRouteRuntimeStatus(),
-    val scheduleStatusesById: Map<String, AdministrativeScheduleRuntimeStatus> = emptyMap(),
-    val highlightedScheduleId: String? = null,
+data class RouteUiState(
     val isLoading: Boolean = false,
+    val routes: List<Route> = emptyList(),
+    val favoriteRouteIds: Set<String> = emptySet(),
+    val routeRuntimeById: Map<String, RouteRuntimeSummary> = emptyMap(),
     val errorMessage: String? = null,
+    val searchQuery: String = "",
+    val searchResults: List<Route> = emptyList(),
+    val isSearching: Boolean = false,
 )
 
-data class AdministrativeRouteRuntimeStatus(
-    val state: AdministrativeRouteStatus = AdministrativeRouteStatus.IDLE,
-    val detail: String = "Esperando inicio del conductor",
+data class RouteRuntimeSummary(
+    val status: RouteRuntimeStatus = RouteRuntimeStatus.IDLE,
+    val statusText: String = "EN ESPERA",
 )
 
-enum class AdministrativeRouteStatus {
+enum class RouteRuntimeStatus {
   IDLE,
   ACTIVE,
   DELAYED,
-}
-
-enum class AdministrativeScheduleRuntimeStatus {
-  SCHEDULED,
-  ACTIVE,
-  DELAYED,
-  COMPLETED,
 }

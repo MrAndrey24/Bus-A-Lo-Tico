@@ -60,6 +60,7 @@ import com.example.sharedlogic.domain.entities.UserIncidentNotification
 import com.example.sharedlogic.presentation.notification.NotificationViewModel
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -209,7 +210,7 @@ fun NotificationItem(
               verticalArrangement = Arrangement.spacedBy(6.dp),
           ) {
             Text(
-                text = formatNotificationTime(notification.dispatchedAt),
+                text = formatNotificationDateTime(notification.dispatchedAt),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
@@ -294,9 +295,12 @@ private fun UserIncidentNotification.notificationTitle(): String {
   }
 }
 
-fun formatNotificationTime(epochMilliseconds: Long): String {
+fun formatNotificationDateTime(epochMilliseconds: Long): String {
   val instant = Instant.fromEpochMilliseconds(epochMilliseconds)
   val dateTime = instant.toLocalDateTime(TimeZone.of("America/Costa_Rica"))
+  val day = dateTime.day.toString().padStart(2, '0')
+  val month = dateTime.month.number.toString().padStart(2, '0')
+  val year = dateTime.year
   val hour24 = dateTime.hour
   val hour12 =
       when {
@@ -306,5 +310,5 @@ fun formatNotificationTime(epochMilliseconds: Long): String {
       }
   val minute = dateTime.minute.toString().padStart(2, '0')
   val meridiem = if (hour24 >= 12) "PM" else "AM"
-  return "${hour12.toString().padStart(2, '0')}:$minute $meridiem"
+  return "${hour12.toString().padStart(2, '0')}:$minute $meridiem - $day/$month/$year"
 }

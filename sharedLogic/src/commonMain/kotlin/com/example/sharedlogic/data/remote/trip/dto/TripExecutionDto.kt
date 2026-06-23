@@ -16,7 +16,7 @@
 package com.example.sharedlogic.data.remote.trip.dto
 
 import com.example.sharedlogic.domain.entities.TripExecution
-import com.example.sharedlogic.domain.entities.TripExecutionStatus
+import com.example.sharedlogic.domain.entities.enums.TripExecutionStatus
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -22,8 +22,11 @@ import com.example.sharedlogic.data.repository.route.IRouteRepository
 import com.example.sharedlogic.data.repository.trip.ITripExecutionRepository
 import com.example.sharedlogic.data.repository.user.IUserRepository
 import com.example.sharedlogic.domain.entities.Route
-import com.example.sharedlogic.domain.entities.TripExecutionStatus
+import com.example.sharedlogic.domain.entities.enums.TripExecutionStatus
 import com.example.sharedlogic.domain.usecases.route.SearchRoutesByLocationUseCase
+import com.example.sharedlogic.presentation.route.uistate.RouteRuntimeStatus
+import com.example.sharedlogic.presentation.route.uistate.RouteRuntimeSummary
+import com.example.sharedlogic.presentation.route.uistate.RouteUiState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Job

@@ -113,7 +113,7 @@ import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.RouteLocation
 import com.example.sharedlogic.domain.entities.RouteSchedule
 import com.example.sharedlogic.domain.entities.RouteStop
-import com.example.sharedlogic.domain.entities.TripIncidentType
+import com.example.sharedlogic.domain.entities.enums.TripIncidentType
 import com.example.sharedlogic.domain.entities.UserRole
 import com.example.sharedlogic.domain.entities.geo.costaRicaGeoData
 import com.example.sharedlogic.presentation.admin.AdminCompanyViewModel

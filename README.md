@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="composeApp/src/commonMain/composeResources/drawable/logo.png" alt="BusALoTico Logo" width="150">
+  <img src="app/shared/src/commonMain/composeResources/drawable/logo.png" alt="BusALoTico Logo" width="150">
 </p>
 
 <h1 align="center">BusALoTico 🚌 🇨🇷</h1>

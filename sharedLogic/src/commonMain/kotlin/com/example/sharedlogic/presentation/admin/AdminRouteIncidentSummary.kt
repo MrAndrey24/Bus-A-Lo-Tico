@@ -15,7 +15,7 @@
  */
 package com.example.sharedlogic.presentation.admin
 
-import com.example.sharedlogic.domain.entities.TripIncidentType
+import com.example.sharedlogic.domain.entities.enums.TripIncidentType
 
 data class AdminRouteIncidentSummary(
     val tripExecutionId: String,

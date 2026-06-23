@@ -17,7 +17,7 @@ package com.example.sharedlogic.data.remote.trip.dto
 
 import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.domain.entities.TripIncident
-import com.example.sharedlogic.domain.entities.TripIncidentType
+import com.example.sharedlogic.domain.entities.enums.TripIncidentType
 import kotlinx.serialization.Serializable
 
 @Serializable

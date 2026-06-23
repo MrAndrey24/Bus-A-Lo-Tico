@@ -23,7 +23,11 @@ import com.example.sharedlogic.data.repository.trip.ITripExecutionRepository
 import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.RouteSchedule
 import com.example.sharedlogic.domain.entities.TripExecution
-import com.example.sharedlogic.domain.entities.TripExecutionStatus
+import com.example.sharedlogic.domain.entities.enums.TripExecutionStatus
+import com.example.sharedlogic.presentation.route.uistate.AdministrativeRouteRuntimeStatus
+import com.example.sharedlogic.presentation.route.uistate.AdministrativeRouteStatus
+import com.example.sharedlogic.presentation.route.uistate.AdministrativeScheduleRuntimeStatus
+import com.example.sharedlogic.presentation.route.uistate.RouteAdministrativeDetailUiState
 import com.example.sharedlogic.util.currentCostaRicaTimeMinutes
 import com.example.sharedlogic.util.parseFlexibleTimeToMinutes
 import kotlin.time.Clock
@@ -88,17 +92,17 @@ class RouteAdministrativeDetailViewModel(
 
                   val runtimeSnapshot = buildRuntimeSnapshot(route, tripExecutions)
 
-                  RouteAdministrativeDetailUiState(
-                      route = route,
-                      driverNamesById = driverNamesById,
-                      routeRuntimeStatus = runtimeSnapshot.routeStatus,
-                      scheduleStatusesById = runtimeSnapshot.scheduleStatusesById,
-                      highlightedScheduleId = runtimeSnapshot.highlightedScheduleId,
-                  )
+                    RouteAdministrativeDetailUiState(
+                        route = route,
+                        driverNamesById = driverNamesById,
+                        routeRuntimeStatus = runtimeSnapshot.routeStatus,
+                        scheduleStatusesById = runtimeSnapshot.scheduleStatusesById,
+                        highlightedScheduleId = runtimeSnapshot.highlightedScheduleId,
+                    )
                 } else {
-                  RouteAdministrativeDetailUiState(
-                      errorMessage = "No se encontró la ficha administrativa de esta ruta.",
-                  )
+                    RouteAdministrativeDetailUiState(
+                        errorMessage = "No se encontró la ficha administrativa de esta ruta.",
+                    )
                 }
           }
           .onFailure {
@@ -172,12 +176,12 @@ class RouteAdministrativeDetailViewModel(
                   it.status == TripExecutionStatus.COMPLETED ||
                       it.status == TripExecutionStatus.TRANSFERRED
                 }
-            AdministrativeRouteRuntimeStatus(
-                state = AdministrativeRouteStatus.IDLE,
-                detail =
-                    if (hasCompletedTrip) "Último viaje completado"
-                    else "Esperando inicio del conductor",
-            )
+              AdministrativeRouteRuntimeStatus(
+                  state = AdministrativeRouteStatus.IDLE,
+                  detail =
+                      if (hasCompletedTrip) "Último viaje completado"
+                      else "Esperando inicio del conductor",
+              )
           }
         }
 
