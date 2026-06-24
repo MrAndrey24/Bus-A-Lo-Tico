@@ -53,15 +53,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.button.PillActionButton
-import com.example.busalotico.ui.components.chip.SelectableFilterChip
 import com.example.sharedlogic.domain.entities.UserRole
 import com.example.sharedlogic.presentation.auth.AuthUiState
 
 @Composable
 fun AuthScreen(
     uiState: AuthUiState,
-    companies: List<com.example.sharedlogic.domain.entities.Company>,
-    companiesLoading: Boolean,
     onSignIn: (email: String, password: String) -> Unit,
     onSignUp:
         (name: String, email: String, password: String, role: UserRole, companyId: String?) -> Unit,
@@ -72,7 +69,6 @@ fun AuthScreen(
   var email by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
   var passwordVisible by remember { mutableStateOf(false) }
-  var selectedRole by remember { mutableStateOf(UserRole.PASSENGER) }
 
   val canSubmit = email.isNotBlank() && password.isNotBlank()
   val authPageBackground = Color(0xFFF1F3F6)
@@ -170,23 +166,6 @@ fun AuthScreen(
                 containerColor = authInputBackground,
             )
 
-            if (isRegisterMode) {
-              Spacer(modifier = Modifier.height(16.dp))
-
-              FieldLabel("ROL")
-              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                UserRole.entries.forEach { role ->
-                  SelectableFilterChip(
-                      text = role.toDisplayName(),
-                      selected = selectedRole == role,
-                      onClick = { selectedRole = role },
-                      showChevron = false,
-                      border = null,
-                  )
-                }
-              }
-            }
-
             uiState.errorMessage?.let { errorMessage ->
               Spacer(modifier = Modifier.height(14.dp))
               Text(
@@ -209,7 +188,7 @@ fun AuthScreen(
                         name.ifBlank { email.substringBefore("@") },
                         email,
                         password,
-                        selectedRole,
+                        UserRole.PASSENGER,
                         null,
                     )
                   } else {
@@ -372,12 +351,4 @@ private fun AuthTextField(
               unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
           ),
   )
-}
-
-private fun UserRole.toDisplayName(): String {
-  return when (this) {
-    UserRole.PASSENGER -> "Pasajero"
-    UserRole.DRIVER -> "Conductor"
-    UserRole.ADMIN -> "Administrador"
-  }
 }
