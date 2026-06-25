@@ -13,22 +13,27 @@ package com.example.sharedlogic.presentation.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sharedlogic.data.repository.auth.IAuthRepository
 import com.example.sharedlogic.data.repository.company.ICompanyRepository
 import com.example.sharedlogic.data.repository.driver.IDriverRepository
 import com.example.sharedlogic.data.repository.route.IRouteRepository
 import com.example.sharedlogic.data.repository.trip.ITripExecutionRepository
+import com.example.sharedlogic.data.repository.user.IUserRepository
 import com.example.sharedlogic.domain.entities.Driver
 import com.example.sharedlogic.domain.entities.Route
 import com.example.sharedlogic.domain.entities.RouteSchedule
 import com.example.sharedlogic.domain.entities.RouteStop
+import com.example.sharedlogic.domain.entities.UserRole
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AdminCompanyViewModel(
-    private val routeRepository: IRouteRepository,
+    private val authRepository: IAuthRepository,
     private val driverRepository: IDriverRepository,
+    private val userRepository: IUserRepository,
+    private val routeRepository: IRouteRepository,
     private val companyRepository: ICompanyRepository,
     private val tripExecutionRepository: ITripExecutionRepository,
 ) : ViewModel() {
@@ -228,24 +233,28 @@ class AdminCompanyViewModel(
     }
   }
 
-  fun saveDriver(driverId: String, name: String, companyId: String?) {
-    if (driverId.isBlank() || name.isBlank()) {
-      _uiState.value =
-          _uiState.value.copy(
-              errorMessage = "El conductor necesita ID y nombre.",
-              successMessage = null,
-          )
-      return
-    }
-
+  fun saveDriver(name: String, email: String, password: String, companyId: String?) {
     viewModelScope.launch {
-      _uiState.value =
-          _uiState.value.copy(isSavingDriver = true, errorMessage = null, successMessage = null)
       runCatching {
+            _uiState.value =
+                _uiState.value.copy(
+                    isSavingDriver = true,
+                    errorMessage = null,
+                    successMessage = null,
+                )
+
+            val userId = authRepository.signUp(email, password)
+            userRepository.upsertUserProfile(
+                userId = userId,
+                email = email,
+                name = name.substringBefore("@"),
+                role = UserRole.DRIVER,
+                companyId = companyId,
+            )
             driverRepository.upsertDriver(
-                driverId.trim(),
-                name.trim(),
-                companyId?.trim().takeUnless { it.isNullOrBlank() },
+                driverId = userId.trim(),
+                name = name.trim(),
+                companyId = companyId?.trim().takeUnless { it.isNullOrBlank() },
             )
           }
           .onSuccess {
