@@ -37,9 +37,9 @@ import com.example.sharedlogic.presentation.company.CompanyListViewModel
 import com.example.sharedlogic.presentation.location.LocationViewModel
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.location.LOCATION
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun App() {
@@ -64,7 +64,7 @@ fun AppContent(
   val coordinate by viewModel.coordinate.collectAsState()
   val authUiState by authViewModel.uiState.collectAsState()
   val companyListUiState by companyListViewModel.uiState.collectAsState()
-  val snackbarHostState = remember { SnackbarHostState() }
+  val snackBarHostState = remember { SnackbarHostState() }
   var showSplash by remember { mutableStateOf(true) }
   val currentUser =
       if (DevSessionConfig.BYPASS_AUTH) {
@@ -112,7 +112,7 @@ fun AppContent(
                   icon = Icons.Default.LocationOn,
               )
           ),
-      snackBarHostState = snackbarHostState,
+      snackBarHostState = snackBarHostState,
   ) { controller, _ ->
     val locationTracker = remember { getLocationTracker(controller) }
     BindPlatformLocationTrackerEffect(locationTracker = locationTracker)

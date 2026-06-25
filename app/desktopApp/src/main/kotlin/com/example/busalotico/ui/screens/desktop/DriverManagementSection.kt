@@ -35,8 +35,9 @@ import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -93,7 +94,7 @@ fun DriverManagementSection(
                 } ?: "Selecciona una ruta con empresa asignada para ver conductores.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Divider(color = Color(0xFFEAECEF))
+          HorizontalDivider(Modifier, DividerDefaults.Thickness, color = Color(0xFFEAECEF))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
           items(uiState.companyDrivers, key = { it.id }) { driver ->
             DesktopListCard(
@@ -120,12 +121,6 @@ fun DriverManagementSection(
             "Ficha de conductor",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-        )
-        AdminTextField(
-            "ID del conductor",
-            driverForm.id,
-            { onDriverFormChange(driverForm.copy(id = it)) },
-            modifier = Modifier.fillMaxWidth(),
         )
         AdminTextField(
             "Nombre",
@@ -181,7 +176,6 @@ fun DriverManagementSection(
               onClick = onSaveDriver,
               enabled =
                   !uiState.isSavingDriver &&
-                      driverForm.id.isNotBlank() &&
                       driverForm.name.isNotBlank() &&
                       driverForm.email.isNotBlank() &&
                       driverForm.password.isNotBlank() &&

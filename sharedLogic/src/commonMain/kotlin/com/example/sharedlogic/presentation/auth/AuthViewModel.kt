@@ -97,13 +97,6 @@ class AuthViewModel(
                     role = role,
                     companyId = normalizedCompanyId,
                 )
-            if (role == UserRole.DRIVER) {
-              driverRepository.upsertDriver(
-                  driverId = userId,
-                  name = name,
-                  companyId = companyId,
-              )
-            }
             profile
           }
           .onSuccess { profile ->
