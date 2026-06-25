@@ -101,7 +101,7 @@ class AuthViewModel(
               driverRepository.upsertDriver(
                   driverId = userId,
                   name = name,
-                  companyId = null,
+                  companyId = companyId,
               )
             }
             profile

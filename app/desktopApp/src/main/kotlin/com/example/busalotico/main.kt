@@ -19,11 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import com.example.busalotico.ui.components.DesktopCenteredLoading
-import com.example.busalotico.ui.screens.CompanyAdminDesktopApp
-import com.example.busalotico.ui.screens.DesktopFirebaseErrorApp
-import com.example.busalotico.ui.screens.DesktopLoginScreen
-import com.example.busalotico.ui.screens.DesktopUnauthorizedScreen
+import com.example.busalotico.ui.components.desktop.DesktopCenteredLoading
+import com.example.busalotico.ui.screens.company.CompanyAdminDesktopApp
+import com.example.busalotico.ui.screens.desktop.DesktopFirebaseErrorApp
+import com.example.busalotico.ui.screens.desktop.DesktopLoginScreen
+import com.example.busalotico.ui.screens.desktop.DesktopUnauthorizedScreen
 import com.example.busalotico.ui.theme.DesktopAdminTheme
 import com.example.sharedlogic.di.initKoin
 import com.example.sharedlogic.domain.entities.UserRole
@@ -68,7 +68,7 @@ private fun DesktopRootApp() {
     authUiState.isLoading -> DesktopCenteredLoading()
     !authUiState.isAuthenticated ->
         DesktopLoginScreen(
-            isLoading = authUiState.isLoading,
+            isLoading = false,
             errorMessage = authUiState.errorMessage,
             onSignIn = authViewModel::signIn,
         )

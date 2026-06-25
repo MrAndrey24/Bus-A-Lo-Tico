@@ -71,6 +71,8 @@ data class StopFormState(
 data class DriverFormState(
     val id: String = "",
     val name: String = "",
+    val email: String = "",
+    val password: String = "",
 )
 
 fun Route?.toFormState(): RouteFormState {
@@ -191,7 +193,12 @@ fun String.toDisplayMeridiemTime(): String {
 }
 
 fun Driver.toFormState(): DriverFormState {
-  return DriverFormState(id = id, name = name)
+  return DriverFormState(
+      id = id,
+      name = name,
+      email = "",
+      password = "",
+  )
 }
 
 val RouteFormStateSaver =
@@ -266,6 +273,13 @@ val StopFormStateSaver =
 
 val DriverFormStateSaver =
     listSaver<DriverFormState, Any>(
-        save = { listOf(it.id, it.name) },
-        restore = { DriverFormState(it[0] as String, it[1] as String) },
+        save = { listOf(it.id, it.name, it.email, it.password) },
+        restore = {
+          DriverFormState(
+              id = it[0] as String,
+              name = it[1] as String,
+              email = it[2] as String,
+              password = it[3] as String,
+          )
+        },
     )
