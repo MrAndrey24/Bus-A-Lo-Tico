@@ -7,7 +7,6 @@
  * This software is confidential and proprietary. Unauthorized copying,
  * distribution, or modification of this file is strictly prohibited.
  *
- * Current commercial development and maintenance managed by TuanisIO.
  */
 package com.example.busalotico
 
@@ -37,9 +36,9 @@ import com.example.sharedlogic.presentation.company.CompanyListViewModel
 import com.example.sharedlogic.presentation.location.LocationViewModel
 import dev.icerock.moko.permissions.Permission
 import dev.icerock.moko.permissions.location.LOCATION
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun App() {

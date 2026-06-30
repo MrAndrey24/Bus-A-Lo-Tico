@@ -7,7 +7,6 @@
  * This software is confidential and proprietary. Unauthorized copying,
  * distribution, or modification of this file is strictly prohibited.
  *
- * Current commercial development and maintenance managed by TuanisIO.
  */
 package com.example.busalotico.ui.screens.desktop
 
@@ -94,7 +93,7 @@ fun DriverManagementSection(
                 } ?: "Selecciona una ruta con empresa asignada para ver conductores.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-          HorizontalDivider(Modifier, DividerDefaults.Thickness, color = Color(0xFFEAECEF))
+        HorizontalDivider(Modifier, DividerDefaults.Thickness, color = Color(0xFFEAECEF))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
           items(uiState.companyDrivers, key = { it.id }) { driver ->
             DesktopListCard(
