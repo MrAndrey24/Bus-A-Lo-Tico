@@ -1,17 +1,12 @@
 /**
- * Copyright 2026 (Andrey Acosta Ramirez, Isaac Felipe Castro Sanabria, Kevin A. Hernández Rostrán, Maureen León Castro, Fabiana Milanés Sánchez)
+ * Copyright (c) 2026 (Andrey Acosta Ramirez, Isaac Felipe Castro Sanabria,
+ * Kevin A. Hernández Rostrán, Maureen León Castro, Fabiana Milanés Sánchez)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This software is confidential and proprietary. Unauthorized copying,
+ * distribution, or modification of this file is strictly prohibited.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 package com.example.busalotico.ui.screen.auth
 
@@ -57,15 +52,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.busalotico.ui.components.button.PillActionButton
-import com.example.busalotico.ui.components.chip.SelectableFilterChip
 import com.example.sharedlogic.domain.entities.UserRole
 import com.example.sharedlogic.presentation.auth.AuthUiState
 
 @Composable
 fun AuthScreen(
     uiState: AuthUiState,
-    companies: List<com.example.sharedlogic.domain.entities.Company>,
-    companiesLoading: Boolean,
     onSignIn: (email: String, password: String) -> Unit,
     onSignUp:
         (name: String, email: String, password: String, role: UserRole, companyId: String?) -> Unit,
@@ -76,7 +68,6 @@ fun AuthScreen(
   var email by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
   var passwordVisible by remember { mutableStateOf(false) }
-  var selectedRole by remember { mutableStateOf(UserRole.PASSENGER) }
 
   val canSubmit = email.isNotBlank() && password.isNotBlank()
   val authPageBackground = Color(0xFFF1F3F6)
@@ -174,23 +165,6 @@ fun AuthScreen(
                 containerColor = authInputBackground,
             )
 
-            if (isRegisterMode) {
-              Spacer(modifier = Modifier.height(16.dp))
-
-              FieldLabel("ROL")
-              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                UserRole.entries.forEach { role ->
-                  SelectableFilterChip(
-                      text = role.toDisplayName(),
-                      selected = selectedRole == role,
-                      onClick = { selectedRole = role },
-                      showChevron = false,
-                      border = null,
-                  )
-                }
-              }
-            }
-
             uiState.errorMessage?.let { errorMessage ->
               Spacer(modifier = Modifier.height(14.dp))
               Text(
@@ -213,7 +187,7 @@ fun AuthScreen(
                         name.ifBlank { email.substringBefore("@") },
                         email,
                         password,
-                        selectedRole,
+                        UserRole.PASSENGER,
                         null,
                     )
                   } else {
@@ -376,12 +350,4 @@ private fun AuthTextField(
               unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
           ),
   )
-}
-
-private fun UserRole.toDisplayName(): String {
-  return when (this) {
-    UserRole.PASSENGER -> "Pasajero"
-    UserRole.DRIVER -> "Conductor"
-    UserRole.ADMIN -> "Administrador"
-  }
 }
