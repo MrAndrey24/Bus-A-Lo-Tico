@@ -52,17 +52,17 @@ class AuthViewModel(
   fun signIn(email: String, password: String) {
     viewModelScope.launch {
       runCatching {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            val userId = authRepository.signIn(email, password)
-            userRepository.getUserProfile(userId)
-                ?: userRepository.upsertUserProfile(
-                    userId = userId,
-                    email = email,
-                    name = email.substringBefore("@"),
-                    role = UserRole.PASSENGER,
-                    companyId = null,
-                )
-          }
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        val userId = authRepository.signIn(email, password)
+        userRepository.getUserProfile(userId)
+            ?: userRepository.upsertUserProfile(
+                userId = userId,
+                email = email,
+                name = email.substringBefore("@"),
+                role = UserRole.PASSENGER,
+                companyId = null,
+            )
+      }
           .onSuccess { profile ->
             _uiState.value = AuthUiState(isLoading = false, currentUser = profile)
           }
@@ -85,19 +85,19 @@ class AuthViewModel(
   ) {
     viewModelScope.launch {
       runCatching {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            val normalizedCompanyId = companyId?.trim().takeUnless { it.isNullOrBlank() }
-            val userId = authRepository.signUp(email, password)
-            val profile =
-                userRepository.upsertUserProfile(
-                    userId = userId,
-                    email = email,
-                    name = name,
-                    role = role,
-                    companyId = normalizedCompanyId,
-                )
-            profile
-          }
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        val normalizedCompanyId = companyId?.trim().takeUnless { it.isNullOrBlank() }
+        val userId = authRepository.signUp(email, password)
+        val profile =
+            userRepository.upsertUserProfile(
+                userId = userId,
+                email = email,
+                name = name,
+                role = role,
+                companyId = normalizedCompanyId,
+            )
+        profile
+      }
           .onSuccess { profile ->
             _uiState.value = AuthUiState(isLoading = false, currentUser = profile)
           }
@@ -115,24 +115,24 @@ class AuthViewModel(
     val currentUser = _uiState.value.currentUser ?: return
     viewModelScope.launch {
       runCatching {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            val updatedProfile =
-                userRepository.upsertUserProfile(
-                    userId = currentUser.id,
-                    email = currentUser.email,
-                    name = currentUser.name,
-                    role = currentUser.role,
-                    companyId = companyId.trim(),
-                )
-            if (currentUser.role == UserRole.DRIVER) {
-              driverRepository.upsertDriver(
-                  driverId = currentUser.id,
-                  name = currentUser.name,
-                  companyId = companyId.trim(),
-              )
-            }
-            updatedProfile
-          }
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        val updatedProfile =
+            userRepository.upsertUserProfile(
+                userId = currentUser.id,
+                email = currentUser.email,
+                name = currentUser.name,
+                role = currentUser.role,
+                companyId = companyId.trim(),
+            )
+        if (currentUser.role == UserRole.DRIVER) {
+          driverRepository.upsertDriver(
+              driverId = currentUser.id,
+              name = currentUser.name,
+              companyId = companyId.trim(),
+          )
+        }
+        updatedProfile
+      }
           .onSuccess { profile ->
             _uiState.value =
                 _uiState.value.copy(isLoading = false, currentUser = profile, errorMessage = null)

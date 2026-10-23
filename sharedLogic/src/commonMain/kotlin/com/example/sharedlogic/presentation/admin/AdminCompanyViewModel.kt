@@ -81,10 +81,10 @@ class AdminCompanyViewModel(
       _uiState.value =
           _uiState.value.copy(isSavingRoute = true, errorMessage = null, successMessage = null)
       runCatching {
-            routeRepository.upsertRoute(
-                if (companyScopeId != null) route.copy(companyId = companyScopeId) else route
-            )
-          }
+        routeRepository.upsertRoute(
+            if (companyScopeId != null) route.copy(companyId = companyScopeId) else route,
+        )
+      }
           .onSuccess { savedRoute ->
             _uiState.value =
                 buildUiState(
@@ -211,9 +211,9 @@ class AdminCompanyViewModel(
       _uiState.value =
           _uiState.value.copy(isSavingStop = true, errorMessage = null, successMessage = null)
       runCatching {
-            routeRepository.upsertRouteStop(routeId, current.copy(order = target.order))
-            routeRepository.upsertRouteStop(routeId, target.copy(order = current.order))
-          }
+        routeRepository.upsertRouteStop(routeId, current.copy(order = target.order))
+        routeRepository.upsertRouteStop(routeId, target.copy(order = current.order))
+      }
           .onSuccess {
             _uiState.value =
                 buildUiState(
@@ -235,27 +235,27 @@ class AdminCompanyViewModel(
   fun saveDriver(name: String, email: String, password: String, companyId: String?) {
     viewModelScope.launch {
       runCatching {
-            _uiState.value =
-                _uiState.value.copy(
-                    isSavingDriver = true,
-                    errorMessage = null,
-                    successMessage = null,
-                )
+        _uiState.value =
+            _uiState.value.copy(
+                isSavingDriver = true,
+                errorMessage = null,
+                successMessage = null,
+            )
 
-            val userId = authRepository.signUp(email, password)
-            userRepository.upsertUserProfile(
-                userId = userId,
-                email = email,
-                name = name.substringBefore("@"),
-                role = UserRole.DRIVER,
-                companyId = companyId,
-            )
-            driverRepository.upsertDriver(
-                driverId = userId.trim(),
-                name = name.trim(),
-                companyId = companyId?.trim().takeUnless { it.isNullOrBlank() },
-            )
-          }
+        val userId = authRepository.signUp(email, password)
+        userRepository.upsertUserProfile(
+            userId = userId,
+            email = email,
+            name = name.substringBefore("@"),
+            role = UserRole.DRIVER,
+            companyId = companyId,
+        )
+        driverRepository.upsertDriver(
+            driverId = userId.trim(),
+            name = name.trim(),
+            companyId = companyId?.trim().takeUnless { it.isNullOrBlank() },
+        )
+      }
           .onSuccess {
             _uiState.value =
                 buildUiState(

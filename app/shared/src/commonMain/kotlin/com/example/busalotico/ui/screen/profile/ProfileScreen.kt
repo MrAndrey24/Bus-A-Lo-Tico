@@ -97,7 +97,7 @@ fun ProfileScreen(
               Modifier.fillMaxWidth()
                   .weight(1f)
                   .verticalScroll(scrollState)
-                  .padding(horizontal = 20.dp, vertical = 24.dp)
+                  .padding(horizontal = 20.dp, vertical = 24.dp),
       ) {
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
           Column(
@@ -231,7 +231,7 @@ fun ProfileScreen(
                         ) {
                           Box(
                               modifier =
-                                  Modifier.size(7.dp).background(Color(0xFF37B24D), CircleShape)
+                                  Modifier.size(7.dp).background(Color(0xFF37B24D), CircleShape),
                           )
                           Text(
                               text = "Verificada",

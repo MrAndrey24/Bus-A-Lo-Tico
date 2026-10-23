@@ -198,7 +198,7 @@ private fun AdministrativeHeroCard(
     ) {
       Box(
           modifier =
-              Modifier.size(7.dp).background(routeRuntimeStatus.state.dotColor(), CircleShape)
+              Modifier.size(7.dp).background(routeRuntimeStatus.state.dotColor(), CircleShape),
       )
       Text(
           text = routeRuntimeStatus.detail,
@@ -244,7 +244,7 @@ private fun AdministrativeMetricsSection(route: Route) {
           modifier =
               Modifier.width(1.dp)
                   .height(64.dp)
-                  .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f))
+                  .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f)),
       )
 
       Column(
@@ -333,7 +333,7 @@ private fun AdministrativeScheduleCard(
           shape = RoundedCornerShape(16.dp),
           colors =
               CardDefaults.cardColors(
-                  containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                  containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
               ),
       ) {
         Text(
@@ -420,7 +420,7 @@ private fun ScheduleListItem(
                 Modifier.padding(top = 4.dp)
                     .width(3.dp)
                     .height(72.dp)
-                    .background(statusColor, RoundedCornerShape(999.dp))
+                    .background(statusColor, RoundedCornerShape(999.dp)),
         )
 
         Column(

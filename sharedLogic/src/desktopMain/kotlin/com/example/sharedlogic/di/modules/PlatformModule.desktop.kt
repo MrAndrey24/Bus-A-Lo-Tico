@@ -8,12 +8,10 @@
  * distribution, or modification of this file is strictly prohibited.
  *
  */
-package com.example.sharedlogic.data.local
+package com.example.sharedlogic.di.modules
 
-import com.example.sharedlogic.domain.entities.Coordinate
-import com.example.sharedlogic.domain.location.PlatformLocationTracker
-import kotlinx.coroutines.flow.Flow
+import org.koin.core.module.Module
 
-fun interface ILocationLocalDataSource {
-  fun getLocationUpdates(tracker: PlatformLocationTracker): Flow<Coordinate>
+actual fun platformModule(): Module {
+  TODO("Not yet implemented")
 }

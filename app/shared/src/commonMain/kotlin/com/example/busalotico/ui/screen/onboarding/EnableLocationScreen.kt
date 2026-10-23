@@ -62,9 +62,9 @@ fun EnableLocationScreen(onAllowClick: () -> Unit, onDenyClick: () -> Unit) {
                           listOf(
                               MaterialTheme.colorScheme.background,
                               MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                          )
-                  )
-              )
+                          ),
+                  ),
+              ),
   ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 48.dp),

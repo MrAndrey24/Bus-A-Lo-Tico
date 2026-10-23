@@ -8,7 +8,7 @@
  * distribution, or modification of this file is strictly prohibited.
  *
  */
-package com.example.sharedlogic.data.local
+package com.example.sharedlogic.data.local.location
 
 import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.domain.location.PlatformLocationTracker

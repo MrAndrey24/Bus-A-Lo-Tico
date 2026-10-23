@@ -84,7 +84,7 @@ fun SearchBar(
               singleLine = true,
               textStyle =
                   MaterialTheme.typography.bodyMedium.copy(
-                      color = MaterialTheme.colorScheme.onSurface
+                      color = MaterialTheme.colorScheme.onSurface,
                   ),
               decorationBox = { innerTextField ->
                 Box {

@@ -32,7 +32,7 @@ private class IosPlatformLocationTracker(private val delegate: LocationTracker) 
 }
 
 actual fun getLocationTracker(
-    permissionsController: PermissionsController
+    permissionsController: PermissionsController,
 ): PlatformLocationTracker {
   return IosPlatformLocationTracker(LocationTracker(permissionsController = permissionsController))
 }

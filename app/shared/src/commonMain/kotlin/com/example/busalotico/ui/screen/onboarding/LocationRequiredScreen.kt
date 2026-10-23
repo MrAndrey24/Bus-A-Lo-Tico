@@ -92,7 +92,7 @@ fun LocationRequiredScreen(onRetryClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ),
         shape = RoundedCornerShape(16.dp),
     ) {

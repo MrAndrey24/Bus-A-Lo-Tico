@@ -27,11 +27,10 @@ dependencies {
   implementation(libs.androidx.activity.compose)
 
   // MapBox
-  implementation(libs.mapbox.android)
-  implementation(libs.mapbox.compose.android)
+  implementation(libs.bundles.mapbox)
 
   // Koin
-  implementation(project.dependencies.platform(libs.koin.bom))
+  implementation(platform(libs.koin.bom))
   implementation(libs.koin.android)
 }
 

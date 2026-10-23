@@ -28,13 +28,13 @@ class DriverRemoteDataSource : IDriverRemoteDataSource {
 
   override suspend fun getDriversByCompany(companyId: String): List<Driver> {
     return runCatching {
-          Firebase.firestore
-              .collection(DRIVERS_COLLECTION)
-              .where { "companyId" equalTo companyId }
-              .get()
-              .documents
-              .map { snapshot -> snapshot.data(DriverDto.serializer()).toDomain(snapshot.id) }
-        }
+      Firebase.firestore
+          .collection(DRIVERS_COLLECTION)
+          .where { "companyId" equalTo companyId }
+          .get()
+          .documents
+          .map { snapshot -> snapshot.data(DriverDto.serializer()).toDomain(snapshot.id) }
+    }
         .getOrElse {
           Firebase.firestore
               .collection(DRIVERS_COLLECTION)

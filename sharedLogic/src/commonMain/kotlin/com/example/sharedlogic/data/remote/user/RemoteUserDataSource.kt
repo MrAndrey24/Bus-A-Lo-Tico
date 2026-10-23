@@ -17,7 +17,7 @@ import com.example.sharedlogic.domain.entities.UserRole
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 
-class UserRemoteDataSource : IUserRemoteDataSource {
+class RemoteUserDataSource : IRemoteUserDataSource {
 
   override suspend fun getUserProfile(userId: String): UserProfile? {
     val userRef = Firebase.firestore.collection(USERS_COLLECTION).document(userId)
@@ -25,10 +25,20 @@ class UserRemoteDataSource : IUserRemoteDataSource {
     if (!snapshot.exists) return null
 
     val dto = snapshot.data(UserProfileDto.serializer())
-    val favoriteRouteIds =
-        userRef.collection(FAVORITE_ROUTES_COLLECTION).get().documents.map { it.id }.toSet()
+    val favoriteRouteIds = getFavoriteRouteIds(userId)
 
     return dto.toDomain(userId, favoriteRouteIds)
+  }
+
+  override suspend fun getFavoriteRouteIds(userId: String): Set<String> {
+    return Firebase.firestore
+        .collection(USERS_COLLECTION)
+        .document(userId)
+        .collection(FAVORITE_ROUTES_COLLECTION)
+        .get()
+        .documents
+        .map { it.id }
+        .toSet()
   }
 
   override suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String> {
@@ -57,9 +67,10 @@ class UserRemoteDataSource : IUserRemoteDataSource {
                   .getOrNull() ?: return@filter false
 
           if (!snapshot.exists) return@filter false
-          val role =
-              runCatching { snapshot.data(UserProfileDto.serializer()).role }
-                  .getOrDefault(UserRole.PASSENGER.name)
+          val role = runCatching {
+            snapshot.data(UserProfileDto.serializer()).role
+          }
+              .getOrDefault(UserRole.PASSENGER.name)
           role == UserRole.PASSENGER.name
         }
         .toSet()

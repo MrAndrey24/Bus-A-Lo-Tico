@@ -13,8 +13,10 @@ package com.example.sharedlogic.data.remote.user
 import com.example.sharedlogic.domain.entities.UserProfile
 import com.example.sharedlogic.domain.entities.UserRole
 
-interface IUserRemoteDataSource {
+interface IRemoteUserDataSource {
   suspend fun getUserProfile(userId: String): UserProfile?
+
+  suspend fun getFavoriteRouteIds(userId: String): Set<String>
 
   suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String>
 

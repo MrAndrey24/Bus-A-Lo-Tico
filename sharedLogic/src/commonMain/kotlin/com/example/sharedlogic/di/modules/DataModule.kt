@@ -10,8 +10,12 @@
  */
 package com.example.sharedlogic.di.modules
 
-import com.example.sharedlogic.data.local.ILocationLocalDataSource
-import com.example.sharedlogic.data.local.LocationLocalDataSource
+import busalotico.data.local.AppDatabase
+import com.example.sharedlogic.data.local.DriverFactory
+import com.example.sharedlogic.data.local.location.ILocationLocalDataSource
+import com.example.sharedlogic.data.local.location.LocationLocalDataSource
+import com.example.sharedlogic.data.local.user.ILocalUserDataSource
+import com.example.sharedlogic.data.local.user.LocalUserDataSource
 import com.example.sharedlogic.data.remote.auth.AuthRemoteDataSource
 import com.example.sharedlogic.data.remote.auth.IAuthRemoteDataSource
 import com.example.sharedlogic.data.remote.company.CompanyRemoteDataSource
@@ -24,8 +28,8 @@ import com.example.sharedlogic.data.remote.route.IRouteRemoteDataSource
 import com.example.sharedlogic.data.remote.route.RouteRemoteDataSource
 import com.example.sharedlogic.data.remote.trip.ITripExecutionRemoteDataSource
 import com.example.sharedlogic.data.remote.trip.TripExecutionRemoteDataSource
-import com.example.sharedlogic.data.remote.user.IUserRemoteDataSource
-import com.example.sharedlogic.data.remote.user.UserRemoteDataSource
+import com.example.sharedlogic.data.remote.user.IRemoteUserDataSource
+import com.example.sharedlogic.data.remote.user.RemoteUserDataSource
 import com.example.sharedlogic.data.repository.auth.AuthRepository
 import com.example.sharedlogic.data.repository.auth.IAuthRepository
 import com.example.sharedlogic.data.repository.company.CompanyRepository
@@ -44,9 +48,15 @@ import com.example.sharedlogic.data.repository.trip.ITripExecutionRepository
 import com.example.sharedlogic.data.repository.trip.TripExecutionRepository
 import com.example.sharedlogic.data.repository.user.IUserRepository
 import com.example.sharedlogic.data.repository.user.UserRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import org.koin.dsl.module
 
 val dataModule = module {
+  single { get<DriverFactory>().createDriver() }
+  single { AppDatabase(get()) }
+  single { get<AppDatabase>().appDatabaseQueries }
+  single<ILocalUserDataSource> { LocalUserDataSource(get()) }
   single<ILocationLocalDataSource> { LocationLocalDataSource() }
   single<ILocationRepository> { LocationRepository(get()) }
   single<IAuthRemoteDataSource> { AuthRemoteDataSource() }
@@ -54,13 +64,13 @@ val dataModule = module {
   single<IDriverRemoteDataSource> { DriverRemoteDataSource() }
   single<IRouteRemoteDataSource> { RouteRemoteDataSource() }
   single<ITripExecutionRemoteDataSource> { TripExecutionRemoteDataSource() }
-  single<IUserRemoteDataSource> { UserRemoteDataSource() }
+  single<IRemoteUserDataSource> { RemoteUserDataSource() }
   single<IAuthRepository> { AuthRepository(get()) }
   single<ICompanyRepository> { CompanyRepository(get()) }
   single<IDriverRepository> { DriverRepository(get()) }
   single<IRouteRepository> { RouteRepository(get()) }
   single<ITripExecutionRepository> { TripExecutionRepository(get()) }
-  single<IUserRepository> { UserRepository(get()) }
+  single<IUserRepository> { UserRepository(get(), get(), Dispatchers.IO) }
   single<IMapboxRepository> { MapboxRepository(get()) }
   single<INotificationRemoteDataSource> { NotificationRemoteDataSource() }
   single<INotificationRepository> { NotificationRepository(get()) }

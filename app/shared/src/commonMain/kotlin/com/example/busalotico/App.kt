@@ -109,7 +109,7 @@ fun AppContent(
                   title = "Ubicación",
                   description = "Para mostrar tu ubicación y paradas cercanas",
                   icon = Icons.Default.LocationOn,
-              )
+              ),
           ),
       snackBarHostState = snackBarHostState,
   ) { controller, _ ->

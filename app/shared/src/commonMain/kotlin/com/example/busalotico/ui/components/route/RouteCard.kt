@@ -185,18 +185,18 @@ private fun RouteTimeline(start: String, end: String, modifier: Modifier = Modif
           modifier =
               Modifier.padding(top = 4.dp)
                   .size(8.dp)
-                  .background(MaterialTheme.colorScheme.primary, CircleShape)
+                  .background(MaterialTheme.colorScheme.primary, CircleShape),
       )
       Box(
           modifier =
-              Modifier.width(2.dp).weight(1f).background(MaterialTheme.colorScheme.outlineVariant)
+              Modifier.width(2.dp).weight(1f).background(MaterialTheme.colorScheme.outlineVariant),
       )
       Box(
           modifier =
               Modifier.padding(bottom = 6.dp)
                   .size(8.dp)
                   .background(Color.Transparent, CircleShape)
-                  .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                  .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape),
       )
     }
 

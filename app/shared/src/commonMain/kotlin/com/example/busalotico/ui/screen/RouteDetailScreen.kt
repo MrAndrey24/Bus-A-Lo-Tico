@@ -169,7 +169,7 @@ fun RouteDetailScreen(
             viewModel.clearSimulation()
             onBackClick()
           }
-        }
+        },
     )
   }
 }
@@ -242,7 +242,7 @@ private fun RouteNameSection(routeName: String) {
               Modifier.padding(horizontal = 12.dp)
                   .width(20.dp)
                   .height(2.dp)
-                  .background(MaterialTheme.colorScheme.outlineVariant)
+                  .background(MaterialTheme.colorScheme.outlineVariant),
       )
       Text(
           text = cities[1],
@@ -408,7 +408,7 @@ private fun TimelineStopRow(
                       Modifier.size(24.dp)
                           .alpha(alpha)
                           .background(Color(0xFF4CAF50), CircleShape)
-                          .padding(scale.dp * 10)
+                          .padding(scale.dp * 10),
               )
               Surface(
                   modifier = Modifier.size(24.dp),
@@ -449,7 +449,9 @@ private fun TimelineStopRow(
       if (!isLast) {
         Box(
             modifier =
-                Modifier.width(2.dp).weight(1f).background(MaterialTheme.colorScheme.outlineVariant)
+                Modifier.width(2.dp)
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.outlineVariant),
         )
       }
     }

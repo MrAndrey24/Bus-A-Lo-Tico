@@ -29,12 +29,11 @@ class LocationViewModel(private val trackLocationUseCase: TrackUserLocationUseCa
   fun startTracking(tracker: PlatformLocationTracker) {
     if (trackingJob?.isActive == true) return
 
-    trackingJob =
-        viewModelScope.launch {
-          trackLocationUseCase(tracker).collect { newCoordinate ->
-            _coordinate.value = newCoordinate
-          }
-        }
+    trackingJob = viewModelScope.launch {
+      trackLocationUseCase(tracker).collect { newCoordinate ->
+        _coordinate.value = newCoordinate
+      }
+    }
   }
 
   fun stopTracking() {
