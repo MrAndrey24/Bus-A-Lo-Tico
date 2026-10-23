@@ -161,7 +161,7 @@ fun DriverManagementSection(
             supportingText = {
               Text(
                   uiState.selectedRoute?.companyId?.let { uiState.companyNames[it] ?: it }
-                      ?: "Selecciona una ruta para asignar empresa."
+                      ?: "Selecciona una ruta para asignar empresa.",
               )
             },
         )

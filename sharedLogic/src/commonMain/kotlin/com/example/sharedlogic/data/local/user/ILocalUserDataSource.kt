@@ -1,0 +1,19 @@
+/**
+ * Copyright (c) 2026 (Andrey Acosta Ramirez, Isaac Felipe Castro Sanabria,
+ * Kevin A. Hernández Rostrán, Maureen León Castro, Fabiana Milanés Sánchez)
+ *
+ * All Rights Reserved.
+ *
+ * This software is confidential and proprietary. Unauthorized copying,
+ * distribution, or modification of this file is strictly prohibited.
+ *
+ */
+package com.example.sharedlogic.data.local.user
+
+interface ILocalUserDataSource {
+  fun getFavoriteRouteIds(userId: String): Set<String>
+
+  fun clearAndCreateFavorites(userId: String, remoteFavorites: Set<String>)
+
+  fun setRouteFavorite(userId: String, routeId: String, isFavorite: Boolean)
+}

@@ -13,6 +13,7 @@ plugins {
   alias(libs.plugins.kotlinSerialization)
   alias(libs.plugins.androidKotlinMultiplatformLibrary)
   alias(libs.plugins.androidLint)
+  alias(libs.plugins.sqlDelight)
 }
 
 kotlin {
@@ -22,8 +23,8 @@ kotlin {
   // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
   android {
     namespace = "com.example.busalotico.sharedLogic"
-    compileSdk { version = release(36) { minorApiLevel = 1 } }
-    minSdk = 24
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    minSdk = libs.versions.android.minSdk.get().toInt()
 
     withHostTestBuilder {}
 
@@ -97,6 +98,9 @@ kotlin {
         // dependencies declared in commonMain.
         implementation(libs.ktor.client.okhttp)
 
+        // Sqldelight
+        implementation(libs.sqldelight.driver.android)
+
         // GitLive Firebase
         implementation(project.dependencies.platform(libs.firebase.bom))
 
@@ -124,6 +128,9 @@ kotlin {
 
         // Darwin
         implementation(libs.ktor.client.darwin)
+
+        // Sqldelight
+        implementation(libs.sqldelight.driver.native)
       }
     }
 
@@ -131,7 +138,13 @@ kotlin {
       dependencies {
         implementation(libs.ktor.client.cio)
         implementation(libs.kotlinx.coroutines.swing)
+        implementation(libs.sqldelight.driver.sqlite)
       }
     }
   }
+}
+
+sqldelight {
+  databases { create("AppDatabase") { packageName.set("busalotico.data.local") } }
+  linkSqlite = true
 }

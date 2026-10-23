@@ -37,10 +37,10 @@ private class AndroidPlatformLocationTracker(private val delegate: LocationTrack
 }
 
 actual fun getLocationTracker(
-    permissionsController: PermissionsController
+    permissionsController: PermissionsController,
 ): PlatformLocationTracker {
   return AndroidPlatformLocationTracker(
-      delegate = LocationTracker(permissionsController = permissionsController)
+      delegate = LocationTracker(permissionsController = permissionsController),
   )
 }
 

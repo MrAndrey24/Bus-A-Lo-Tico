@@ -41,10 +41,10 @@ kotlin {
       implementation(libs.androidx.activity.compose)
 
       // MapBox
-      implementation(libs.mapbox.android)
-      implementation(libs.mapbox.compose.android)
+      implementation(libs.bundles.mapbox)
     }
     commonMain.dependencies {
+      // Core
       implementation(libs.compose.runtime)
       implementation(libs.compose.foundation)
       implementation(libs.compose.material3)
@@ -66,13 +66,14 @@ kotlin {
       implementation(libs.koin.compose.viewmodel.navigation)
 
       // Moko
-      implementation(libs.moko.permissions)
-      implementation(libs.moko.permissions.compose)
-      implementation(libs.moko.permissions.geo)
+      implementation(libs.bundles.moko.permissions)
 
       // Nav
       implementation(libs.navigation.compose)
       implementation(libs.kotlinx.datetime)
+
+      // Serialization
+      implementation(libs.kotlinx.serialization.json)
     }
     commonTest.dependencies { implementation(libs.kotlin.test) }
   }

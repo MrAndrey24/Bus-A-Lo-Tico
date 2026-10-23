@@ -156,7 +156,7 @@ fun BusAppNavigation(
                   ),
           )
         }
-      }
+      },
   ) { innerPadding ->
     NavHost(
         navController = navController,

@@ -222,7 +222,7 @@ fun NotificationItem(
                             .background(
                                 color = accent.barColor,
                                 shape = RoundedCornerShape(999.dp),
-                            )
+                            ),
                 )
               }
               IconButton(

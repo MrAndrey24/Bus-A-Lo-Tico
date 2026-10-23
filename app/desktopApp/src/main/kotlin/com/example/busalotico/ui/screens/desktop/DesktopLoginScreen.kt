@@ -195,19 +195,19 @@ fun DesktopLoginScreen(
               modifier =
                   Modifier.width(18.dp)
                       .height(2.dp)
-                      .background(Color(0xFF2C63D6), RoundedCornerShape(999.dp))
+                      .background(Color(0xFF2C63D6), RoundedCornerShape(999.dp)),
           )
           Box(
               modifier =
                   Modifier.width(30.dp)
                       .height(2.dp)
-                      .background(Color(0xFFE25555), RoundedCornerShape(999.dp))
+                      .background(Color(0xFFE25555), RoundedCornerShape(999.dp)),
           )
           Box(
               modifier =
                   Modifier.width(18.dp)
                       .height(2.dp)
-                      .background(Color(0xFF2C63D6), RoundedCornerShape(999.dp))
+                      .background(Color(0xFF2C63D6), RoundedCornerShape(999.dp)),
           )
         }
         Text(

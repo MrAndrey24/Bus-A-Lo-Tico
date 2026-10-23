@@ -458,7 +458,8 @@ private fun ActiveCountPill(count: Int) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
-          modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.tertiary, CircleShape)
+          modifier =
+              Modifier.size(8.dp).background(MaterialTheme.colorScheme.tertiary, CircleShape),
       )
       Spacer(modifier = Modifier.size(8.dp))
       Text(

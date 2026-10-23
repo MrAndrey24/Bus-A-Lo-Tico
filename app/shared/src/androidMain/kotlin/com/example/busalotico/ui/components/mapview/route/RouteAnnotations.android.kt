@@ -31,7 +31,7 @@ actual fun RouteAnnotations(
   // Route Line
   if (polylinePoints.isNotEmpty()) {
     PolylineAnnotation(
-        points = polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) }
+        points = polylinePoints.map { Point.fromLngLat(it.longitude, it.latitude) },
     ) {
       lineColor = Color(0xFF1D4ED8)
       lineWidth = 6.0
@@ -47,7 +47,7 @@ actual fun RouteAnnotations(
               ViewAnnotationOptions.Builder()
                   .geometry(Point.fromLngLat(stop.longitude, stop.latitude))
                   .allowOverlap(true)
-                  .build()
+                  .build(),
       ) {
         StopIcon(order = stop.order)
       }
@@ -61,7 +61,7 @@ actual fun RouteAnnotations(
             ViewAnnotationOptions.Builder()
                 .geometry(Point.fromLngLat(busLocation.longitude, busLocation.latitude))
                 .allowOverlap(true)
-                .build()
+                .build(),
     ) {
       BusIcon()
     }

@@ -127,7 +127,7 @@ fun RouteDetailsEditor(
                     startProvince = provinceName,
                     startCanton = "",
                     startDistrict = "",
-                )
+                ),
             )
           },
           modifier = Modifier.weight(1f),
@@ -143,7 +143,7 @@ fun RouteDetailsEditor(
                 routeForm.copy(
                     startCanton = cantonName,
                     startDistrict = "",
-                )
+                ),
             )
           },
           modifier = Modifier.weight(1f),
@@ -198,7 +198,7 @@ fun RouteDetailsEditor(
                     endProvince = provinceName,
                     endCanton = "",
                     endDistrict = "",
-                )
+                ),
             )
           },
           modifier = Modifier.weight(1f),
@@ -214,7 +214,7 @@ fun RouteDetailsEditor(
                 routeForm.copy(
                     endCanton = cantonName,
                     endDistrict = "",
-                )
+                ),
             )
           },
           modifier = Modifier.weight(1f),

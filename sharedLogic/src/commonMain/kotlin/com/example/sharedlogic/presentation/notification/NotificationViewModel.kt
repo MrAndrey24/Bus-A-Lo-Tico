@@ -46,16 +46,15 @@ class NotificationViewModel(
     viewModelScope.launch {
       notificationRepository.observeUserNotifications(userId).collectLatest { notifications ->
         val routeNameCache = mutableMapOf<String, String>()
-        val displayNotifications =
-            notifications.map { notification ->
-              val resolvedRouteName =
-                  notification.routeName.takeIf { it.isNotBlank() }
-                      ?: routeNameCache.getOrPut(notification.routeId) {
-                        routeRepository.getRoute(notification.routeId)?.name.orEmpty()
-                      }
+        val displayNotifications = notifications.map { notification ->
+          val resolvedRouteName =
+              notification.routeName.takeIf { it.isNotBlank() }
+                  ?: routeNameCache.getOrPut(notification.routeId) {
+                    routeRepository.getRoute(notification.routeId)?.name.orEmpty()
+                  }
 
-              notification.copy(routeName = resolvedRouteName).toDisplayNotification()
-            }
+          notification.copy(routeName = resolvedRouteName).toDisplayNotification()
+        }
         _uiState.value =
             NotificationUiState(
                 notifications = displayNotifications,

@@ -133,17 +133,16 @@ class RouteAdministrativeDetailViewModel(
             .mapNotNull { (scheduleId, execution) -> execution?.let { scheduleId to it } }
             .toMap()
 
-    val scheduleStatusesById =
-        latestBySchedule.mapValues { (_, execution) ->
-          when (execution.status) {
-            TripExecutionStatus.IN_PROGRESS -> AdministrativeScheduleRuntimeStatus.ACTIVE
-            TripExecutionStatus.DELAYED -> AdministrativeScheduleRuntimeStatus.DELAYED
-            TripExecutionStatus.COMPLETED,
-            TripExecutionStatus.TRANSFERRED -> AdministrativeScheduleRuntimeStatus.COMPLETED
-            TripExecutionStatus.PENDING,
-            TripExecutionStatus.CANCELLED -> AdministrativeScheduleRuntimeStatus.SCHEDULED
-          }
-        }
+    val scheduleStatusesById = latestBySchedule.mapValues { (_, execution) ->
+      when (execution.status) {
+        TripExecutionStatus.IN_PROGRESS -> AdministrativeScheduleRuntimeStatus.ACTIVE
+        TripExecutionStatus.DELAYED -> AdministrativeScheduleRuntimeStatus.DELAYED
+        TripExecutionStatus.COMPLETED,
+        TripExecutionStatus.TRANSFERRED -> AdministrativeScheduleRuntimeStatus.COMPLETED
+        TripExecutionStatus.PENDING,
+        TripExecutionStatus.CANCELLED -> AdministrativeScheduleRuntimeStatus.SCHEDULED
+      }
+    }
 
     val currentExecution =
         routeExecutionsToday
@@ -166,11 +165,10 @@ class RouteAdministrativeDetailViewModel(
                   detail = "Ruta detenida por incidencia reportada",
               )
           else -> {
-            val hasCompletedTrip =
-                routeExecutionsToday.any {
-                  it.status == TripExecutionStatus.COMPLETED ||
-                      it.status == TripExecutionStatus.TRANSFERRED
-                }
+            val hasCompletedTrip = routeExecutionsToday.any {
+              it.status == TripExecutionStatus.COMPLETED ||
+                  it.status == TripExecutionStatus.TRANSFERRED
+            }
             AdministrativeRouteRuntimeStatus(
                 state = AdministrativeRouteStatus.IDLE,
                 detail =

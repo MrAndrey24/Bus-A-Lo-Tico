@@ -10,7 +10,7 @@
  */
 package com.example.sharedlogic.data.repository.location
 
-import com.example.sharedlogic.data.local.ILocationLocalDataSource
+import com.example.sharedlogic.data.local.location.ILocationLocalDataSource
 import com.example.sharedlogic.domain.entities.Coordinate
 import com.example.sharedlogic.domain.location.PlatformLocationTracker
 import kotlinx.coroutines.flow.Flow

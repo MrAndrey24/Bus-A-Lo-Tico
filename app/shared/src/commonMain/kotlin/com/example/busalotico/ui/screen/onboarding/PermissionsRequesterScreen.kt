@@ -63,10 +63,9 @@ fun PermissionsRequesterScreen(
 
   val refreshPermissions = {
     scope.launch {
-      val states =
-          permissions.associate { req ->
-            req.permission to controller.getPermissionState(req.permission)
-          }
+      val states = permissions.associate { req ->
+        req.permission to controller.getPermissionState(req.permission)
+      }
       permissionStates = states
       isCheckingPermissions = false
     }
@@ -125,7 +124,7 @@ fun PermissionsRequesterScreen(
   LaunchedEffect(allGranted) { if (allGranted) onAllPermissionsGranted() }
 
   Crossfade(
-      targetState = Triple(isCheckingPermissions, allGranted, isSkipped || anyPermanentlyDenied)
+      targetState = Triple(isCheckingPermissions, allGranted, isSkipped || anyPermanentlyDenied),
   ) { (loading, granted, required) ->
     when {
       loading || isRequesting -> {
@@ -145,7 +144,7 @@ fun PermissionsRequesterScreen(
                 isSkipped = false
                 onRequestPermissionsClick()
               }
-            }
+            },
         )
       }
       else -> {
