@@ -47,7 +47,8 @@ class UserRepository(
               "Failed fetching favorites from network. Using local cache. $exception",
           )
         }
-  }.flowOn(defaultDispatcher)
+  }
+      .flowOn(defaultDispatcher)
 
   override suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String> {
     return remoteUserDataSource.getPassengerIdsByFavoriteRoute(routeId)
@@ -70,10 +71,11 @@ class UserRepository(
     // Sync to remote
     runCatching {
       remoteUserDataSource.setRouteFavorite(userId, routeId, isFavorite)
-    }.onFailure { exception ->
-      // Revert local state if remote write fails to stay in sync
-      localUserDataSource.setRouteFavorite(userId, routeId, !isFavorite)
-      throw exception
     }
+        .onFailure { exception ->
+          // Revert local state if remote write fails to stay in sync
+          localUserDataSource.setRouteFavorite(userId, routeId, !isFavorite)
+          throw exception
+        }
   }
 }
