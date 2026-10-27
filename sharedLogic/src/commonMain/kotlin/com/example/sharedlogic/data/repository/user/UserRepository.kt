@@ -30,11 +30,11 @@ class UserRepository(
   }
 
   override fun getFavoriteRouteIds(userId: String): Flow<Set<String>> = flow {
-    // 1. Emit local cached data first
+    // Emit local cached data first
     val cachedFavorites = localUserDataSource.getFavoriteRouteIds(userId)
     emit(cachedFavorites)
 
-    // 2. Fetch remote data & update local cache
+    // Fetch remote data & update local cache
     runCatching { remoteUserDataSource.getFavoriteRouteIds(userId) }
         .onSuccess { remoteFavorites ->
           if (remoteFavorites != cachedFavorites) {
@@ -47,7 +47,8 @@ class UserRepository(
               "Failed fetching favorites from network. Using local cache. $exception",
           )
         }
-  }.flowOn(defaultDispatcher)
+  }
+      .flowOn(defaultDispatcher)
 
   override suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String> {
     return remoteUserDataSource.getPassengerIdsByFavoriteRoute(routeId)
@@ -70,10 +71,11 @@ class UserRepository(
     // Sync to remote
     runCatching {
       remoteUserDataSource.setRouteFavorite(userId, routeId, isFavorite)
-    }.onFailure { exception ->
-      // Revert local state if remote write fails to stay in sync
-      localUserDataSource.setRouteFavorite(userId, routeId, !isFavorite)
-      throw exception
     }
+        .onFailure { exception ->
+          // Revert local state if remote write fails to stay in sync
+          localUserDataSource.setRouteFavorite(userId, routeId, !isFavorite)
+          throw exception
+        }
   }
 }
