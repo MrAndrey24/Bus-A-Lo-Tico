@@ -30,11 +30,11 @@ class UserRepository(
   }
 
   override fun getFavoriteRouteIds(userId: String): Flow<Set<String>> = flow {
-    // 1. Emit local cached data first
+    // Emit local cached data first
     val cachedFavorites = localUserDataSource.getFavoriteRouteIds(userId)
     emit(cachedFavorites)
 
-    // 2. Fetch remote data & update local cache
+    // Fetch remote data & update local cache
     runCatching { remoteUserDataSource.getFavoriteRouteIds(userId) }
         .onSuccess { remoteFavorites ->
           if (remoteFavorites != cachedFavorites) {
