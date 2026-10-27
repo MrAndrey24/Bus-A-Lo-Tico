@@ -71,7 +71,7 @@ fun DriverNavigation(
             )
           }
         }
-      }
+      },
   ) { innerPadding ->
     NavHost(
         navController = navController,

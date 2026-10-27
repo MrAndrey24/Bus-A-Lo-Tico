@@ -10,4 +10,6 @@
  */
 package com.example.sharedlogic.di.modules
 
-// expect fun platformModule() : Module
+import org.koin.core.module.Module
+
+expect fun platformModule(): Module

@@ -1,0 +1,24 @@
+CREATE TABLE FavoriteRoute (
+  userId TEXT NOT NULL,
+  routeId TEXT NOT NULL,
+  PRIMARY KEY (userId, routeId)
+);
+
+CREATE INDEX idx_favorite_route_routeId ON FavoriteRoute (routeId);
+
+selectFavoriteRouteIds:
+SELECT routeId
+FROM FavoriteRoute
+WHERE userId = ?;
+
+insertOrReplaceFavoriteRoute:
+INSERT OR REPLACE INTO FavoriteRoute (userId, routeId)
+VALUES (?, ?);
+
+deleteFavoriteRoutesForUser:
+DELETE FROM FavoriteRoute
+WHERE userId = ?;
+
+deleteFavoriteRoute:
+DELETE FROM FavoriteRoute
+WHERE userId = ? AND routeId = ?;

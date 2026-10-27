@@ -277,10 +277,9 @@ private fun DriverDashboardContent(
             parseTimeToMinutes(it.departureTime) >= currentMinutes
           }
           ?: remainingSchedules.firstOrNull()
-  val nextSchedule =
-      currentSchedule?.let { current ->
-        remainingSchedules.dropWhile { it.id != current.id }.drop(1).firstOrNull()
-      }
+  val nextSchedule = currentSchedule?.let { current ->
+    remainingSchedules.dropWhile { it.id != current.id }.drop(1).firstOrNull()
+  }
   val routeStatusLabel = if (isTripDelayed) "Detenida" else "Activa"
   val routeStatusColor =
       if (isTripDelayed) Color(0xFF8A6B2B) else MaterialTheme.colorScheme.tertiary
@@ -1169,7 +1168,7 @@ private fun StatusChip(
             MaterialTheme.typography.labelSmall.copy(
                 fontSize =
                     if (compact) MaterialTheme.typography.labelSmall.fontSize * 0.88f
-                    else MaterialTheme.typography.labelSmall.fontSize * 0.94f
+                    else MaterialTheme.typography.labelSmall.fontSize * 0.94f,
             ),
         color = contentColor,
         fontWeight = FontWeight.SemiBold,
@@ -1356,7 +1355,7 @@ private fun IncidentReportDialog(
               shape = RoundedCornerShape(16.dp),
               textStyle =
                   MaterialTheme.typography.bodySmall.copy(
-                      color = MaterialTheme.colorScheme.onSurface
+                      color = MaterialTheme.colorScheme.onSurface,
                   ),
               colors =
                   OutlinedTextFieldDefaults.colors(
@@ -1508,15 +1507,14 @@ private fun TransferRouteDialog(
 @Composable
 private fun DriverHistoryCard(history: List<DriverTripHistoryRecord>) {
   var historyQuery by remember { mutableStateOf("") }
-  val filteredHistory =
-      history.filter { item ->
-        if (historyQuery.isBlank()) return@filter true
-        val normalizedQuery = historyQuery.trim().lowercase()
-        listOf(item.routeName, item.departureTime, item.startedAtLabel, item.endedAtLabel)
-            .joinToString(" ")
-            .lowercase()
-            .contains(normalizedQuery)
-      }
+  val filteredHistory = history.filter { item ->
+    if (historyQuery.isBlank()) return@filter true
+    val normalizedQuery = historyQuery.trim().lowercase()
+    listOf(item.routeName, item.departureTime, item.startedAtLabel, item.endedAtLabel)
+        .joinToString(" ")
+        .lowercase()
+        .contains(normalizedQuery)
+  }
 
   Column(
       modifier = Modifier.fillMaxWidth(),
@@ -2071,25 +2069,23 @@ private fun formatCompactDuration(totalSeconds: Long): String {
   }
 }
 
-private fun parseCostaRicaDateTimeLabel(value: String) =
-    runCatching {
-          val parts = value.trim().split(" ")
-          if (parts.size != 2) return null
-          val dateParts = parts[0].split("/")
-          val timeParts = parts[1].split(":")
-          if (dateParts.size != 3 || timeParts.size != 3) return null
+private fun parseCostaRicaDateTimeLabel(value: String) = runCatching {
+  val parts = value.trim().split(" ")
+  if (parts.size != 2) return null
+  val dateParts = parts[0].split("/")
+  val timeParts = parts[1].split(":")
+  if (dateParts.size != 3 || timeParts.size != 3) return null
 
-          val day = dateParts[0].toInt()
-          val month = dateParts[1].toInt()
-          val year = dateParts[2].toInt()
-          val hour = timeParts[0].toInt()
-          val minute = timeParts[1].toInt()
-          val second = timeParts[2].toInt()
+  val day = dateParts[0].toInt()
+  val month = dateParts[1].toInt()
+  val year = dateParts[2].toInt()
+  val hour = timeParts[0].toInt()
+  val minute = timeParts[1].toInt()
+  val second = timeParts[2].toInt()
 
-          LocalDateTime(year, month, day, hour, minute, second)
-              .toInstant(TimeZone.of("America/Costa_Rica"))
-        }
-        .getOrNull()
+  LocalDateTime(year, month, day, hour, minute, second).toInstant(TimeZone.of("America/Costa_Rica"))
+}
+    .getOrNull()
 
 private fun String.toDriverDisplayName(): String =
     lowercase()

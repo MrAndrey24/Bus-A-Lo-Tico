@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
@@ -88,22 +89,21 @@ class RouteViewModel(
       return
     }
 
-    searchJob =
-        viewModelScope.launch {
-          delay(500.milliseconds)
-          _uiState.value = _uiState.value.copy(isSearching = true)
+    searchJob = viewModelScope.launch {
+      delay(500.milliseconds)
+      _uiState.value = _uiState.value.copy(isSearching = true)
 
-          try {
-            val results = searchRoutesByLocationUseCase(newQuery)
-            _uiState.value = _uiState.value.copy(searchResults = results, isSearching = false)
-          } catch (e: Exception) {
-            _uiState.value =
-                _uiState.value.copy(
-                    isSearching = false,
-                    errorMessage = e.message ?: "Error searching routes",
-                )
-          }
-        }
+      try {
+        val results = searchRoutesByLocationUseCase(newQuery)
+        _uiState.value = _uiState.value.copy(searchResults = results, isSearching = false)
+      } catch (e: Exception) {
+        _uiState.value =
+            _uiState.value.copy(
+                isSearching = false,
+                errorMessage = e.message ?: "Error searching routes",
+            )
+      }
+    }
   }
 
   fun onRouteSelected(route: Route) {
@@ -129,16 +129,15 @@ class RouteViewModel(
     val currentUserId = userId ?: return
 
     viewModelScope.launch {
-      runCatching { userRepository.getFavoriteRouteIds(currentUserId) }
-          .onSuccess { favoriteRouteIds ->
+      userRepository
+          .getFavoriteRouteIds(currentUserId)
+          .catch { error ->
+            _uiState.value =
+                _uiState.value.copy(errorMessage = error.message ?: "Error al cargar favoritas")
+          }
+          .collect { favoriteRouteIds ->
             _uiState.value =
                 _uiState.value.copy(favoriteRouteIds = favoriteRouteIds, errorMessage = null)
-          }
-          .onFailure { error ->
-            _uiState.value =
-                _uiState.value.copy(
-                    errorMessage = error.message ?: "No se pudieron cargar las favoritas"
-                )
           }
     }
   }
@@ -147,22 +146,23 @@ class RouteViewModel(
     val currentUserId = authRepository.getCurrentUserId() ?: return
 
     viewModelScope.launch {
-      runCatching { userRepository.setRouteFavorite(currentUserId, routeId, isFavorite) }
-          .onSuccess {
-            val updatedFavoriteRouteIds =
-                if (isFavorite) {
-                  _uiState.value.favoriteRouteIds + routeId
-                } else {
-                  _uiState.value.favoriteRouteIds - routeId
-                }
-
-            _uiState.value =
-                _uiState.value.copy(favoriteRouteIds = updatedFavoriteRouteIds, errorMessage = null)
+      val previousFavorites = _uiState.value.favoriteRouteIds
+      val updatedFavoriteRouteIds =
+          if (isFavorite) {
+            previousFavorites + routeId
+          } else {
+            previousFavorites - routeId
           }
+
+      _uiState.value =
+          _uiState.value.copy(favoriteRouteIds = updatedFavoriteRouteIds, errorMessage = null)
+
+      runCatching { userRepository.setRouteFavorite(currentUserId, routeId, isFavorite) }
           .onFailure { error ->
             _uiState.value =
                 _uiState.value.copy(
-                    errorMessage = error.message ?: "No se pudo actualizar la favorita"
+                    favoriteRouteIds = previousFavorites,
+                    errorMessage = error.message ?: "No se pudo actualizar la favorita",
                 )
           }
     }
@@ -177,11 +177,10 @@ class RouteViewModel(
 
     if (driverIds.isEmpty()) return emptyMap()
 
-    val executionsByDriver =
-        driverIds.associateWith { driverId ->
-          runCatching { tripExecutionRepository.getTripExecutionsByDriver(driverId) }
-              .getOrDefault(emptyList())
-        }
+    val executionsByDriver = driverIds.associateWith { driverId ->
+      runCatching { tripExecutionRepository.getTripExecutionsByDriver(driverId) }
+          .getOrDefault(emptyList())
+    }
 
     val todayKey = todayDateKey()
 

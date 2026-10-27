@@ -10,22 +10,48 @@
  */
 package com.example.sharedlogic.data.repository.user
 
-import com.example.sharedlogic.data.remote.user.IUserRemoteDataSource
+import com.example.sharedlogic.data.local.user.ILocalUserDataSource
+import com.example.sharedlogic.data.remote.user.IRemoteUserDataSource
 import com.example.sharedlogic.domain.entities.UserProfile
 import com.example.sharedlogic.domain.entities.UserRole
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
-class UserRepository(private val remoteDataSource: IUserRemoteDataSource) : IUserRepository {
+class UserRepository(
+    private val localUserDataSource: ILocalUserDataSource,
+    private val remoteUserDataSource: IRemoteUserDataSource,
+    private val defaultDispatcher: CoroutineDispatcher,
+) : IUserRepository {
 
   override suspend fun getUserProfile(userId: String): UserProfile? {
-    return remoteDataSource.getUserProfile(userId)
+    return remoteUserDataSource.getUserProfile(userId)
   }
 
-  override suspend fun getFavoriteRouteIds(userId: String): Set<String> {
-    return remoteDataSource.getUserProfile(userId)?.favoriteRouteIds ?: emptySet()
+  override fun getFavoriteRouteIds(userId: String): Flow<Set<String>> = flow {
+    // Emit local cached data first
+    val cachedFavorites = localUserDataSource.getFavoriteRouteIds(userId)
+    emit(cachedFavorites)
+
+    // Fetch remote data & update local cache
+    runCatching { remoteUserDataSource.getFavoriteRouteIds(userId) }
+        .onSuccess { remoteFavorites ->
+          if (remoteFavorites != cachedFavorites) {
+            localUserDataSource.clearAndCreateFavorites(userId, remoteFavorites)
+            emit(remoteFavorites)
+          }
+        }
+        .onFailure { exception ->
+          println(
+              "Failed fetching favorites from network. Using local cache. $exception",
+          )
+        }
   }
+      .flowOn(defaultDispatcher)
 
   override suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String> {
-    return remoteDataSource.getPassengerIdsByFavoriteRoute(routeId)
+    return remoteUserDataSource.getPassengerIdsByFavoriteRoute(routeId)
   }
 
   override suspend fun upsertUserProfile(
@@ -35,10 +61,21 @@ class UserRepository(private val remoteDataSource: IUserRemoteDataSource) : IUse
       role: UserRole,
       companyId: String?,
   ): UserProfile {
-    return remoteDataSource.upsertUserProfile(userId, email, name, role, companyId)
+    return remoteUserDataSource.upsertUserProfile(userId, email, name, role, companyId)
   }
 
   override suspend fun setRouteFavorite(userId: String, routeId: String, isFavorite: Boolean) {
-    remoteDataSource.setRouteFavorite(userId, routeId, isFavorite)
+    // Local-First: Update local database first
+    localUserDataSource.setRouteFavorite(userId, routeId, isFavorite)
+
+    // Sync to remote
+    runCatching {
+      remoteUserDataSource.setRouteFavorite(userId, routeId, isFavorite)
+    }
+        .onFailure { exception ->
+          // Revert local state if remote write fails to stay in sync
+          localUserDataSource.setRouteFavorite(userId, routeId, !isFavorite)
+          throw exception
+        }
   }
 }

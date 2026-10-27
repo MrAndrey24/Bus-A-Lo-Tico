@@ -69,7 +69,7 @@ fun AdminNavigation(
             )
           }
         }
-      }
+      },
   ) { innerPadding ->
     NavHost(
         navController = navController,

@@ -12,11 +12,12 @@ package com.example.sharedlogic.data.repository.user
 
 import com.example.sharedlogic.domain.entities.UserProfile
 import com.example.sharedlogic.domain.entities.UserRole
+import kotlinx.coroutines.flow.Flow
 
 interface IUserRepository {
   suspend fun getUserProfile(userId: String): UserProfile?
 
-  suspend fun getFavoriteRouteIds(userId: String): Set<String>
+  fun getFavoriteRouteIds(userId: String): Flow<Set<String>>
 
   suspend fun getPassengerIdsByFavoriteRoute(routeId: String): Set<String>
 

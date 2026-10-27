@@ -124,19 +124,18 @@ class RouteDetailViewModel(
     simulationJob?.cancel()
     _isSimulationCompleted.value = false
 
-    simulationJob =
-        viewModelScope.launch {
-          if (points.isEmpty()) return@launch
+    simulationJob = viewModelScope.launch {
+      if (points.isEmpty()) return@launch
 
-          for (point in points) {
-            if (!isActive) break
-            _busLocation.value = point
-            updateCurrentStop(point)
-            delay(3000)
-          }
+      for (point in points) {
+        if (!isActive) break
+        _busLocation.value = point
+        updateCurrentStop(point)
+        delay(3000)
+      }
 
-          _isSimulationCompleted.value = true
-        }
+      _isSimulationCompleted.value = true
+    }
   }
 
   private fun updateCurrentStop(busLocation: Coordinate) {

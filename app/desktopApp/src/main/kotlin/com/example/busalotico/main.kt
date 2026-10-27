@@ -94,7 +94,7 @@ private fun initializeDesktopFirebase() {
   val properties = Properties()
   val stream =
       checkNotNull(
-          Thread.currentThread().contextClassLoader.getResourceAsStream("firebase.properties")
+          Thread.currentThread().contextClassLoader.getResourceAsStream("firebase.properties"),
       ) {
         "No se encontró desktopApp/src/jvmMain/resources/firebase.properties"
       }

@@ -87,7 +87,7 @@ fun HomeScreen(
               rememberStandardBottomSheetState(
                   initialValue = SheetValue.PartiallyExpanded,
                   skipHiddenState = true,
-              )
+              ),
       )
 
   BottomSheetScaffold(

@@ -12,4 +12,6 @@ package com.example.sharedlogic.di.modules
 
 import org.koin.dsl.module
 
-val sharedModule = module { includes(dataModule, domainModule, presentationModule, networkModule) }
+val sharedModule = module {
+  includes(dataModule, domainModule, presentationModule, networkModule, platformModule())
+}
